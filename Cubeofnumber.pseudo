@@ -1,0 +1,19 @@
+To find cube of number 
+pseudo:
+       Input num
+       cube = num * num  * num
+       Print cube
+
+pseudo : routine
+       Function FindCube(num)
+       cube = num * num * num
+       Return cube
+
+pseudo: routine test
+       Function TestFindCube()
+       Input num 
+       cube = FindCube(num)
+       Print cube
+
+       
+ 
