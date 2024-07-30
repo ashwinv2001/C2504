@@ -1,0 +1,20 @@
+To find the average of two numbers.
+pseudo: input number1
+        input number2
+        sum = number1 + number2
+        average= sum/2
+        print average
+
+pseudo: routine
+        Function FindAvg(num1 , num2)
+        sum = num1 + num2
+        average = sum/2
+        return average
+
+pseudo: routine test
+        Fuction Testfindavg()
+        input num1, num2
+        average = FindAvg(num1,num2)
+        print average
+        
+        
