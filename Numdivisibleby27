@@ -9,4 +9,16 @@ pseudo:
 
 pseudo : routine
        Function Isdivisibleby27(num)
-        if num%
+        if num%27 == 0 
+          return TRUE
+        else 
+          return FALSE
+
+pseudo : routine test  
+       Function TestIsdivisibleby27()
+        input num
+       if Isdivisibleby27(num) 
+            print " Divisible by 27 " 
+       else
+           print "Not Divisible by 27 " 
+
