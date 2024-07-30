@@ -1,0 +1,22 @@
+pseudo:
+input num1
+    if num%3==0
+      print num is divisible by 3 
+    else 
+      print num is not divisible by 3
+
+pseudo: routine
+  Function isdivisibleby3(num)
+    if num%3==0
+        return TRUE
+    else 
+        return FALSE
+
+pseudo : routine test
+     Function testisdivisibleby3()
+         input num
+      if(isdivisible(num))
+       print " Divisible by 3 "
+      else 
+       print " not divisible by 3 " 
+    
