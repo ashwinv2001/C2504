@@ -1,0 +1,30 @@
+To find an element from the array.
+   array : unsorted
+   linear search : approach
+
+to find the index of the key in array
+
+pseudo: input  array eleements , key
+        for index from 0 to last element
+            if array[index]= key
+                print key found at index 
+
+pseudo: Routine 
+      Function FindIndex(array , size , key )
+          for index in 0 to size-1
+              if array[index]== key
+                  return index
+              end if
+           end for
+           return -1
+
+pseudo : TestRoutine
+        Function TestFindIndex()
+         Input size
+         Input the numbers in array[size]
+         Input key
+         index = FindIndex(array,size,key)
+         if index !=-1
+            print index
+        else
+            print "Not found"
