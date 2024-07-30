@@ -1,0 +1,16 @@
+pseudo:
+input num
+sqre = num*num
+print sqre
+
+pseudo: routine 
+Function sqre(num)
+ sq=num*num
+ return sq
+
+ pseudo: routine test
+ Function Testsqre()
+   input num
+   print sqre(num)
+
+   
