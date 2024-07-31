@@ -1,0 +1,141 @@
+1.To print the one is adust based his/her age 
+   
+    function IsAdult(age) -> boolean 
+        isAdult = (age >= 18);
+        return isAdult; 
+
+    function TestIsAdult(): -> None
+        Input age 
+        if(IsAdult(age)) 
+            print 'You are an adult.'
+        end if
+
+2.Input mark, if IsMarkGreaterThan40(mark)       
+
+function IsMarkGreaterThan40(mark): -> boolean
+    isMarkGreaterThan40 = (mark > 40)
+    return isMarkGreaterThan40
+
+function TestIsMarkGreaterThan40(): -> None
+    Input mark 
+    if IsMarkGreaterThan40(mark)
+        print "pass" 
+    else 
+        print "fail" 
+  3.Input number, check it is positive or negative 
+      function IsNumberPositiveorNegative(number)
+         if(Number>0)
+           print'Number is positive'
+        else
+           printNumber is negative
+
+        function TestIsNumberPositive or Negative()
+          input Number
+        if IsNumberPositive(number)
+          print'Number is positive'
+        else
+           printNumber is negativeorNegative
+
+    4. To check the person adult, teenager or child 
+    for given age 
+    function IsAdult(age) -> boolean 
+        isAdult = (age >= 18);
+        return isAdult; 
+    function IsTeenager(age) -> boolean 
+        isTeenager = (age >= 13);
+        return isTeenager; 
+    function TestIsAdultTeenagerOrChild(): -> None
+        Input age 
+        if(IsAdult(age)) 
+            print 'You are an adult.'
+        else if(IsTeenager(age)) 
+            print 'You are a teenager.'
+        else
+            print 'You are a child.'
+        end if
+
+        5. function SuggestMaintenance(serviceOption->char) -> string
+        string suggestion;
+        switch serviceOption
+            case 'O':
+                suggestion = "Change Oil and Replace Oil Filter"
+                break
+            case 'T':
+                suggestion = "Rotate Tire and align them properly"
+                break
+            case 'B':
+                suggestion = "Inspect the brake and replace them if necessary"
+                break
+            case 'A':
+                suggestion = "Battery Check and Replace them"
+                break
+            default: 
+                suggestion = "Some other reason"
+                break 
+        end switch 
+        return suggestion
+    function TestSuggestMaintenance() -> None       marks: 100
+        Input serviceOption 
+        suggestion = SuggestMaintenance(serviceOption)
+        print suggestion        
+    function TestSuggestMaintenance() -> None       marks: 99
+        Input serviceOption 
+        print SuggestMaintenance(serviceOption)
+
+        6.Function DetermineHealthRisk(BMI)
+        string healthRisk
+
+        If BMI < 18.5
+            healthRisk = "Underweight"
+        Else If BMI <= 24.9
+            healthRisk = "Normal weight"
+        Else
+            healthRisk = "Overweight"
+        
+        Return healthRisk
+    End Function
+
+    decimal BMI
+    string healthRisk
+
+    Print "Enter BMI:"
+    Input BMI 
+   
+    healthRisk = DetermineHealthRisk(BMI)
+
+    
+    Print "Your health risk category is: " + healthRisk
+End
+
+7.Function to print the first N whole numbers
+    Function PrintWholeNumbers(N)
+        integer i
+        For i = 0 to N - 1
+            Print i
+        End For
+    End Function
+    integer N
+
+    Print "Enter the number of whole numbers to print:"
+    Input N  
+    
+    Call PrintWholeNumbers(N)
+End
+ 8.start
+  
+    Function CheckMaintenance(caseType)
+        string maintenanceMessage
+
+        If caseType == 'O'
+            maintenanceMessage = "Change Oil and Replace Oil Filter"
+        Else If caseType == 'T'
+            maintenanceMessage = "Rotate Tire and align them properly"
+        Else If caseType == 'B'
+            maintenanceMessage = "Inspect the brake and replace them if necessary"
+        Else If caseType == 'A'
+            maintenanceMessage = "Battery Check and Replace them"
+        Else
+            maintenanceMessage = "Some other reason"
+        
+        Return maintenanceMessage
+    End Function 
