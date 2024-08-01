@@ -1,0 +1,10 @@
+function IsDoctorSalaryMin6Digits(doctorSalary) 
+    return doctorSalary >= 100000
+
+
+function TestIsDoctorSalaryMin6Digits()
+    Input doctorSalary
+    if IsDoctorSalaryMin6Digits(doctorSalary)
+        print "Doctor gets Min 6 digits salary"
+    end if 
+
