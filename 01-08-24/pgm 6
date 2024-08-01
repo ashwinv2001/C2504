@@ -1,23 +1,33 @@
-ReadAndCountDoctorsMin6DigitsSalaried(): without array 
+6.class ReadAndCountDoctorsMin6DigitsSalaried
+{
+static bool IsDoctorSalaryMin6Digits(int salary)
+    {
+        return salary >= 100000;
+    }
+ static int ReadAndCountDoctorsMin6DigitsSalaried()
+    {
+        int count = 0;
 
-function isdoctorsalary6digit(salary) -> Boolean
-return salary>=100000
+        Console.WriteLine("Enter the number of doctors: ");
+        int N = int.Parse(Console.ReadLine());
 
+        for (int i = 1; i <= N; i++)
+        {
+            Console.WriteLine($"Enter the salary for doctor {i}: ");
+            int salary = int.Parse(Console.ReadLine());
 
+            bool isMin6Digits = IsDoctorSalaryMin6Digits(salary);
+            if (isMin6Digits)
+            {
+                count++;
+            }
+        }
 
-
-function  main()
-count=0
-min=0
-input the size
-for I =0 to i<size
-input  salary
-if(isdoctorsalary6digit)
-count++
-if(min<salary)
-min=salary
-end if 
-end if
-
-print count
-print min
+        return count;
+    }
+ static void Main(string[] args)
+    {
+        int count = ReadAndCountDoctorsMin6DigitsSalaried();
+        Console.WriteLine("Number of doctors with at least 6-digit salaries: " + count);
+    }
+}
