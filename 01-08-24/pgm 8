@@ -6,6 +6,9 @@ input size
 int i=0;
 do
   input salary
-sum+=salary
+if(salary<0)
+print"inavid salary"
+else
+  sum+=salary
 i++
 while(i<size-1)
