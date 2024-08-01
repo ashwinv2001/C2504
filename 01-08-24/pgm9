@@ -5,8 +5,11 @@ input size
 sum=0
 int i=0;
 while(i<size)
-input salary
-sum+=salary
-
+   input salary
+  if (salary<0)
+     print"invalid salary"
+else
+   sum+=salary
+end while
 
 print sum
