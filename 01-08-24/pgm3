@@ -1,6 +1,6 @@
-class TestIsDoctorSalaryMin6DigitsOrNotGirish
+3.TestIsDoctorSalaryMin6DigitsOrNot
 {
-   
+        class TestIsDoctorSalaryMin6Digits
     static bool IsDoctorSalaryMin6Digits(int doctorSalary)
     {
         int salary = doctorSalary;
@@ -38,4 +38,5 @@ class TestIsDoctorSalaryMin6DigitsOrNotGirish
     }
     
     
+}
 }
