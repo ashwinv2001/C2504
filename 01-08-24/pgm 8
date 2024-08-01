@@ -1,0 +1,11 @@
+ 8. ReadAndFindSumOfDoctorsSalariesTillZero() use do..while loop 
+
+function main()
+sum=0;
+input size
+int i=0;
+do
+  input salary
+sum+=salary
+i++
+while(i<size-1)
