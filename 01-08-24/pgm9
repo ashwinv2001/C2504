@@ -1,15 +1,56 @@
- ReadAndFindSumOfDoctorsSalariesTillZero() use while loop 
+QUESTION
+9.ReadAndFindSumOfDoctorsSalariesTillZero() use while loop 
 
-function main()
-input size
-sum=0
-int i=0;
-while(i<size)
-   input salary
-  if (salary<0)
-     print"invalid salary"
-else
-   sum+=salary
-end while
 
-print sum
+***pseudocode***
+
+
+function ReadAndFindSumOfDoctorsSalariesTillZero()
+    sum = 0 
+    input salary
+    while salary != 0
+        if (salary < 0) //Invalid salary
+            print "Input valid salary"
+            input salary
+            continue
+        end if         
+        
+        sum += salary
+        input salary
+    end while 
+    print sum 
+
+
+  ***C# CODE****
+
+
+class ReadAndFindSumOfDoctorsSalariesTillZerowhileloop
+{
+ static void ReadAndFindSumOfDoctorsSalariesTillZero()
+ {
+   int sum = 0 ;
+   Console.Write("Enter salary");
+   int salary = int.Parse(Console.ReadLine());
+    while (salary != 0)
+    {
+        if (salary < 0) //Invalid salary
+        {
+          Console.WriteLine("Input valid salary");
+          Console.Write("Enter salary");
+          salary = int.Parse(Console.ReadLine());
+          continue;
+        }         
+        sum += salary;
+        Console.Write("Enter salary");
+        salary = int.Parse(Console.ReadLine());
+    }
+   Console.WriteLine($"sum is : {sum}");
+}
+
+ static void Main(string[] args) 
+    {
+        ReadAndFindSumOfDoctorsSalariesTillZero();
+        Console.WriteLine("Press any key to contine...");
+        Console.ReadKey();
+    }
+ }
