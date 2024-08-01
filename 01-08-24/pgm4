@@ -1,0 +1,21 @@
+function isdoctorsalary6digit(salary) -> Boolean
+return salary>=100000
+
+
+
+
+function  main()
+count=0
+min=0
+input the size
+for I =0 to i<size
+input  salary
+if(isdoctorsalary6digit)
+count++
+if(min<salary)
+min=salary
+end if 
+end if
+
+print count
+print min
