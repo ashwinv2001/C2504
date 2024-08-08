@@ -1,0 +1,124 @@
+1.pallindrome
+Input string
+initialize reversedString   
+For i = length of string - 1 down to 0
+reversedString = reversedString + string[i]
+ If string is equal to reversedString
+    Print "The string is a palindrome."
+ Else
+    Print "The string is not a palindrome."
+2.array
+int maxValue
+ int currentValue
+ int arraySize
+    
+ Input arraySize
+    If arraySize <= 0
+        Print "Error: Array size must be greater than zero"
+        Return
+    Input firstElement
+    maxValue = firstElement
+    For i = 2 to arraySize
+        Input currentValue
+        If currentValue > maxValue
+            maxValue = currentValue
+        End If
+    End For
+3.
+decimal balance = 0  
+decimal amount  
+
+Print "Enter deposit amount:"
+Input amount  
+If amount > 0
+    balance = balance + amount
+    Print "Deposited. New balance is: " + balance
+Else
+    Print "Invalid deposit amount."
+
+
+Print "Enter withdrawal amount:"
+Input amount  
+If amount > 0
+    If amount <= balance
+        balance = balance - amount
+        Print "Withdrew. New balance is: " + balance
+    Else
+        Print "Insufficient funds."
+Else
+    Print "Invalid withdrawal amount."
+    4.Sum of 10 even number
+    Begin
+ integer sum = 0         
+    integer count = 0       
+    integer number = 2      
+    
+    While count < 10        
+        sum = sum + number  
+        count = count + 1   
+        number = number + 2 
+
+    Print "The sum of the first 10 even numbers is: " + 
+End
+5.calculator
+Input number1
+ Input number2
+ Input operator
+
+ If operator is "+"
+    result = number1 + number2
+ Else If operator is "-"
+    result = number1 - number2
+ Else If operator is "*"
+     result = number1 * number2
+ Else If operator is "/"
+     If number2 is not 0
+          result = number1 / number2
+      Else
+          Print "Error: Division by zero"
+             Return
+ Else
+   Print "Error: Invalid"
+        Return
+ Print "The result is: " + result
+
+6.FizzBuzz
+For i = 1 to 100
+If i % 3 == 0 and i % 5 == 0
+    Print "FizzBuzz"
+Else If i % 3 == 0
+     Print "Fizz"
+ Else If i % 5 == 0
+     Print "Buzz"
+ Else
+       Print i
+7.cart
+DECLARE items AS ARRAY OF FLOAT
+    DECLARE total AS FLOAT
+    DECLARE discount AS FLOAT
+    DECLARE finalTotal AS FLOAT
+    DECLARE threshold AS FLOAT
+    DECLARE discountRate AS FLOAT
+ 
+    SET items = [item1, item2, item3, ..., itemN]  // Assume item1, item2, etc., are the prices of the items
+    SET total = 0.0
+    SET threshold = 100.0  // Example threshold amount for discount
+    SET discountRate = 0.10  // Example discount rate of 10%
+ 
+    FOR EACH item IN items
+        total = total + item
+    END FOR
+ 
+    IF total > threshold THEN
+        discount = total * discountRate
+    ELSE
+        discount = 0
+    END IF
+ 
+    finalTotal = total - discount
+ 
+    PRINT "Total before discount: ", total
+    PRINT "Discount applied: ", discount
+    PRINT "Total after discount: ", finalTotal
+END
+    
