@@ -1,0 +1,47 @@
+LAB - HTML
+-----------------------------------------------------------------------------------------------------------------------------------
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        h1{
+            color: white;
+        }
+        body{
+            background-color:tan;
+        }
+    </style>
+</head>
+<body>
+    <h1>hi</h1>
+    <h2>hi</h2>
+    <h3>hi</h3>
+    <h4>hi</h4>
+    <h5>hi</h5>
+    <h6>hi</h6>
+    <pre><!---------preserves formatting---------------------->
+        jfelfkl
+        dncdj
+     sjnsjnjs   sjcjcbjcbj
+    </pre>
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Optio libero dolorem praesentium sunt, possimus aspernatur, numquam ratione voluptates laborum quia quidem maiores, assumenda maxime aut est! Rerum officiis illo vero!</p>
+
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Optio libero dolorem praesentium sunt, possimus aspernatur, numquam ratione voluptates laborum quia quidem maiores, assumenda maxime aut est! Rerum officiis illo vero!</p>
+    
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.<wbr> Optio libero dolorem praesentium sunt, possimus aspernatur, numquam ratione voluptates laborum quia quidem maiores, assumenda maxime aut est! Rerum officiis illo vero!</p>
+    <h1>main heading</h1>
+    <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Eligendi esse voluptate animi totam sint maiores. Provident est architecto minus odio mollitia, laborum error consectetur cupiditate! Eligendi laboriosam tenetur recusandae beatae!</p>
+    <h2>main heading</h2>
+    <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Eligendi esse voluptate animi totam sint maiores. Provident est architecto minus odio mollitia, laborum error consectetur cupiditate! Eligendi laboriosam tenetur recusandae beatae!</p>
+    <span>hi</span>
+    <span>hello</span>
+    <hr>
+    <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Incidunt et debitis<br> mollitia! Molestias modi nihil error itaque repellat neque cupiditate, recusandae voluptatum in vel soluta, at iste officia quidem velit!</p>
+    <p>show inline code <code>Console.WriteLine()</code>to display the code</p>
+    
+</body>
+</html>
