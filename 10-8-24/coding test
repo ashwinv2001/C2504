@@ -1,0 +1,108 @@
+Question 1 of 5
+Week#2Coding
+Find Employees with the Most Orders
+Problem: Given an Employees table and an Orders table,
+find the employee who has processed the most orders.
+
+Table Structure:
+
+CREATE TABLE Employees (
+EmployeeID INT,
+Name VARCHAR(100)
+);
+
+CREATE TABLE Orders (
+OrderID INT,
+EmployeeID INT
+);
+
+SELECT 
+    E.EmployeeID, 
+    E.Name, 
+    COUNT(O.OrderID) AS OrderCount
+FROM 
+    Employees E
+JOIN 
+    Orders O 
+ON 
+    E.EmployeeID = O.EmployeeID
+GROUP BY 
+    E.EmployeeID, E.Name
+ORDER BY 
+    OrderCount DESC
+LIMIT 1;
+
+Question 2 of 5
+Week#2Coding
+Find Employees with No Manager
+Problem:
+Given an Employees table
+with columns EmployeeID, Name, and ManagerID
+(which refers to EmployeeID of the manager),
+find all employees who do not have a manager.
+
+Table Structure:
+
+CREATE TABLE Employees (
+EmployeeID INT,
+Name VARCHAR(100),
+ManagerID INT
+);
+
+SELECT 
+    EmployeeID, 
+    Name
+FROM 
+    Employees
+WHERE 
+    ManagerID IS NULL;
+	
+Question 3 of 5
+Week#2Coding
+Find Average Salary and Number of Employees in Each Department
+Problem: Given an Employees table,
+find the average salary and number of employees
+in each department.
+Table:
+Employees {EmployeeID, DepartmentID, Salary}
+SELECT 
+    DepartmentID, 
+    AVG(Salary) AS AverageSalary, 
+    COUNT(EmployeeID) AS NumberOfEmployees
+FROM 
+    Employees
+GROUP BY 
+    DepartmentID;
+	
+Question 4 of 5
+Week#2Coding
+Find Employees Who Report to More Than One Manager
+Problem: Given an Employees table
+with columns EmployeeID, Name, and ManagerID,
+find employees who report to more than one manager.
+SELECT 
+    EmployeeID, 
+    Name,
+    COUNT(DISTINCT ManagerID) AS ManagerCount
+FROM 
+    Employees
+GROUP BY 
+    EmployeeID, Name
+HAVING 
+    COUNT(DISTINCT ManagerID) > 1;
+	
+	
+Question 5 of 5
+Week#2Coding
+Find the Monthly Average Sales for Each Salesperson
+Problem: Given a Sales table
+with columns SalesPersonID, SaleAmount, and SaleDate,
+find the monthly average sales for each salesperson.
+SELECT 
+    SalesPersonID, 
+    DATE_FORMAT(SaleDate, '%Y-%m') AS SaleMonth, 
+    AVG(SaleAmount) AS MonthlyAverageSales
+FROM 
+    Sales
+GROUP BY 
+    SalesPersonID, SaleMonth;
