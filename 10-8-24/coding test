@@ -80,17 +80,27 @@ Find Employees Who Report to More Than One Manager
 Problem: Given an Employees table
 with columns EmployeeID, Name, and ManagerID,
 find employees who report to more than one manager.
-SELECT 
-    EmployeeID, 
-    Name,
-    COUNT(DISTINCT ManagerID) AS ManagerCount
-FROM 
-    Employees
-GROUP BY 
-    EmployeeID, Name
-HAVING 
-    COUNT(DISTINCT ManagerID) > 1;
-	
+
+WITH RecursiveCTE AS (
+    -- Base case: Start with employees who directly report to a manager
+    SELECT EmployeeID, Name, ManagerID, 1 AS Level
+    FROM Employees
+    WHERE ManagerID IS NOT NULL
+    
+    UNION ALL
+    
+    -- Recursive case: Traverse up the hierarchy
+    SELECT e.EmployeeID, e.Name, m.ManagerID, Level + 1
+    FROM Employees e
+    INNER JOIN RecursiveCTE m ON e.ManagerID = m.EmployeeID
+)
+
+-- Select employees who have more than one distinct manager level
+SELECT EmployeeID, Name
+FROM RecursiveCTE
+GROUP BY EmployeeID, Name
+HAVING COUNT(DISTINCT ManagerID) > 1;
+
 	
 Question 5 of 5
 Week#2Coding
