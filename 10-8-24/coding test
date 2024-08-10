@@ -83,17 +83,30 @@ find employees who report to more than one manager.
 
 WITH RecursiveCTE AS (
     -- Base case: Start with employees who directly report to a manager
-    SELECT EmployeeID, Name, ManagerID, 1 AS Level
+    SELECT EmployeeID, ManagerID
     FROM Employees
     WHERE ManagerID IS NOT NULL
     
     UNION ALL
     
     -- Recursive case: Traverse up the hierarchy
-    SELECT e.EmployeeID, e.Name, m.ManagerID, Level + 1
+    SELECT e.EmployeeID, r.ManagerID
     FROM Employees e
-    INNER JOIN RecursiveCTE m ON e.ManagerID = m.EmployeeID
+    INNER JOIN RecursiveCTE r ON e.ManagerID = r.EmployeeID
+),
+ManagerCounts AS (
+    -- Count distinct managers for each employee
+    SELECT EmployeeID, COUNT(DISTINCT ManagerID) AS ManagerCount
+    FROM RecursiveCTE
+    GROUP BY EmployeeID
 )
+-- Final SELECT statement to retrieve employees with more than one manager
+SELECT e.EmployeeID, e.Name
+FROM Employees e
+INNER JOIN ManagerCounts m ON e.EmployeeID = m.EmployeeID
+WHERE m.ManagerCount > 1;
+
+
 
 -- Select employees who have more than one distinct manager level
 SELECT EmployeeID, Name
@@ -110,9 +123,10 @@ with columns SalesPersonID, SaleAmount, and SaleDate,
 find the monthly average sales for each salesperson.
 SELECT 
     SalesPersonID, 
-    DATE_FORMAT(SaleDate, '%Y-%m') AS SaleMonth, 
+    FORMAT(SaleDate, 'yyyy-MM') AS SaleMonth, 
     AVG(SaleAmount) AS MonthlyAverageSales
 FROM 
     Sales
 GROUP BY 
-    SalesPersonID, SaleMonth;
+    SalesPersonID, FORMAT(SaleDate, 'yyyy-MM');
+
