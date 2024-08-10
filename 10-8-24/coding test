@@ -17,7 +17,7 @@ EmployeeID INT
 );
 
 SELECT 
-    E.EmployeeID, 
+    TOP 1 E.EmployeeID, 
     E.Name, 
     COUNT(O.OrderID) AS OrderCount
 FROM 
@@ -29,8 +29,8 @@ ON
 GROUP BY 
     E.EmployeeID, E.Name
 ORDER BY 
-    OrderCount DESC
-LIMIT 1;
+    OrderCount DESC;
+
 
 Question 2 of 5
 Week#2Coding
