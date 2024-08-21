@@ -1,0 +1,77 @@
+LAB
+
+1.Use of new keyword in methods
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace NewKey
+{
+    public class NewKeyword
+    {
+        public string Name { get; set; } = "ammu";
+        public int Age { get; set; } = 5;
+
+         public void Display()
+        {
+            Console.WriteLine($"my name is {Name} and my age is {Age}");
+        }
+    }
+    class ChildNew : NewKeyword
+    {
+        new public void Display()
+        {
+            Console.WriteLine($"my name is {Name} and i like to play");
+        }
+    }
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            NewKeyword k1= new NewKeyword();
+            k1.Display();
+            ChildNew k2= new ChildNew();
+            k2.Display();
+        }
+    }
+}
+
+2.Use of params
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp36
+{
+    using System;
+
+    class Program
+    {
+        static void SumOfNos(params int[] numbers)
+        {
+            int sum = 0;
+            foreach (int number in numbers)
+            {
+                sum = sum + number;
+            }
+            Console.WriteLine(sum);
+        }
+        static void Main()
+        {
+            Console.Write("sum of 3 nos: ");
+            SumOfNos(1,2,3);
+            Console.Write("sum of 2 nos: ");
+            SumOfNos(5,10);
+            Console.Write("sum of 10 nos: ");
+            SumOfNos(1,2,3,4,5,6,7,8,9,10);
+
+        }
+    }
+
+}
