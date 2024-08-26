@@ -1,0 +1,432 @@
+ASSIGNMENT
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+1. Indexer
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp50
+{
+    public class EmployeeSalaries
+    {
+        private double[] salaries;
+        public EmployeeSalaries(int size)
+        {
+            salaries = new double[size];
+        }
+
+        public double this[int index]
+        {
+            get
+            {
+                return salaries[index];
+            }
+            set
+            {
+                salaries[index] = value;
+            }
+        }
+    }
+    internal class Programs
+    {
+
+
+        static void Main(string[] args)
+        {
+            Console.Write("Number of Salaries:");
+            int N = int.Parse(Console.ReadLine());
+            EmployeeSalaries employeeSalaries = new EmployeeSalaries(N);
+            Console.WriteLine($"Enter {N} salaries one by one.");
+            for (int I = 0; I < N; I++)
+            {
+                Console.Write($"Salary {I + 1}:");
+                employeeSalaries[I] = double.Parse(Console.ReadLine());
+            }
+            Console.WriteLine($"Salaries:");
+            for (int I = 0; I < N; I++)
+            {
+                Console.Write($"{employeeSalaries[I]} ");
+            }
+            Console.WriteLine();
+        }
+    }
+}
+---------------------------------------------------------------------------------------------------------------------------------------
+2. MULTIDIMENSIONAL
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp50
+{
+    public class EmployeeSalaries
+    {
+        private double[,] salaryMatrix;
+        public EmployeeSalaries(int rows, int cols)
+        {
+            salaryMatrix = new double[rows, cols];
+        }
+
+        public double this[int rowIndex, int colIndex]
+        {
+            get
+            {
+                return salaryMatrix[rowIndex, colIndex];
+            }
+            set
+            {
+                salaryMatrix[rowIndex, colIndex] = value;
+            }
+        }
+    }
+    internal class Programs
+    {
+
+
+        static void Main(string[] args)
+        {
+            Console.Write("Number of Rows in Salary Matrix:");
+            int rows = int.Parse(Console.ReadLine());
+            Console.Write("Number of Columns in Salary Matrix:");
+            int cols = int.Parse(Console.ReadLine());
+            EmployeeSalaries employeeSalaries = new EmployeeSalaries(rows, cols);
+            Console.WriteLine($"Enter {rows}x{cols} salary matrix row by row.");
+            for (int I = 0; I < rows; I++)
+            {
+                for (int J = 0; J < cols; J++)
+                {
+                    Console.Write($"Salary at {I},{J}:");
+                    employeeSalaries[I, J] = double.Parse(Console.ReadLine());
+                }
+            }
+            Console.WriteLine($"Salary Matrix:");
+            for (int I = 0; I < rows; I++)
+            {
+                for (int J = 0; J < cols; J++)
+                {
+                    Console.Write($"{employeeSalaries[I, J]} ");
+                }
+                Console.WriteLine();
+            }
+        }
+    }
+}
+-------------------------
+3.MULTIFIELD-SWITCH CASE
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp50
+{
+    public class EmployeeSalaries
+    {
+        private double firstSalary;
+        private double secondSalary;
+        private double thirdSalary;
+        private double fourthSalary;
+
+        public double this[int index]
+        {
+            get
+            {
+                double sal = 0.0;
+                switch (index)
+                {
+                    case 0:
+                        sal = firstSalary; break;
+                    case 1:
+                        sal = secondSalary; break;
+                    case 2:
+                        sal = thirdSalary; break;
+                    case 3:
+                        sal = fourthSalary; break;
+                }
+                return sal;
+            }
+            set
+            {
+                switch (index)
+                {
+                    case 0:
+                        firstSalary = value; break;
+                    case 1:
+                        secondSalary = value; break;
+                    case 2:
+                        thirdSalary = value; break;
+                    case 3:
+                        fourthSalary = value; break;
+                }
+            }
+        }
+    }
+    internal class Programs
+    {
+
+
+        static void Main(string[] args)
+        {
+
+            EmployeeSalaries employeeSalaries = new EmployeeSalaries();
+            Console.WriteLine($"Enter 4 salries one by one.");
+            for (int I = 0; I < 4; I++)
+            {
+                Console.Write($"Salary at {I}:");
+                employeeSalaries[I] = double.Parse(Console.ReadLine());
+            }
+            Console.WriteLine($"Salary Matrix:");
+            for (int I = 0; I < 4; I++)
+            {
+                Console.Write($"{employeeSalaries[I]} ");
+            }
+            Console.WriteLine();
+        }
+    }
+}
+--------------------------
+4. IENUMERABLE - FOREACH INSTEAD OF FOR LOOP
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp50
+{
+    public class EmployeeSalaries : IEnumerable
+    {
+        private double[] salaries;
+        public EmployeeSalaries(int size)
+        {
+            salaries = new double[size];
+        }
+
+        public double this[int index]
+        {
+            get
+            {
+                return salaries[index];
+            }
+            set
+            {
+                salaries[index] = value;
+            }
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            foreach (var salary in salaries)
+            {
+                yield return salary;
+            }
+        }
+    }
+    internal class Programs
+    {
+
+
+        static void Main(string[] args)
+        {
+            Console.Write("Number of Salaries:");
+            int N = int.Parse(Console.ReadLine());
+            EmployeeSalaries employeeSalaries = new EmployeeSalaries(N);
+            Console.WriteLine($"Enter {N} salaries one by one.");
+            for (int I = 0; I < N; I++)
+            {
+                Console.Write($"Salary {I + 1}:");
+                employeeSalaries[I] = double.Parse(Console.ReadLine());
+            }
+            Console.WriteLine($"Salaries:");
+            for (int I = 0; I < N; I++)
+            {
+                Console.Write($"{employeeSalaries[I]} ");
+            }
+            Console.WriteLine();
+
+            Console.WriteLine($"Salaries:");
+            foreach (var salary in employeeSalaries)
+            {
+                Console.Write($"{salary} ");
+            }
+            Console.WriteLine();
+        }
+    }
+}
+--------------------------
+5. STRING INDEXES-MULTIFIELDS
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp50
+{
+    public class EmployeeSalaries
+    {
+        private double firstSalary;
+        private double secondSalary;
+        private double thirdSalary;
+        private double fourthSalary;
+
+        public double this[string index]
+        {
+            get
+            {
+                double sal = 0.0;
+                switch (index)
+                {
+                    case "one":
+                        sal = firstSalary; break;
+                    case "two":
+                        sal = secondSalary; break;
+                    case "three":
+                        sal = thirdSalary; break;
+                    case "four":
+                        sal = fourthSalary; break;
+                }
+                return sal;
+            }
+            set
+            {
+                switch (index)
+                {
+                    case "one":
+                        firstSalary = value; break;
+                    case "two":
+                        secondSalary = value; break;
+                    case "three":
+                        thirdSalary = value; break;
+                    case "four":
+                        fourthSalary = value; break;
+                }
+            }
+        }
+    }
+    internal class Programs
+    {
+
+
+        static void Main(string[] args)
+        {
+
+            EmployeeSalaries employeeSalaries = new EmployeeSalaries();
+            Console.WriteLine($"Enter 4 salries one by one.");
+
+            Console.Write($"Salary at one:");
+            employeeSalaries["one"] = double.Parse(Console.ReadLine());
+
+            Console.Write($"Salary at two:");
+            employeeSalaries["two"] = double.Parse(Console.ReadLine());
+
+            Console.Write($"Salary at three:");
+            employeeSalaries["three"] = double.Parse(Console.ReadLine());
+
+            Console.Write($"Salary at four:");
+            employeeSalaries["four"] = double.Parse(Console.ReadLine());
+
+            Console.WriteLine($"Salary Matrix:");
+
+            Console.Write($"{employeeSalaries["one"]} ");
+            Console.Write($"{employeeSalaries["two"]} ");
+            Console.Write($"{employeeSalaries["three"]} ");
+            Console.Write($"{employeeSalaries["four"]} ");
+
+            Console.WriteLine();
+        }
+    }
+}
+
+-------------------------------------------------------
+
+6.UNIT TESTING
+
+Program.cs
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp50
+{
+    public class Calc 
+    { 
+        public double Multiply(double first,double second)
+        {
+        return first * second; 
+        }
+        public double Divide(double first, double second)
+        {
+            return first / second;
+        }
+
+
+    }
+    internal class Programs 
+    {
+        static void Main(string[] args)
+        {
+
+        }
+    }
+    
+}
+
+CalcTests.cs
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using ConsoleApp50;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp50.Tests
+{
+    [TestClass()]
+    public class CalcTests
+    {
+        [TestMethod()]
+        public void Multiply_ShouldReturn100ForGiven5And20()
+        {
+            Calc calc = new Calc();
+            double product = calc.Multiply(5.0, 20.0);
+            Assert.AreEqual(100.0, product);
+        }
+        [TestMethod()]
+        public void Multiply_ShouldReturn12ForGiven4And3()
+        {
+            Calc calc = new Calc();
+            double product = calc.Multiply(4.0, 3.0);
+            Assert.AreEqual(12.0, product);
+        }
+
+        [TestMethod()]
+            public void Divide_ShouldReturn10ForGiven100And10()
+            {
+                Calc calc = new Calc();
+                double quotient = calc.Divide(4.0, 3.0);
+                Assert.AreEqual(10.0, quotient);
+            }
+        }
+    }
+}
