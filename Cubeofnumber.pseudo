@@ -1,19 +1,5 @@
-To find cube of number 
-pseudo:
-       Input num
-       cube = num * num  * num
-       Print cube
-
-pseudo : routine
-       Function FindCube(num)
-       cube = num * num * num
-       Return cube
-
-pseudo: routine test
-       Function TestFindCube()
-       Input num 
-       cube = FindCube(num)
-       Print cube
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0103	The name 'InitializeComponent' does not exist in the current context	Example13Project	C:\Users\2021455\source\repos\Example13Solution\Example13Project\Square.xaml.cs	12	
 
        
  
