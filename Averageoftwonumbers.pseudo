@@ -1,1 +1,58 @@
-hello
+
+<Page x:Class="Example13Project.MENU"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="MENU">
+
+    <Grid>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+            
+            <!-- Button to navigate to Square.xaml -->
+            <Button Content="Square" Width="150" Height="50" Click="Square_Click" />
+            
+            <!-- Button to navigate to SumCalcWindow.xaml -->
+            <Button Content="Sum" Width="150" Height="50" Click="Sum_Click" />
+            
+            <!-- Button to navigate to MainWindow.xaml -->
+            <Button Content="Counter" Width="150" Height="50" Click="Counter_Click" />
+        
+        </StackPanel>
+    </Grid>
+</Page>
+
+
+
+
+
+using System;
+using System.Windows;
+using System.Windows.Controls;
+
+namespace Example13Project
+{
+    public partial class MENU : Page
+    {
+        public MENU()
+        {
+            InitializeComponent();
+        }
+
+        // Event handler to navigate to Square.xaml
+        private void Square_Click(object sender, RoutedEventArgs e)
+        {
+            NavigationService.Navigate(new Uri("Square.xaml", UriKind.Relative));
+        }
+
+        // Event handler to navigate to SumCalcWindow.xaml
+        private void Sum_Click(object sender, RoutedEventArgs e)
+        {
+            NavigationService.Navigate(new Uri("SumCalcWindow.xaml", UriKind.Relative));
+        }
+
+        // Event handler to navigate to MainWindow.xaml
+        private void Counter_Click(object sender, RoutedEventArgs e)
+        {
+            NavigationService.Navigate(new Uri("MainWindow.xaml", UriKind.Relative));
+        }
+    }
+}
