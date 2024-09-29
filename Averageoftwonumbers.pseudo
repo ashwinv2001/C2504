@@ -1,16 +1,35 @@
-<Canvas>
-        <!-- Label to Display Number -->
-        <Label Name="NumberLabel" Content="0" Canvas.Left="80" Canvas.Top="50" 
-               FontSize="24" FontWeight="Bold" />
-
-        <!-- Button for Increment -->
-        <Button Name="IncrementButton" Content="+" Width="30" Height="30"
-                Canvas.Left="60" Canvas.Top="100" Click="IncrementButton_Click"/>
-
-        <!-- Button for Decrement -->
-        <Button Name="DecrementButton" Content="-" Width="30" Height="30"
-                Canvas.Left="100" Canvas.Top="100" Click="DecrementButton_Click"/>
-    </Canvas>
+<Grid>
+        <Label Content="Name:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
+        <TextBox x:Name="txtName" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Margin="60,10,0,0"/>
+        
+        <Label Content="Password:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,50,0,0"/>
+        <PasswordBox x:Name="txtPassword" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Margin="60,50,0,0"/>
+        
+        <Button Content="Login" HorizontalAlignment="Left" VerticalAlignment="Top" Width="80" Margin="100,100,0,0" Click="LoginButton_Click"/>
+    </Grid>
 
 
 
+
+private void LoginButton_Click(object sender, RoutedEventArgs e)
+        {
+            string username = txtName.Text;
+            string password = txtPassword.Password;
+
+            if (username == "ASHWIN" && password == "12345")
+            {
+                WelcomePage welcomePage = new WelcomePage();
+                welcomePage.Show();
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show("Invalid username or password.", "Login Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+
+
+
+<Grid>
+        <Label Content="Hello Ashwin" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
+    </Grid>
