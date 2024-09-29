@@ -1,11 +1,71 @@
 <Grid>
-        <Label Content="Name:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
-        <TextBox x:Name="txtName" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Margin="60,10,0,0"/>
-        
+        <Button Content="Signup" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100" Height="30" Margin="40,40,0,0" Click="Signup_Click"/>
+        <Button Content="Login" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100" Height="30" Margin="160,40,0,0" Click="Login_Click"/>
+    </Grid>
+
+
+
+public static string registeredUsername;
+        public static string registeredPassword;
+
+        public MainPage()
+        {
+            InitializeComponent();
+        }
+
+        private void Signup_Click(object sender, RoutedEventArgs e)
+        {
+            SignupPage signupPage = new SignupPage();
+            signupPage.Show();
+            this.Close();
+        }
+
+        private void Login_Click(object sender, RoutedEventArgs e)
+        {
+            LoginPage loginPage = new LoginPage();
+            loginPage.Show();
+            this.Close();
+        }
+
+
+Title="Signup" Height="200" Width="300">
+    <Grid>
+        <Label Content="Username:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
+        <TextBox x:Name="txtSignupUsername" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Margin="80,10,0,0"/>
+
         <Label Content="Password:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,50,0,0"/>
-        <PasswordBox x:Name="txtPassword" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Margin="60,50,0,0"/>
-        
-        <Button Content="Login" HorizontalAlignment="Left" VerticalAlignment="Top" Width="80" Margin="100,100,0,0" Click="LoginButton_Click"/>
+        <PasswordBox x:Name="txtSignupPassword" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Margin="80,50,0,0"/>
+
+        <Button Content="Sign Up" HorizontalAlignment="Left" VerticalAlignment="Top" Width="80" Margin="110,100,0,0" Click="SignupButton_Click"/>
+    </Grid>
+
+
+
+
+private void SignupButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainPage.registeredUsername = txtSignupUsername.Text;
+            MainPage.registeredPassword = txtSignupPassword.Password;
+
+            MessageBox.Show("Sign Up Successful!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            MainPage mainPage = new MainPage();
+            mainPage.Show();
+            this.Close();
+        }
+
+
+
+
+Title="Login" Height="200" Width="300">
+    <Grid>
+        <Label Content="Username:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
+        <TextBox x:Name="txtLoginUsername" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Margin="80,10,0,0"/>
+
+        <Label Content="Password:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,50,0,0"/>
+        <PasswordBox x:Name="txtLoginPassword" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Margin="80,50,0,0"/>
+
+        <Button Content="Login" HorizontalAlignment="Left" VerticalAlignment="Top" Width="80" Margin="110,100,0,0" Click="LoginButton_Click"/>
     </Grid>
 
 
@@ -13,23 +73,32 @@
 
 private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            string username = txtName.Text;
-            string password = txtPassword.Password;
+            string username = txtLoginUsername.Text;
+            string password = txtLoginPassword.Password;
 
-            if (username == "ASHWIN" && password == "12345")
+            if (username == MainPage.registeredUsername && password == MainPage.registeredPassword)
             {
-                WelcomePage welcomePage = new WelcomePage();
+                WelcomePage welcomePage = new WelcomePage(username);
                 welcomePage.Show();
                 this.Close();
             }
             else
             {
-                MessageBox.Show("Invalid username or password.", "Login Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Username or password is incorrect.", "Login Failed", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
 
 
 
 
-<Grid>
-        <Label Content="Hello Ashwin" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
+Title="Welcome" Height="150" Width="300">
+    <Grid>
+        <Label x:Name="lblWelcome" Content="Hello [Username]" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
     </Grid>
+
+
+public WelcomePage(string username)
+        {
+            InitializeComponent();
+            lblWelcome.Content = $"Hello {username}";
+        }
