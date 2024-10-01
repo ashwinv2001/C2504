@@ -1,5 +1,155 @@
-Project name: Fullname 
-mainwindow rename as FullName window
-firstname in label 4 textblocks lastname label
-edit button that takes to editfullname window . 
-person view model notifiable have object for person model
+using System.ComponentModel;
+
+namespace Fullname
+{
+    public class PersonViewModel : INotifyPropertyChanged
+    {
+        private string firstName;
+        private string lastName;
+
+        public string FirstName
+        {
+            get { return firstName; }
+            set
+            {
+                if (firstName != value)
+                {
+                    firstName = value;
+                    OnPropertyChanged("FirstName");
+                }
+            }
+        }
+
+        public string LastName
+        {
+            get { return lastName; }
+            set
+            {
+                if (lastName != value)
+                {
+                    lastName = value;
+                    OnPropertyChanged("LastName");
+                }
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+}
+
+
+
+
+
+
+<Window x:Class="Fullname.FullNameWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Full Name" Height="250" Width="400">
+    <Grid>
+        <!-- First Name Label and TextBlock -->
+        <Label Content="First Name:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20,0,0"/>
+        <TextBlock Text="{Binding FirstName}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="120,20,0,0" Width="200"/>
+
+        <!-- Last Name Label and TextBlock -->
+        <Label Content="Last Name:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,60,0,0"/>
+        <TextBlock Text="{Binding LastName}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="120,60,0,0" Width="200"/>
+
+        <!-- Button to Edit -->
+        <Button Content="Edit" Width="80" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,20" Click="EditButton_Click"/>
+    </Grid>
+</Window>
+
+
+
+
+
+using System.Windows;
+
+namespace Fullname
+{
+    public partial class FullNameWindow : Window
+    {
+        public PersonViewModel Person { get; set; }
+
+        public FullNameWindow()
+        {
+            InitializeComponent();
+
+            // Initialize ViewModel with sample data
+            Person = new PersonViewModel
+            {
+                FirstName = "John",
+                LastName = "Doe"
+            };
+
+            this.DataContext = Person;
+        }
+
+        private void EditButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Open the EditFullNameWindow
+            EditFullNameWindow editWindow = new EditFullNameWindow(Person);
+            editWindow.ShowDialog(); // Opens the window as a modal dialog
+        }
+    }
+}
+
+
+
+
+
+<Window x:Class="Fullname.EditFullNameWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Edit Full Name" Height="200" Width="400">
+    <Grid>
+        <!-- First Name -->
+        <Label Content="First Name:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20,0,0"/>
+        <TextBox Text="{Binding FirstName, Mode=TwoWay}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="120,20,0,0" Width="200"/>
+
+        <!-- Last Name -->
+        <Label Content="Last Name:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,60,0,0"/>
+        <TextBox Text="{Binding LastName, Mode=TwoWay}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="120,60,0,0" Width="200"/>
+
+        <!-- Button to Close -->
+        <Button Content="Save" Width="80" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,20" Click="SaveButton_Click"/>
+    </Grid>
+</Window>
+
+
+
+
+using System.Windows;
+
+namespace Fullname
+{
+    public partial class EditFullNameWindow : Window
+    {
+        public PersonViewModel Person { get; set; }
+
+        public EditFullNameWindow(PersonViewModel person)
+        {
+            InitializeComponent();
+            Person = person; // Receive the Person object from the calling window
+            this.DataContext = Person;
+        }
+
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close(); // Close the edit window
+        }
+    }
+}
+
+
+
+
+
+
+
