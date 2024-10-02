@@ -1,3 +1,5 @@
-The type or namespace name 'INotifyPropertyChanged' could not be found (are you missing a using directive or an assembly reference?)
-1>C:\Users\2021455\source\repos\2102024solution\2102024\MedicationAdherenceTracker.xaml.cs(136,22,136,49): error CS0246: The type or namespace name 'PropertyChangedEventHandler' could not be found (are you missing a using directive or an assembly reference?)
-1>C:\Users\2021455\source\repos\2102024solution\2102024\MedicationAdherenceTracker.xaml.cs(23,16,23,48): error CS0246: The type or namespace name 'ObservableCollection<>' could not be found (are you missing a using directive or an assembly reference?)
+using System;
+using System.Collections.ObjectModel; // For ObservableCollection
+using System.ComponentModel;           // For INotifyPropertyChanged and PropertyChangedEventHandler
+using System.Linq;                     // For LINQ methods like Where, OrderBy
+using System.Windows;                  // For WPF Window and MessageBox
