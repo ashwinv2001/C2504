@@ -1,25 +1,11 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace _2102024
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public ObservableCollection<Medication> Medications { get; set; }
@@ -35,9 +21,21 @@ namespace _2102024
             };
             this.DataContext = this;
         }
+
         private void AddMedication_Click(object sender, RoutedEventArgs e)
         {
-            Medications.Add(new Medication { Name = "New Medication", Time = DateTime.Now, IsTaken = false });
+            // Ask user for new medication name and time
+            string medicationName = Microsoft.VisualBasic.Interaction.InputBox("Enter medication name:", "Add Medication", "New Medication");
+            string medicationTime = Microsoft.VisualBasic.Interaction.InputBox("Enter time (HH:mm):", "Add Medication", DateTime.Now.ToString("HH:mm"));
+
+            if (!string.IsNullOrEmpty(medicationName) && DateTime.TryParse(medicationTime, out DateTime time))
+            {
+                Medications.Add(new Medication { Name = medicationName, Time = time, IsTaken = false });
+            }
+            else
+            {
+                MessageBox.Show("Invalid input. Please try again.");
+            }
         }
 
         private void DeleteMedication_Click(object sender, RoutedEventArgs e)
@@ -52,8 +50,21 @@ namespace _2102024
         {
             if (MedicationDataGrid.SelectedItem != null)
             {
-                // Simple editing in the DataGrid for demonstration purposes.
-                // In production, you could open a separate window/dialog for editing.
+                var selectedMedication = (Medication)MedicationDataGrid.SelectedItem;
+                
+                // Ask the user to edit the medication time
+                string newTime = Microsoft.VisualBasic.Interaction.InputBox("Enter new time (HH:mm):", "Edit Medication", selectedMedication.Time.ToString("HH:mm"));
+                
+                if (DateTime.TryParse(newTime, out DateTime editedTime))
+                {
+                    selectedMedication.Time = editedTime;
+                }
+                else
+                {
+                    MessageBox.Show("Invalid time format.");
+                }
+
+                MedicationDataGrid.Items.Refresh();
             }
         }
 
@@ -64,10 +75,14 @@ namespace _2102024
                 // Check for medications that should have been taken before current time
                 foreach (var medication in Medications.Where(m => m.Time.TimeOfDay <= currentTime.TimeOfDay && !m.IsTaken))
                 {
-                    MessageBox.Show($"Did you take {medication.Name} scheduled at {medication.Time.ToString("HH:mm")}?");
-
-                    // Set the medication as taken
-                    medication.IsTaken = true;
+                    // Prompt the user if they have taken the medication
+                    var result = MessageBox.Show($"Did you take {medication.Name} scheduled at {medication.Time.ToString("HH:mm")}? Click Yes if taken, No otherwise.", "Medication Adherence", MessageBoxButton.YesNo);
+                    
+                    // Set the medication as taken based on user input
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        medication.IsTaken = true;
+                    }
                 }
 
                 // Find the next medication due after the current time
@@ -136,4 +151,3 @@ namespace _2102024
         }
     }
 }
-
