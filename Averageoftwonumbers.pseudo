@@ -1,33 +1,139 @@
-private void CheckAdherence_Click(object sender, RoutedEventArgs e)
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+
+namespace _2102024
 {
-    if (DateTime.TryParse(CurrentTimeTextBox.Text, out DateTime currentTime))
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
     {
-        // Check for medications that should have been taken before current time
-        foreach (var medication in Medications.Where(m => m.Time.TimeOfDay <= currentTime.TimeOfDay && !m.IsTaken))
-        {
-            MessageBox.Show($"Did you take {medication.Name} scheduled at {medication.Time.ToString("HH:mm")}?");
+        public ObservableCollection<Medication> Medications { get; set; }
 
-            // Set the medication as taken
-            medication.IsTaken = true;
+        public MainWindow()
+        {
+            InitializeComponent();
+            Medications = new ObservableCollection<Medication>
+            {
+                new Medication { Name = "Paracetamol", Time = new DateTime(1, 1, 1, 8, 0, 0), IsTaken = false },
+                new Medication { Name = "Dolo", Time = new DateTime(1, 1, 1, 12, 0, 0), IsTaken = false },
+                new Medication { Name = "Citrusin", Time = new DateTime(1, 1, 1, 16, 0, 0), IsTaken = false }
+            };
+            this.DataContext = this;
+        }
+        private void AddMedication_Click(object sender, RoutedEventArgs e)
+        {
+            Medications.Add(new Medication { Name = "New Medication", Time = DateTime.Now, IsTaken = false });
         }
 
-        // Find the next medication due after the current time
-        var nextMedication = Medications.Where(m => m.Time.TimeOfDay > currentTime.TimeOfDay).OrderBy(m => m.Time).FirstOrDefault();
-
-        if (nextMedication != null)
+        private void DeleteMedication_Click(object sender, RoutedEventArgs e)
         {
-            NextMedicationTextBlock.Text = $"Next medication: {nextMedication.Name} at {nextMedication.Time.ToString("HH:mm")}";
-        }
-        else
-        {
-            NextMedicationTextBlock.Text = "No more medications due today.";
+            if (MedicationDataGrid.SelectedItem != null)
+            {
+                Medications.Remove((Medication)MedicationDataGrid.SelectedItem);
+            }
         }
 
-        // Refresh the DataGrid to update the UI
-        MedicationDataGrid.Items.Refresh();
+        private void EditMedication_Click(object sender, RoutedEventArgs e)
+        {
+            if (MedicationDataGrid.SelectedItem != null)
+            {
+                // Simple editing in the DataGrid for demonstration purposes.
+                // In production, you could open a separate window/dialog for editing.
+            }
+        }
+
+        private void CheckAdherence_Click(object sender, RoutedEventArgs e)
+        {
+            if (DateTime.TryParse(CurrentTimeTextBox.Text, out DateTime currentTime))
+            {
+                // Check for medications that should have been taken before current time
+                foreach (var medication in Medications.Where(m => m.Time.TimeOfDay <= currentTime.TimeOfDay && !m.IsTaken))
+                {
+                    MessageBox.Show($"Did you take {medication.Name} scheduled at {medication.Time.ToString("HH:mm")}?");
+
+                    // Set the medication as taken
+                    medication.IsTaken = true;
+                }
+
+                // Find the next medication due after the current time
+                var nextMedication = Medications.Where(m => m.Time.TimeOfDay > currentTime.TimeOfDay).OrderBy(m => m.Time).FirstOrDefault();
+
+                if (nextMedication != null)
+                {
+                    NextMedicationTextBlock.Text = $"Next medication: {nextMedication.Name} at {nextMedication.Time.ToString("HH:mm")}";
+                }
+                else
+                {
+                    NextMedicationTextBlock.Text = "No more medications due today.";
+                }
+
+                // Refresh the DataGrid to update the UI
+                MedicationDataGrid.Items.Refresh();
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid time in HH:mm format.");
+            }
+        }
     }
-    else
+
+    public class Medication : INotifyPropertyChanged
     {
-        MessageBox.Show("Please enter a valid time in HH:mm format.");
+        private string _name;
+        private DateTime _time;
+        private bool _isTaken;
+
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                _name = value;
+                OnPropertyChanged("Name");
+            }
+        }
+
+        public DateTime Time
+        {
+            get => _time;
+            set
+            {
+                _time = value;
+                OnPropertyChanged("Time");
+            }
+        }
+
+        public bool IsTaken
+        {
+            get => _isTaken;
+            set
+            {
+                _isTaken = value;
+                OnPropertyChanged("IsTaken");
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
+
