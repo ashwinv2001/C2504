@@ -3,6 +3,7 @@ public class Medication : INotifyPropertyChanged
     private string _name;
     private DateTime _time;
     private bool _isTaken;
+    private string _displaySymbol = "";  // Initialize with an empty string by default
 
     public string Name
     {
@@ -35,10 +36,15 @@ public class Medication : INotifyPropertyChanged
         }
     }
 
-    // This property will display either a ✔ or ❌ based on the IsTaken status
+    // This property returns either a ✔, ❌, or empty string depending on IsTaken and user interaction
     public string DisplaySymbol
     {
-        get => IsTaken ? "✔" : "❌";
+        get => _displaySymbol;
+        set
+        {
+            _displaySymbol = value;
+            OnPropertyChanged("DisplaySymbol");
+        }
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
@@ -53,36 +59,31 @@ public class Medication : INotifyPropertyChanged
 
 
 
-<DataGrid x:Name="MedicationDataGrid" AutoGenerateColumns="False" ItemsSource="{Binding Medications}">
-    <DataGrid.Columns>
-        <DataGridTextColumn Header="Medication" Binding="{Binding Name}" Width="*"/>
-        <DataGridTextColumn Header="Time" Binding="{Binding Time, StringFormat={}{0:HH:mm}}" Width="*"/>
-        <DataGridTextColumn Header="Taken" Binding="{Binding DisplaySymbol}" Width="*"/>
-    </DataGrid.Columns>
-</DataGrid>
-
-
-
 
 private void CheckAdherence_Click(object sender, RoutedEventArgs e)
 {
     if (DateTime.TryParse(CurrentTimeTextBox.Text, out DateTime currentTime))
     {
         // Check for medications that should have been taken before current time
-        foreach (var medication in Medications.Where(m => m.Time.TimeOfDay <= currentTime.TimeOfDay && !m.IsTaken))
+        foreach (var medication in Medications.Where(m => m.Time.TimeOfDay <= currentTime.TimeOfDay))
         {
-            MessageBoxResult result = MessageBox.Show($"Did you take {medication.Name} scheduled at {medication.Time.ToString("HH:mm")}?", 
-                "Medication Adherence", MessageBoxButton.YesNo);
+            if (!medication.IsTaken)
+            {
+                MessageBoxResult result = MessageBox.Show($"Did you take {medication.Name} scheduled at {medication.Time.ToString("HH:mm")}?", 
+                    "Medication Adherence", MessageBoxButton.YesNo);
 
-            if (result == MessageBoxResult.Yes)
-            {
-                // Mark as taken with ✔
-                medication.IsTaken = true;
-            }
-            else
-            {
-                // Mark as not taken with ❌
-                medication.IsTaken = false;
+                if (result == MessageBoxResult.Yes)
+                {
+                    // Mark as taken with ✔
+                    medication.IsTaken = true;
+                    medication.DisplaySymbol = "✔";
+                }
+                else
+                {
+                    // Mark as not taken with ❌
+                    medication.IsTaken = false;
+                    medication.DisplaySymbol = "❌"; // Show the cross only if "No" is selected
+                }
             }
         }
 
@@ -106,3 +107,11 @@ private void CheckAdherence_Click(object sender, RoutedEventArgs e)
         MessageBox.Show("Please enter a valid time in HH:mm format.");
     }
 }
+
+
+
+
+
+
+
+
