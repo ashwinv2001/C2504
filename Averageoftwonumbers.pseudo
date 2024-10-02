@@ -1,5 +1,153 @@
-error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
-1>C:\Users\2021455\source\repos\2102024solution\2102024\MedicationAdherenceTracker.xaml.cs(17,1,17,29): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
-1>C:\Users\2021455\source\repos\2102024solution\2102024\MedicationAdherenceTracker.xaml.cs(18,1,18,19): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
-1>C:\Users\2021455\source\repos\2102024solution\2102024\MedicationAdherenceTracker.xaml.cs(19,1,19,22): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
-1>C:\Users\2021455\source\repos\2102024solution\2102024\MedicationAdherenceTracker.xaml.cs(168,1,168,29): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Windows;
+
+namespace _2102024
+{
+    public partial class MainWindow : Window
+    {
+        public ObservableCollection<Medication> Medications { get; set; }
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            Medications = new ObservableCollection<Medication>
+            {
+                new Medication { Name = "Paracetamol", Time = new DateTime(1, 1, 1, 8, 0, 0), IsTaken = false },
+                new Medication { Name = "Dolo", Time = new DateTime(1, 1, 1, 12, 0, 0), IsTaken = false },
+                new Medication { Name = "Citrusin", Time = new DateTime(1, 1, 1, 16, 0, 0), IsTaken = false }
+            };
+            this.DataContext = this;
+        }
+
+        private void AddMedication_Click(object sender, RoutedEventArgs e)
+        {
+            // Ask user for new medication name and time
+            string medicationName = Microsoft.VisualBasic.Interaction.InputBox("Enter medication name:", "Add Medication", "New Medication");
+            string medicationTime = Microsoft.VisualBasic.Interaction.InputBox("Enter time (HH:mm):", "Add Medication", DateTime.Now.ToString("HH:mm"));
+
+            if (!string.IsNullOrEmpty(medicationName) && DateTime.TryParse(medicationTime, out DateTime time))
+            {
+                Medications.Add(new Medication { Name = medicationName, Time = time, IsTaken = false });
+            }
+            else
+            {
+                MessageBox.Show("Invalid input. Please try again.");
+            }
+        }
+
+        private void DeleteMedication_Click(object sender, RoutedEventArgs e)
+        {
+            if (MedicationDataGrid.SelectedItem != null)
+            {
+                Medications.Remove((Medication)MedicationDataGrid.SelectedItem);
+            }
+        }
+
+        private void EditMedication_Click(object sender, RoutedEventArgs e)
+        {
+            if (MedicationDataGrid.SelectedItem != null)
+            {
+                var selectedMedication = (Medication)MedicationDataGrid.SelectedItem;
+                
+                // Ask the user to edit the medication time
+                string newTime = Microsoft.VisualBasic.Interaction.InputBox("Enter new time (HH:mm):", "Edit Medication", selectedMedication.Time.ToString("HH:mm"));
+                
+                if (DateTime.TryParse(newTime, out DateTime editedTime))
+                {
+                    selectedMedication.Time = editedTime;
+                }
+                else
+                {
+                    MessageBox.Show("Invalid time format.");
+                }
+
+                MedicationDataGrid.Items.Refresh();
+            }
+        }
+
+        private void CheckAdherence_Click(object sender, RoutedEventArgs e)
+        {
+            if (DateTime.TryParse(CurrentTimeTextBox.Text, out DateTime currentTime))
+            {
+                // Check for medications that should have been taken before current time
+                foreach (var medication in Medications.Where(m => m.Time.TimeOfDay <= currentTime.TimeOfDay && !m.IsTaken))
+                {
+                    // Prompt the user if they have taken the medication
+                    var result = MessageBox.Show($"Did you take {medication.Name} scheduled at {medication.Time.ToString("HH:mm")}? Click Yes if taken, No otherwise.", "Medication Adherence", MessageBoxButton.YesNo);
+                    
+                    // Set the medication as taken based on user input
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        medication.IsTaken = true;
+                    }
+                }
+
+                // Find the next medication due after the current time
+                var nextMedication = Medications.Where(m => m.Time.TimeOfDay > currentTime.TimeOfDay).OrderBy(m => m.Time).FirstOrDefault();
+
+                if (nextMedication != null)
+                {
+                    NextMedicationTextBlock.Text = $"Next medication: {nextMedication.Name} at {nextMedication.Time.ToString("HH:mm")}";
+                }
+                else
+                {
+                    NextMedicationTextBlock.Text = "No more medications due today.";
+                }
+
+                // Refresh the DataGrid to update the UI
+                MedicationDataGrid.Items.Refresh();
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid time in HH:mm format.");
+            }
+        }
+    }
+
+    public class Medication : INotifyPropertyChanged
+    {
+        private string _name;
+        private DateTime _time;
+        private bool _isTaken;
+
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                _name = value;
+                OnPropertyChanged("Name");
+            }
+        }
+
+        public DateTime Time
+        {
+            get => _time;
+            set
+            {
+                _time = value;
+                OnPropertyChanged("Time");
+            }
+        }
+
+        public bool IsTaken
+        {
+            get => _isTaken;
+            set
+            {
+                _isTaken = value;
+                OnPropertyChanged("IsTaken");
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+}
