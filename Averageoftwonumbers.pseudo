@@ -1,46 +1,51 @@
-<Window x:Class="_2102024.InputDialog"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Input Dialog" Height="150" Width="300">
-    <Grid>
-        <TextBlock Text="Enter value:" Margin="10"/>
-        <TextBox Name="InputTextBox" Margin="10,30,10,0" Height="30"/>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10">
-            <Button Content="OK" Width="60" Click="OK_Click" Margin="5"/>
-            <Button Content="Cancel" Width="60" Click="Cancel_Click" Margin="5"/>
-        </StackPanel>
-    </Grid>
-</Window>
-
-
-
-
-
-using System.Windows;
-
-namespace _2102024
+public class Medication : INotifyPropertyChanged
 {
-    public partial class InputDialog : Window
+    private string _name;
+    private DateTime _time;
+    private bool _isTaken;
+
+    public string Name
     {
-        public string ResponseText { get; set; }
-
-        public InputDialog(string question, string defaultAnswer = "")
+        get => _name;
+        set
         {
-            InitializeComponent();
-            this.Title = question;
-            InputTextBox.Text = defaultAnswer;
+            _name = value;
+            OnPropertyChanged("Name");
         }
+    }
 
-        private void OK_Click(object sender, RoutedEventArgs e)
+    public DateTime Time
+    {
+        get => _time;
+        set
         {
-            ResponseText = InputTextBox.Text;
-            DialogResult = true;
+            _time = value;
+            OnPropertyChanged("Time");
         }
+    }
 
-        private void Cancel_Click(object sender, RoutedEventArgs e)
+    public bool IsTaken
+    {
+        get => _isTaken;
+        set
         {
-            DialogResult = false;
+            _isTaken = value;
+            OnPropertyChanged("IsTaken");
+            OnPropertyChanged("DisplaySymbol");
         }
+    }
+
+    // This property will display either a ✔ or ❌ based on the IsTaken status
+    public string DisplaySymbol
+    {
+        get => IsTaken ? "✔" : "❌";
+    }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    protected void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
 
@@ -48,44 +53,56 @@ namespace _2102024
 
 
 
-private void AddMedication_Click(object sender, RoutedEventArgs e)
-{
-    // Show input dialog for medication name
-    InputDialog nameDialog = new InputDialog("Enter medication name:");
-    if (nameDialog.ShowDialog() == true)
-    {
-        string medicationName = nameDialog.ResponseText;
+<DataGrid x:Name="MedicationDataGrid" AutoGenerateColumns="False" ItemsSource="{Binding Medications}">
+    <DataGrid.Columns>
+        <DataGridTextColumn Header="Medication" Binding="{Binding Name}" Width="*"/>
+        <DataGridTextColumn Header="Time" Binding="{Binding Time, StringFormat={}{0:HH:mm}}" Width="*"/>
+        <DataGridTextColumn Header="Taken" Binding="{Binding DisplaySymbol}" Width="*"/>
+    </DataGrid.Columns>
+</DataGrid>
 
-        // Show input dialog for medication time
-        InputDialog timeDialog = new InputDialog("Enter time (HH:mm):");
-        if (timeDialog.ShowDialog() == true && DateTime.TryParse(timeDialog.ResponseText, out DateTime medicationTime))
+
+
+
+private void CheckAdherence_Click(object sender, RoutedEventArgs e)
+{
+    if (DateTime.TryParse(CurrentTimeTextBox.Text, out DateTime currentTime))
+    {
+        // Check for medications that should have been taken before current time
+        foreach (var medication in Medications.Where(m => m.Time.TimeOfDay <= currentTime.TimeOfDay && !m.IsTaken))
         {
-            Medications.Add(new Medication { Name = medicationName, Time = medicationTime, IsTaken = false });
+            MessageBoxResult result = MessageBox.Show($"Did you take {medication.Name} scheduled at {medication.Time.ToString("HH:mm")}?", 
+                "Medication Adherence", MessageBoxButton.YesNo);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                // Mark as taken with ✔
+                medication.IsTaken = true;
+            }
+            else
+            {
+                // Mark as not taken with ❌
+                medication.IsTaken = false;
+            }
+        }
+
+        // Find the next medication due after the current time
+        var nextMedication = Medications.Where(m => m.Time.TimeOfDay > currentTime.TimeOfDay).OrderBy(m => m.Time).FirstOrDefault();
+
+        if (nextMedication != null)
+        {
+            NextMedicationTextBlock.Text = $"Next medication: {nextMedication.Name} at {nextMedication.Time.ToString("HH:mm")}";
         }
         else
         {
-            MessageBox.Show("Invalid time format.");
-        }
-    }
-}
-
-private void EditMedication_Click(object sender, RoutedEventArgs e)
-{
-    if (MedicationDataGrid.SelectedItem != null)
-    {
-        Medication selectedMedication = (Medication)MedicationDataGrid.SelectedItem;
-
-        // Show input dialog for editing time
-        InputDialog timeDialog = new InputDialog("Edit time (HH:mm):", selectedMedication.Time.ToString("HH:mm"));
-        if (timeDialog.ShowDialog() == true && DateTime.TryParse(timeDialog.ResponseText, out DateTime newTime))
-        {
-            selectedMedication.Time = newTime;
-        }
-        else
-        {
-            MessageBox.Show("Invalid time format.");
+            NextMedicationTextBlock.Text = "No more medications due today.";
         }
 
+        // Refresh the DataGrid to update the UI
         MedicationDataGrid.Items.Refresh();
+    }
+    else
+    {
+        MessageBox.Show("Please enter a valid time in HH:mm format.");
     }
 }
