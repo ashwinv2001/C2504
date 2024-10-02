@@ -1,3 +1,33 @@
-The name 'nextMedication' does not exist in the current context
-1>C:\Users\2021455\source\repos\2102024solution\2102024\MedicationAdherenceTracker.xaml.cs(85,72,85,86): error CS0103: The name 'nextMedication' does not exist in the current context
-1>C:\Users\2021455\source\repos\2102024solution\2102024\MedicationAdherenceTracker.xaml.cs(85,97,85,111): error CS0103: The name 'nextMedication' does not exist in the current context
+private void CheckAdherence_Click(object sender, RoutedEventArgs e)
+{
+    if (DateTime.TryParse(CurrentTimeTextBox.Text, out DateTime currentTime))
+    {
+        // Check for medications that should have been taken before current time
+        foreach (var medication in Medications.Where(m => m.Time.TimeOfDay <= currentTime.TimeOfDay && !m.IsTaken))
+        {
+            MessageBox.Show($"Did you take {medication.Name} scheduled at {medication.Time.ToString("HH:mm")}?");
+
+            // Set the medication as taken
+            medication.IsTaken = true;
+        }
+
+        // Find the next medication due after the current time
+        var nextMedication = Medications.Where(m => m.Time.TimeOfDay > currentTime.TimeOfDay).OrderBy(m => m.Time).FirstOrDefault();
+
+        if (nextMedication != null)
+        {
+            NextMedicationTextBlock.Text = $"Next medication: {nextMedication.Name} at {nextMedication.Time.ToString("HH:mm")}";
+        }
+        else
+        {
+            NextMedicationTextBlock.Text = "No more medications due today.";
+        }
+
+        // Refresh the DataGrid to update the UI
+        MedicationDataGrid.Items.Refresh();
+    }
+    else
+    {
+        MessageBox.Show("Please enter a valid time in HH:mm format.");
+    }
+}
