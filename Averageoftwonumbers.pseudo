@@ -1,49 +1,16 @@
-public class Medication : INotifyPropertyChanged
+using System.ComponentModel;
+
+public class CounterViewModel : INotifyPropertyChanged
 {
-    private string _name;
-    private DateTime _time;
-    private bool _isTaken;
-    private string _displaySymbol = "";  // Initialize with an empty string by default
-
-    public string Name
+    private int _count;
+    
+    public int Count
     {
-        get => _name;
+        get => _count;
         set
         {
-            _name = value;
-            OnPropertyChanged("Name");
-        }
-    }
-
-    public DateTime Time
-    {
-        get => _time;
-        set
-        {
-            _time = value;
-            OnPropertyChanged("Time");
-        }
-    }
-
-    public bool IsTaken
-    {
-        get => _isTaken;
-        set
-        {
-            _isTaken = value;
-            OnPropertyChanged("IsTaken");
-            OnPropertyChanged("DisplaySymbol");
-        }
-    }
-
-    // This property returns either a ✔, ❌, or empty string depending on IsTaken and user interaction
-    public string DisplaySymbol
-    {
-        get => _displaySymbol;
-        set
-        {
-            _displaySymbol = value;
-            OnPropertyChanged("DisplaySymbol");
+            _count = value;
+            OnPropertyChanged("Count");
         }
     }
 
@@ -53,58 +20,68 @@ public class Medication : INotifyPropertyChanged
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+
+    // Increment and Decrement commands
+    public void Increment()
+    {
+        Count++;
+    }
+
+    public void Decrement()
+    {
+        Count--;
+    }
 }
 
 
 
 
 
+<Window x:Class="CounterApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Counter" Height="200" Width="300">
+    <Grid>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <!-- Display the counter value -->
+            <TextBlock Text="{Binding Count}" FontSize="36" HorizontalAlignment="Center" Margin="0,10" />
 
-private void CheckAdherence_Click(object sender, RoutedEventArgs e)
+            <!-- Buttons for Increment and Decrement -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
+                <Button Content="Increment" Width="100" Margin="5" Click="Increment_Click" />
+                <Button Content="Decrement" Width="100" Margin="5" Click="Decrement_Click" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>
+
+
+
+using System.Windows;
+
+namespace CounterApp
 {
-    if (DateTime.TryParse(CurrentTimeTextBox.Text, out DateTime currentTime))
+    public partial class MainWindow : Window
     {
-        // Check for medications that should have been taken before current time
-        foreach (var medication in Medications.Where(m => m.Time.TimeOfDay <= currentTime.TimeOfDay))
-        {
-            if (!medication.IsTaken)
-            {
-                MessageBoxResult result = MessageBox.Show($"Did you take {medication.Name} scheduled at {medication.Time.ToString("HH:mm")}?", 
-                    "Medication Adherence", MessageBoxButton.YesNo);
+        public CounterViewModel ViewModel { get; set; }
 
-                if (result == MessageBoxResult.Yes)
-                {
-                    // Mark as taken with ✔
-                    medication.IsTaken = true;
-                    medication.DisplaySymbol = "✔";
-                }
-                else
-                {
-                    // Mark as not taken with ❌
-                    medication.IsTaken = false;
-                    medication.DisplaySymbol = "❌"; // Show the cross only if "No" is selected
-                }
-            }
+        public MainWindow()
+        {
+            InitializeComponent();
+
+            ViewModel = new CounterViewModel();
+            this.DataContext = ViewModel;
         }
 
-        // Find the next medication due after the current time
-        var nextMedication = Medications.Where(m => m.Time.TimeOfDay > currentTime.TimeOfDay).OrderBy(m => m.Time).FirstOrDefault();
-
-        if (nextMedication != null)
+        private void Increment_Click(object sender, RoutedEventArgs e)
         {
-            NextMedicationTextBlock.Text = $"Next medication: {nextMedication.Name} at {nextMedication.Time.ToString("HH:mm")}";
-        }
-        else
-        {
-            NextMedicationTextBlock.Text = "No more medications due today.";
+            ViewModel.Increment();
         }
 
-        // Refresh the DataGrid to update the UI
-        MedicationDataGrid.Items.Refresh();
-    }
-    else
-    {
-        MessageBox.Show("Please enter a valid time in HH:mm format.");
+        private void Decrement_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Decrement();
+        }
     }
 }
 
