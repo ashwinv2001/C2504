@@ -1,3 +1,30 @@
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	XDG0012	The member "PlaceholderText" is not recognized or is not accessible.	SettingsPageUI	C:\Users\2021455\source\repos\SettingsPageUISolution\SettingsPageUI\CheckInPage.xaml	55	
-Error	XLS0413	The property 'PlaceholderText' was not found in type 'TextBox'.	SettingsPageUI	C:\Users\2021455\source\repos\SettingsPageUISolution\SettingsPageUI\CheckInPage.xaml	55	
+<TextBox x:Name="sideEffectsTextBox"
+         AcceptsReturn="True"
+         TextWrapping="Wrap"
+         Height="100"
+         VerticalScrollBarVisibility="Auto"
+         Text="Describe any side effects or issues..."
+         Foreground="Gray"
+         GotFocus="sideEffectsTextBox_GotFocus"
+         LostFocus="sideEffectsTextBox_LostFocus" />
+
+
+
+
+private void sideEffectsTextBox_GotFocus(object sender, RoutedEventArgs e)
+{
+    if (sideEffectsTextBox.Text == "Describe any side effects or issues...")
+    {
+        sideEffectsTextBox.Text = "";
+        sideEffectsTextBox.Foreground = Brushes.Black;
+    }
+}
+
+private void sideEffectsTextBox_LostFocus(object sender, RoutedEventArgs e)
+{
+    if (string.IsNullOrWhiteSpace(sideEffectsTextBox.Text))
+    {
+        sideEffectsTextBox.Text = "Describe any side effects or issues...";
+        sideEffectsTextBox.Foreground = Brushes.Gray;
+    }
+}
