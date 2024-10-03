@@ -1,7 +1,223 @@
-Check-in Page
-   - Purpose: Patients check in to confirm 
-   that they have taken their medication. 
-   This page logs the check-in to track adherence.
-   - Key Actions:
-     - Mark medication as taken
-     - Option to report side effects or issues
+<Window x:Class="MedicineTracker.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Medicine Tracker" Height="350" Width="600">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Current Time Input -->
+        <StackPanel Orientation="Horizontal" Margin="10" Grid.Row="0">
+            <TextBlock Text="Enter Current Time (24-hr):" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <TextBox Width="100" Text="{Binding CurrentTime, Mode=TwoWay}" />
+            <Button Content="Check Medication" Command="{Binding CheckMedicationCommand}" Margin="10,0,0,0"/>
+        </StackPanel>
+
+        <!-- DataGrid to Display Medication Info -->
+        <DataGrid Grid.Row="1" ItemsSource="{Binding Medications}" AutoGenerateColumns="False" CanUserAddRows="False" Margin="10">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Medicine" Binding="{Binding Name}" />
+                <DataGridTextColumn Header="Time (24-hr)" Binding="{Binding Time}" />
+                <DataGridTextColumn Header="Side Effect" Binding="{Binding SideEffect}" />
+                <DataGridCheckBoxColumn Header="Taken" Binding="{Binding Taken}" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Save Button -->
+        <Button Grid.Row="2" Content="Save Updates" Command="{Binding SaveCommand}" HorizontalAlignment="Center" Margin="10"/>
+    </Grid>
+</Window>
+
+
+
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Windows;
+using System.Windows.Input;
+
+namespace MedicineTracker
+{
+    public class MainViewModel : INotifyPropertyChanged
+    {
+        private string _currentTime;
+        public string CurrentTime
+        {
+            get { return _currentTime; }
+            set
+            {
+                _currentTime = value;
+                OnPropertyChanged(nameof(CurrentTime));
+            }
+        }
+
+        public ObservableCollection<Medicine> Medications { get; set; }
+
+        public ICommand CheckMedicationCommand { get; }
+        public ICommand SaveCommand { get; }
+
+        public MainViewModel()
+        {
+            // Sample data for Medications
+            Medications = new ObservableCollection<Medicine>
+            {
+                new Medicine { Name = "Aspirin", Time = "08:00", SideEffect = "None", Taken = false },
+                new Medicine { Name = "Vitamin C", Time = "12:00", SideEffect = "None", Taken = false },
+                new Medicine { Name = "Ibuprofen", Time = "18:00", SideEffect = "None", Taken = false }
+            };
+
+            CheckMedicationCommand = new RelayCommand(CheckMedication);
+            SaveCommand = new RelayCommand(SaveUpdates);
+        }
+
+        private void CheckMedication(object parameter)
+        {
+            if (TimeSpan.TryParse(CurrentTime, out TimeSpan currentTime))
+            {
+                foreach (var medicine in Medications)
+                {
+                    if (TimeSpan.TryParse(medicine.Time, out TimeSpan scheduledTime) && scheduledTime <= currentTime)
+                    {
+                        MessageBoxResult result = MessageBox.Show($"Did you take {medicine.Name} scheduled at {medicine.Time}?", "Medicine Check", MessageBoxButton.YesNo);
+                        medicine.Taken = (result == MessageBoxResult.Yes);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid time in 24-hour format (e.g., 14:30).", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void SaveUpdates(object parameter)
+        {
+            // You can save updates here (e.g., save to file or database)
+            MessageBox.Show("Medication updates have been saved.", "Save", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+}
+
+
+
+
+
+namespace MedicineTracker
+{
+    public class Medicine : INotifyPropertyChanged
+    {
+        private string _name;
+        private string _time;
+        private string _sideEffect;
+        private bool _taken;
+
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                _name = value;
+                OnPropertyChanged(nameof(Name));
+            }
+        }
+
+        public string Time
+        {
+            get { return _time; }
+            set
+            {
+                _time = value;
+                OnPropertyChanged(nameof(Time));
+            }
+        }
+
+        public string SideEffect
+        {
+            get { return _sideEffect; }
+            set
+            {
+                _sideEffect = value;
+                OnPropertyChanged(nameof(SideEffect));
+            }
+        }
+
+        public bool Taken
+        {
+            get { return _taken; }
+            set
+            {
+                _taken = value;
+                OnPropertyChanged(nameof(Taken));
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+}
+
+
+
+
+
+
+using System;
+using System.Windows.Input;
+
+namespace MedicineTracker
+{
+    public class RelayCommand : ICommand
+    {
+        private readonly Action<object> _execute;
+
+        public RelayCommand(Action<object> execute)
+        {
+            _execute = execute;
+        }
+
+        public event EventHandler CanExecuteChanged;
+
+        public bool CanExecute(object parameter) => true;
+
+        public void Execute(object parameter)
+        {
+            _execute(parameter);
+        }
+    }
+}
+
+
+
+
+
+
+using System.Windows;
+
+namespace MedicineTracker
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+            DataContext = new MainViewModel();
+        }
+    }
+}
+
+
+
+
