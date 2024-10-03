@@ -1,1 +1,74 @@
-error CS0260: Missing partial modifier on declaration of type 'CounterViewModel'; another partial declaration of this type exists
+using System.ComponentModel;
+
+public class CounterViewModel : INotifyPropertyChanged
+{
+    private int _count;
+    
+    public int Count
+    {
+        get => _count;
+        set
+        {
+            _count = value;
+            OnPropertyChanged("Count");
+        }
+    }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    protected void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public void Increment()
+    {
+        Count++;
+    }
+
+    public void Decrement()
+    {
+        Count--;
+    }
+}
+
+
+
+
+
+
+
+using System.Windows;
+
+namespace CounterApp
+{
+    public partial class MainWindow : Window
+    {
+        public CounterViewModel ViewModel { get; set; }
+
+        public MainWindow()
+        {
+            InitializeComponent();
+
+            ViewModel = new CounterViewModel();
+            this.DataContext = ViewModel;
+        }
+
+        private void Increment_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Increment();
+        }
+
+        private void Decrement_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Decrement();
+        }
+    }
+}
+
+
+
+
+
+
+
