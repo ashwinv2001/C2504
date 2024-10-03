@@ -1,1 +1,4 @@
- error CS0234: The type or namespace name 'Forms' does not exist in the namespace 'System.Windows' (are you missing an assembly reference?)
+The type or namespace name 'OpenFileDialog' does not exist in the namespace 'System.Windows.Controls' (are you missing an assembly reference?)
+1>C:\Users\2021455\source\repos\Example14Project\Example14Project\EditorWindow.xaml.cs(29,41,29,55): error CS0234: The type or namespace name 'SaveFileDialog' does not exist in the namespace 'System.Windows.Controls' (are you missing an assembly reference?)
+1>C:\Users\2021455\source\repos\Example14Project\Example14Project\EditorWindow.xaml.cs(30,41,30,51): error CS0234: The type or namespace name 'FontDialog' does not exist in the namespace 'System.Windows.Controls' (are you missing an assembly reference?)
+1>C:\Users\2021455\source\repos\Example14Project\Example14Project\EditorWindow.xaml.cs(31,41,31,52): error CS0234: The type or namespace name 'ColorDialog' does not exist in the namespace 'System.Windows.Controls' (are you missing an assembly reference?)
