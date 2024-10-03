@@ -1,177 +1,126 @@
 <Window x:Class="MedicineTracker.SettingsPage"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Settings" Height="350" Width="400">
+        Title="Settings" Height="400" Width="450">
     <Grid Margin="10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Title -->
-        <TextBlock Text="Application Settings" FontWeight="Bold" FontSize="18" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,10,0,20" />
+        <TextBlock Text="Application Settings" 
+                   FontWeight="Bold" 
+                   FontSize="20" 
+                   HorizontalAlignment="Center" 
+                   Margin="0,10,0,20"/>
 
-        <!-- Notification Frequency -->
+        <!-- Settings Options Section -->
         <StackPanel Grid.Row="1" Margin="10">
+
+            <!-- Notification Frequency -->
             <TextBlock Text="Notification Frequency:" FontWeight="Bold" />
-            <ComboBox ItemsSource="{Binding NotificationFrequencies}" SelectedItem="{Binding SelectedNotificationFrequency}" />
-            
+            <ComboBox x:Name="notificationFrequencyComboBox" Width="200">
+                <ComboBoxItem Content="Daily" />
+                <ComboBoxItem Content="Weekly" />
+                <ComboBoxItem Content="Monthly" />
+            </ComboBox>
+
             <!-- Reminder Methods -->
-            <TextBlock Text="Reminder Methods:" FontWeight="Bold" Margin="0,20,0,0" />
-            <CheckBox Content="Email" IsChecked="{Binding IsEmailReminderEnabled}" />
-            <CheckBox Content="SMS" IsChecked="{Binding IsSmsReminderEnabled}" />
-            <CheckBox Content="App Notification" IsChecked="{Binding IsAppReminderEnabled}" />
+            <TextBlock Text="Reminder Methods:" FontWeight="Bold" Margin="0,20,0,0"/>
+            <CheckBox Content="Email" x:Name="emailCheckBox" />
+            <CheckBox Content="SMS" x:Name="smsCheckBox" />
+            <CheckBox Content="App Notification" x:Name="appCheckBox" />
 
             <!-- Time Zone Settings -->
-            <TextBlock Text="Time Zone:" FontWeight="Bold" Margin="0,20,0,0" />
-            <ComboBox ItemsSource="{Binding TimeZones}" SelectedItem="{Binding SelectedTimeZone}" />
+            <TextBlock Text="Time Zone:" FontWeight="Bold" Margin="0,20,0,0"/>
+            <ComboBox x:Name="timeZoneComboBox" Width="300">
+                <!-- Populate with time zones -->
+                <ComboBoxItem Content="UTC-12:00" />
+                <ComboBoxItem Content="UTC-11:00" />
+                <ComboBoxItem Content="UTC-10:00" />
+                <ComboBoxItem Content="UTC-09:00" />
+                <ComboBoxItem Content="UTC-08:00" />
+                <!-- Add other time zones as needed -->
+            </ComboBox>
 
             <!-- Save Button -->
-            <Button Content="Save Settings" HorizontalAlignment="Right" Margin="0,30,0,0" Width="120" Command="{Binding SaveSettingsCommand}" />
+            <Button Content="Save Settings" 
+                    Width="120" 
+                    Height="30" 
+                    HorizontalAlignment="Right" 
+                    Margin="0,30,0,0"
+                    x:Name="saveButton"/>
+
         </StackPanel>
     </Grid>
 </Window>
 
 
 
-using System.Windows;
-
-namespace MedicineTracker
-{
-    public partial class SettingsPage : Window
-    {
-        public SettingsPage()
-        {
-            InitializeComponent();
-            DataContext = new SettingsViewModel();
-        }
-    }
-}
 
 
 
 
-using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Windows;
-using System.Windows.Input;
+<Window x:Class="MedicineTracker.CheckInPage"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Check-In" Height="450" Width="500">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-namespace MedicineTracker
-{
-    public class SettingsViewModel : INotifyPropertyChanged
-    {
-        // Properties for Notification Frequency
-        public ObservableCollection<string> NotificationFrequencies { get; set; }
-        private string _selectedNotificationFrequency;
-        public string SelectedNotificationFrequency
-        {
-            get { return _selectedNotificationFrequency; }
-            set
-            {
-                _selectedNotificationFrequency = value;
-                OnPropertyChanged(nameof(SelectedNotificationFrequency));
-            }
-        }
+        <!-- Title -->
+        <TextBlock Text="Medication Check-In" 
+                   FontWeight="Bold" 
+                   FontSize="20" 
+                   HorizontalAlignment="Center" 
+                   Margin="0,10,0,20"/>
 
-        // Properties for Reminder Methods
-        private bool _isEmailReminderEnabled;
-        public bool IsEmailReminderEnabled
-        {
-            get { return _isEmailReminderEnabled; }
-            set
-            {
-                _isEmailReminderEnabled = value;
-                OnPropertyChanged(nameof(IsEmailReminderEnabled));
-            }
-        }
+        <!-- Check-In Section -->
+        <StackPanel Grid.Row="1" Margin="10">
+            <!-- Medication Info -->
+            <TextBlock Text="Today's Medications:" FontWeight="Bold" Margin="0,10,0,10"/>
+            <DataGrid x:Name="medicationsDataGrid" 
+                      AutoGenerateColumns="False" 
+                      CanUserAddRows="False" 
+                      Height="200">
+                <DataGrid.Columns>
+                    <!-- Medication Name -->
+                    <DataGridTextColumn Header="Medication" Binding="{Binding Name}" Width="*" />
 
-        private bool _isSmsReminderEnabled;
-        public bool IsSmsReminderEnabled
-        {
-            get { return _isSmsReminderEnabled; }
-            set
-            {
-                _isSmsReminderEnabled = value;
-                OnPropertyChanged(nameof(IsSmsReminderEnabled));
-            }
-        }
+                    <!-- Time Scheduled -->
+                    <DataGridTextColumn Header="Time (24hr)" Binding="{Binding Time}" Width="100"/>
 
-        private bool _isAppReminderEnabled;
-        public bool IsAppReminderEnabled
-        {
-            get { return _isAppReminderEnabled; }
-            set
-            {
-                _isAppReminderEnabled = value;
-                OnPropertyChanged(nameof(IsAppReminderEnabled));
-            }
-        }
+                    <!-- Mark as Taken -->
+                    <DataGridTemplateColumn Header="Taken" Width="80">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsTaken}" Content="Yes"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
 
-        // Properties for Time Zones
-        public ObservableCollection<string> TimeZones { get; set; }
-        private string _selectedTimeZone;
-        public string SelectedTimeZone
-        {
-            get { return _selectedTimeZone; }
-            set
-            {
-                _selectedTimeZone = value;
-                OnPropertyChanged(nameof(SelectedTimeZone));
-            }
-        }
+            <!-- Side Effects Section -->
+            <TextBlock Text="Report Side Effects or Issues:" FontWeight="Bold" Margin="0,20,0,10"/>
+            <TextBox x:Name="sideEffectsTextBox" 
+                     AcceptsReturn="True" 
+                     TextWrapping="Wrap" 
+                     Height="100" 
+                     VerticalScrollBarVisibility="Auto" 
+                     PlaceholderText="Describe any side effects or issues..." />
 
-        // Save Settings Command
-        public ICommand SaveSettingsCommand { get; }
-
-        public SettingsViewModel()
-        {
-            // Sample data for Notification Frequency and Time Zones
-            NotificationFrequencies = new ObservableCollection<string> { "Daily", "Weekly", "Monthly" };
-            TimeZones = new ObservableCollection<string>(TimeZoneInfo.GetSystemTimeZones().Select(tz => tz.DisplayName));
-
-            SaveSettingsCommand = new RelayCommand(SaveSettings);
-        }
-
-        // Save settings logic
-        private void SaveSettings(object parameter)
-        {
-            MessageBox.Show("Settings have been saved.", "Save", MessageBoxButton.OK, MessageBoxImage.Information);
-            // Here you could save settings to a file, database, or user preferences.
-        }
-
-        // PropertyChanged Event Handling
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
-
-    // RelayCommand class for handling commands
-    public class RelayCommand : ICommand
-    {
-        private readonly Action<object> _execute;
-        private readonly Predicate<object> _canExecute;
-
-        public RelayCommand(Action<object> execute, Predicate<object> canExecute = null)
-        {
-            _execute = execute;
-            _canExecute = canExecute;
-        }
-
-        public bool CanExecute(object parameter) => _canExecute?.Invoke(parameter) ?? true;
-
-        public void Execute(object parameter) => _execute(parameter);
-
-        public event EventHandler CanExecuteChanged
-        {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
-        }
-    }
-}
-
-
-
+            <!-- Submit Button -->
+            <Button Content="Submit Check-In" 
+                    Width="150" 
+                    Height="40" 
+                    HorizontalAlignment="Right" 
+                    Margin="0,20,0,0"
+                    x:Name="submitCheckInButton" />
+        </StackPanel>
+    </Grid>
+</Window>
