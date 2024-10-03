@@ -1,1 +1,1 @@
-error CS0260: Missing partial modifier on declaration of type 'CounterViewModel'; another partial declaration of this type exists
+ error CS0234: The type or namespace name 'Forms' does not exist in the namespace 'System.Windows' (are you missing an assembly reference?)
