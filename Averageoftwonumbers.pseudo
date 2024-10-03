@@ -1,58 +1,3 @@
-<Window x:Class="MedicineTracker.InputDialog"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Input Side Effect" Height="150" Width="300">
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-
-        <TextBox x:Name="inputTextBox" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="5" />
-
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="OK" Width="80" Margin="5" Click="OkButton_Click" />
-            <Button Content="Cancel" Width="80" Margin="5" Click="CancelButton_Click" />
-        </StackPanel>
-    </Grid>
-</Window>
-
-
-
-
-
-using System.Windows;
-
-namespace MedicineTracker
-{
-    public partial class InputDialog : Window
-    {
-        public string ResponseText { get; set; }
-
-        public InputDialog(string question, string defaultAnswer = "")
-        {
-            InitializeComponent();
-            this.Title = question;
-            inputTextBox.Text = defaultAnswer;
-        }
-
-        private void OkButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.ResponseText = inputTextBox.Text;
-            this.DialogResult = true;
-        }
-
-        private void CancelButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.DialogResult = false;
-        }
-    }
-}
-
-
-
-
-
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -110,13 +55,13 @@ namespace MedicineTracker
                         else
                         {
                             medicine.Taken = "❌"; // Medicine was not taken
+                        }
 
-                            // Use InputDialog to ask for side effects
-                            var inputDialog = new InputDialog($"Any side effects for {medicine.Name}?", "None");
-                            if (inputDialog.ShowDialog() == true)
-                            {
-                                medicine.SideEffect = inputDialog.ResponseText;
-                            }
+                        // Prompt for side effects after yes/no is clicked
+                        var inputDialog = new InputDialog($"Any side effects for {medicine.Name}?", medicine.SideEffect);
+                        if (inputDialog.ShowDialog() == true)
+                        {
+                            medicine.SideEffect = inputDialog.ResponseText;
                         }
                     }
                 }
@@ -141,7 +86,3 @@ namespace MedicineTracker
         }
     }
 }
-
-
-
-
