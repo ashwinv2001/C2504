@@ -1,1 +1,147 @@
-error CS0234: The type or namespace name 'Interaction' does not exist in the namespace 'Microsoft.VisualBasic' (are you missing an assembly reference?)
+<Window x:Class="MedicineTracker.InputDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Input Side Effect" Height="150" Width="300">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBox x:Name="inputTextBox" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="5" />
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="OK" Width="80" Margin="5" Click="OkButton_Click" />
+            <Button Content="Cancel" Width="80" Margin="5" Click="CancelButton_Click" />
+        </StackPanel>
+    </Grid>
+</Window>
+
+
+
+
+
+using System.Windows;
+
+namespace MedicineTracker
+{
+    public partial class InputDialog : Window
+    {
+        public string ResponseText { get; set; }
+
+        public InputDialog(string question, string defaultAnswer = "")
+        {
+            InitializeComponent();
+            this.Title = question;
+            inputTextBox.Text = defaultAnswer;
+        }
+
+        private void OkButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.ResponseText = inputTextBox.Text;
+            this.DialogResult = true;
+        }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.DialogResult = false;
+        }
+    }
+}
+
+
+
+
+
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Windows;
+using System.Windows.Input;
+
+namespace MedicineTracker
+{
+    public class MainViewModel : INotifyPropertyChanged
+    {
+        private string _currentTime;
+        public string CurrentTime
+        {
+            get { return _currentTime; }
+            set
+            {
+                _currentTime = value;
+                OnPropertyChanged(nameof(CurrentTime));
+            }
+        }
+
+        public ObservableCollection<Medicine> Medications { get; set; }
+
+        public ICommand CheckMedicationCommand { get; }
+        public ICommand SaveCommand { get; }
+
+        public MainViewModel()
+        {
+            // Sample data for Medications
+            Medications = new ObservableCollection<Medicine>
+            {
+                new Medicine { Name = "Aspirin", Time = "08:00", SideEffect = "None", Taken = "" },
+                new Medicine { Name = "Vitamin C", Time = "12:00", SideEffect = "None", Taken = "" },
+                new Medicine { Name = "Ibuprofen", Time = "18:00", SideEffect = "None", Taken = "" }
+            };
+
+            CheckMedicationCommand = new RelayCommand(CheckMedication);
+            SaveCommand = new RelayCommand(SaveUpdates);
+        }
+
+        private void CheckMedication(object parameter)
+        {
+            if (TimeSpan.TryParse(CurrentTime, out TimeSpan currentTime))
+            {
+                foreach (var medicine in Medications)
+                {
+                    if (TimeSpan.TryParse(medicine.Time, out TimeSpan scheduledTime) && scheduledTime <= currentTime)
+                    {
+                        MessageBoxResult result = MessageBox.Show($"Did you take {medicine.Name} scheduled at {medicine.Time}?", "Medicine Check", MessageBoxButton.YesNo);
+
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            medicine.Taken = "✔"; // Medicine was taken
+                        }
+                        else
+                        {
+                            medicine.Taken = "❌"; // Medicine was not taken
+
+                            // Use InputDialog to ask for side effects
+                            var inputDialog = new InputDialog($"Any side effects for {medicine.Name}?", "None");
+                            if (inputDialog.ShowDialog() == true)
+                            {
+                                medicine.SideEffect = inputDialog.ResponseText;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid time in 24-hour format (e.g., 14:30).", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void SaveUpdates(object parameter)
+        {
+            // You can save updates here (e.g., save to file or database)
+            MessageBox.Show("Medication updates have been saved.", "Save", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+}
+
+
+
+
