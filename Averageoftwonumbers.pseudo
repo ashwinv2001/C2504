@@ -1,2 +1,163 @@
- The type or namespace name 'INotifyPropertyChanged' could not be found (are you missing a using directive or an assembly reference?)
-1>C:\Users\2021455\source\repos\Checkinpagesolution\Checkinpage\Medicine.cs(56,22,56,49): error CS0246: The type or namespace name 'PropertyChangedEventHandler' could not be found (are you missing a using directive or an assembly reference?)
+using System.ComponentModel;
+
+namespace MedicineTracker
+{
+    public class Medicine : INotifyPropertyChanged
+    {
+        private string _name;
+        private string _time;
+        private string _sideEffect;
+        private string _taken; // Now this stores the string ✔ or ❌
+
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                _name = value;
+                OnPropertyChanged(nameof(Name));
+            }
+        }
+
+        public string Time
+        {
+            get { return _time; }
+            set
+            {
+                _time = value;
+                OnPropertyChanged(nameof(Time));
+            }
+        }
+
+        public string SideEffect
+        {
+            get { return _sideEffect; }
+            set
+            {
+                _sideEffect = value;
+                OnPropertyChanged(nameof(SideEffect));
+            }
+        }
+
+        public string Taken
+        {
+            get { return _taken; }
+            set
+            {
+                _taken = value;
+                OnPropertyChanged(nameof(Taken));
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+}
+
+
+
+
+
+
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Windows;
+using System.Windows.Input;
+
+namespace MedicineTracker
+{
+    public class MainViewModel : INotifyPropertyChanged
+    {
+        private string _currentTime;
+        public string CurrentTime
+        {
+            get { return _currentTime; }
+            set
+            {
+                _currentTime = value;
+                OnPropertyChanged(nameof(CurrentTime));
+            }
+        }
+
+        public ObservableCollection<Medicine> Medications { get; set; }
+
+        public ICommand CheckMedicationCommand { get; }
+        public ICommand SaveCommand { get; }
+
+        public MainViewModel()
+        {
+            // Sample data for Medications
+            Medications = new ObservableCollection<Medicine>
+            {
+                new Medicine { Name = "Aspirin", Time = "08:00", SideEffect = "None", Taken = "" },
+                new Medicine { Name = "Vitamin C", Time = "12:00", SideEffect = "None", Taken = "" },
+                new Medicine { Name = "Ibuprofen", Time = "18:00", SideEffect = "None", Taken = "" }
+            };
+
+            CheckMedicationCommand = new RelayCommand(CheckMedication);
+            SaveCommand = new RelayCommand(SaveUpdates);
+        }
+
+        private void CheckMedication(object parameter)
+        {
+            if (TimeSpan.TryParse(CurrentTime, out TimeSpan currentTime))
+            {
+                foreach (var medicine in Medications)
+                {
+                    if (TimeSpan.TryParse(medicine.Time, out TimeSpan scheduledTime) && scheduledTime <= currentTime)
+                    {
+                        MessageBoxResult result = MessageBox.Show($"Did you take {medicine.Name} scheduled at {medicine.Time}?", "Medicine Check", MessageBoxButton.YesNo);
+
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            medicine.Taken = "✔"; // Medicine was taken
+                        }
+                        else
+                        {
+                            medicine.Taken = "❌"; // Medicine was not taken
+                            // Ask for side effects if not taken
+                            string sideEffect = Microsoft.VisualBasic.Interaction.InputBox($"Any side effects for {medicine.Name}?", "Side Effects", "None");
+                            medicine.SideEffect = sideEffect;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid time in 24-hour format (e.g., 14:30).", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void SaveUpdates(object parameter)
+        {
+            // You can save updates here (e.g., save to file or database)
+            MessageBox.Show("Medication updates have been saved.", "Save", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+}
+
+
+
+
+
+
+<DataGrid Grid.Row="1" ItemsSource="{Binding Medications}" AutoGenerateColumns="False" CanUserAddRows="False" Margin="10">
+    <DataGrid.Columns>
+        <DataGridTextColumn Header="Medicine" Binding="{Binding Name}" />
+        <DataGridTextColumn Header="Time (24-hr)" Binding="{Binding Time}" />
+        <DataGridTextColumn Header="Side Effect" Binding="{Binding SideEffect}" />
+        <DataGridTextColumn Header="Taken" Binding="{Binding Taken}" /> <!-- This column shows ✔ or ❌ -->
+    </DataGrid.Columns>
+</DataGrid>
