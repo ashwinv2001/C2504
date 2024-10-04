@@ -1,58 +1,261 @@
-Project: Personal Finance Manager
-Description:
-The Personal Finance Manager helps users track their income, expenses, and savings. It provides a clear view of their financial status, allowing them to budget and make informed financial decisions. The application will allow users to input transactions (income or expenses), categorize them, view their spending trends, and set savings goals.
+<Window x:Class="BankingSystem.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Banking System" Height="400" Width="600">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-Features:
-1. Dashboard:
-Overview of total income, expenses, savings, and remaining balance.
-Graphical representation (e.g., pie chart, bar chart) of spending by category.
-Monthly summary of financial activity.
-2. Transaction Management:
-Add Transaction: Users can add income or expenses by specifying the amount, category, and date.
-Edit/Delete Transactions: Ability to edit or remove transactions.
-Filter Transactions: Filter transactions by date, category, or type (income/expense).
-Transaction List: A list or data grid showing all transactions (amount, category, date, and type).
-3. Categories:
-Predefined categories such as "Food", "Rent", "Transportation", "Entertainment", and "Utilities".
-Option for users to create custom categories.
-4. Budgeting:
-Allow users to set monthly budgets for various categories.
-Track spending against the budget with a progress bar indicating percentage of the budget used.
-Alert when spending is nearing or exceeding the budget.
-5. Savings Goal:
-Set savings goals (e.g., vacation, emergency fund).
-Track progress toward savings goals (amount saved vs. target).
-Visual representation of the progress (e.g., progress bars).
-6. Reports:
-Generate monthly or custom-range reports that summarize income, expenses, and savings.
-Export reports to CSV or PDF formats for offline use.
-7. User Settings:
-Currency: Allow users to select their preferred currency.
-Notifications: Notifications for when spending nears or exceeds the budget or when a savings goal is close to being met.
-8. Backup and Restore:
-Option to backup data to a local file or cloud (e.g., Google Drive or Dropbox integration).
-Restore data from a backup in case of data loss.
-9. Themes and Appearance:
-Light and Dark themes.
-Customize font sizes and colors to enhance user experience.
-Technologies:
-Frontend: WPF (for the user interface, using Data Binding, MVVM architecture).
-Backend: C# (for business logic and managing data).
-Database: SQLite or a local database file (for storing transaction data).
-Charts/Graphs: Use libraries such as OxyPlot or LiveCharts for visualizations.
-Additional Enhancements:
-Password Protection: Option to password protect the application for security.
-Multi-user support: Allow multiple users to maintain separate profiles and data.
-Data Syncing: Sync data across multiple devices using cloud services.
-This project will give you a broad experience in WPF, including data binding, using MVVM, handling user input, working with databases, and visualizing data. You can start with basic functionality and gradually add advanced features like report generation and backup.
+        <!-- Title -->
+        <TextBlock Text="Account Details" FontWeight="Bold" FontSize="20" HorizontalAlignment="Center" Margin="0,10,0,20"/>
+
+        <!-- DataGrid for Account Details -->
+        <DataGrid x:Name="accountsDataGrid" 
+                  AutoGenerateColumns="False" 
+                  CanUserAddRows="False"
+                  Grid.Row="1" Height="200">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Account Number" Binding="{Binding AccountNumber}" Width="150" />
+                <DataGridTextColumn Header="Account Holder" Binding="{Binding AccountHolder}" Width="150" />
+                <DataGridTextColumn Header="Account Type" Binding="{Binding AccountType}" Width="100" />
+                <DataGridTextColumn Header="Balance" Binding="{Binding Balance}" Width="100" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Buttons for Actions -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Add Account" Width="100" Click="AddAccount_Click" Margin="0,0,10,0"/>
+            <Button Content="Edit Account" Width="100" Click="EditAccount_Click" />
+        </StackPanel>
+    </Grid>
+</Window>
 
 
 
 
 
+using System.Collections.ObjectModel;
+using System.Windows;
+
+namespace BankingSystem
+{
+    public partial class MainWindow : Window
+    {
+        public ObservableCollection<Account> Accounts { get; set; }
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            Accounts = new ObservableCollection<Account>
+            {
+                new SavingsAccount { AccountNumber = "SA001", AccountHolder = "John Doe", Balance = 5000 },
+                new CurrentAccount { AccountNumber = "CA001", AccountHolder = "Jane Smith", Balance = 2000 }
+            };
+            accountsDataGrid.ItemsSource = Accounts;
+        }
+
+        private void AddAccount_Click(object sender, RoutedEventArgs e)
+        {
+            var addAccountWindow = new AddAccountWindow(Accounts);
+            addAccountWindow.ShowDialog();
+        }
+
+        private void EditAccount_Click(object sender, RoutedEventArgs e)
+        {
+            if (accountsDataGrid.SelectedItem is Account selectedAccount)
+            {
+                var editAccountWindow = new EditAccountWindow(selectedAccount);
+                editAccountWindow.ShowDialog();
+            }
+            else
+            {
+                MessageBox.Show("Please select an account to edit.");
+            }
+        }
+    }
+}
 
 
 
 
 
-ChatGPT can make mistakes. Check importa
+
+<Window x:Class="BankingSystem.AddAccountWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Add Account" Height="300" Width="400">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title -->
+        <TextBlock Text="Add New Account" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" Margin="0,10,0,20"/>
+
+        <!-- Account Details Input -->
+        <StackPanel Grid.Row="1" Orientation="Vertical">
+            <TextBox x:Name="accountHolderTextBox" PlaceholderText="Account Holder" Margin="0,10" />
+            <ComboBox x:Name="accountTypeComboBox" Margin="0,10">
+                <ComboBoxItem Content="Savings" />
+                <ComboBoxItem Content="Current" />
+            </ComboBox>
+            <TextBox x:Name="balanceTextBox" PlaceholderText="Initial Balance" Margin="0,10" />
+        </StackPanel>
+
+        <!-- Buttons -->
+        <Button Content="Create Account" Width="120" HorizontalAlignment="Right" Margin="0,20,0,0" Click="CreateAccount_Click"/>
+    </Grid>
+</Window>
+
+
+
+
+
+
+using System.Collections.ObjectModel;
+using System.Windows;
+
+namespace BankingSystem
+{
+    public partial class AddAccountWindow : Window
+    {
+        private ObservableCollection<Account> _accounts;
+
+        public AddAccountWindow(ObservableCollection<Account> accounts)
+        {
+            InitializeComponent();
+            _accounts = accounts;
+        }
+
+        private void CreateAccount_Click(object sender, RoutedEventArgs e)
+        {
+            string accountHolder = accountHolderTextBox.Text;
+            string accountType = ((ComboBoxItem)accountTypeComboBox.SelectedItem).Content.ToString();
+            decimal initialBalance = decimal.Parse(balanceTextBox.Text);
+
+            if (accountType == "Savings" && initialBalance < 100)
+            {
+                MessageBox.Show("Minimum balance for Savings account is 100.");
+                return;
+            }
+
+            Account newAccount = accountType == "Savings" 
+                ? new SavingsAccount { AccountHolder = accountHolder, Balance = initialBalance } 
+                : new CurrentAccount { AccountHolder = accountHolder, Balance = initialBalance };
+
+            _accounts.Add(newAccount);
+            this.Close();
+        }
+    }
+}
+
+
+
+
+
+
+
+<Window x:Class="BankingSystem.EditAccountWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Edit Account" Height="250" Width="350">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title -->
+        <TextBlock Text="Edit Account Address" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" Margin="0,10,0,20"/>
+
+        <!-- Edit Address -->
+        <StackPanel Grid.Row="1" Orientation="Vertical">
+            <TextBox x:Name="accountHolderTextBox" Margin="0,10" IsReadOnly="True" />
+            <TextBox x:Name="addressTextBox" PlaceholderText="New Address" Margin="0,10" />
+        </StackPanel>
+
+        <!-- Save Button -->
+        <Button Content="Save Changes" Width="120" HorizontalAlignment="Right" Margin="0,20,0,0" Click="SaveChanges_Click"/>
+    </Grid>
+</Window>
+
+
+
+
+
+
+
+using System.Windows;
+
+namespace BankingSystem
+{
+    public partial class EditAccountWindow : Window
+    {
+        private Account _account;
+
+        public EditAccountWindow(Account account)
+        {
+            InitializeComponent();
+            _account = account;
+            accountHolderTextBox.Text = _account.AccountHolder;
+        }
+
+        private void SaveChanges_Click(object sender, RoutedEventArgs e)
+        {
+            _account.Address = addressTextBox.Text;
+            this.Close();
+        }
+    }
+}
+
+
+
+
+
+
+namespace BankingSystem
+{
+    public abstract class Account
+    {
+        public string AccountNumber { get; set; }
+        public string AccountHolder { get; set; }
+        public string Address { get; set; }
+        public decimal Balance { get; set; }
+        public abstract string AccountType { get; }
+    }
+
+    public class SavingsAccount : Account
+    {
+        public const decimal InterestRate = 0.05m;
+        public const decimal MinimumBalance = 100m;
+
+        public override string AccountType => "Savings";
+
+        public void ApplyInterest()
+        {
+            Balance += Balance * InterestRate;
+        }
+    }
+
+    public class CurrentAccount : Account
+    {
+        public const decimal InterestRate = 0.02m;
+
+        public override string AccountType => "Current";
+
+        public void ApplyInterest()
+        {
+            Balance += Balance * InterestRate;
+        }
+    }
+}
+
+
+
+
+
+
+
