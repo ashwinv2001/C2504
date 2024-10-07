@@ -1,2 +1,90 @@
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0308	The non-generic type 'RelayCommand' cannot be used with type arguments	BankManagementSystem	C:\Users\2021455\Desktop\New folder (2) - Copy\BankManagementSystem\ViewModels\AccountViewModel.cs	70	
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
+using System.Windows.Input;
+using BankManagementSystem.Commands;
+using BankManagementSystem.Databases;
+using BankManagementSystem.Exceptions;
+using BankManagementSystem.Models;
+using BankManagementSystem.Repos;
+
+namespace BankManagementSystem.ViewModels
+{
+    public delegate void DWidnowClose();
+
+    public class AccountViewModel : ViewModelBase
+    {
+        private Account _newAccount = null;
+        private Account _selectedAccount = null;
+        private ObservableCollection<Account> _filteredAccounts;
+
+        public DWidnowClose NewWindowClose;
+        public DWidnowClose EditWindowClose;
+
+        private IAccountRepo _repo = AccountMemoryRepo.Instance;
+
+        public Account NewAccount
+        {
+            get { return _newAccount; }
+            set
+            {
+                _newAccount = value;
+                onPropertyChanged(nameof(NewAccount));
+            }
+        }
+
+        public Account SelectedAccount
+        {
+            get => _selectedAccount;
+            set
+            {
+                _selectedAccount = value;
+                onPropertyChanged(nameof(SelectedAccount));
+            }
+        }
+
+        public ObservableCollection<Account> Accounts => _repo.ReadAll();
+
+        public ObservableCollection<Account> FilteredAccounts
+        {
+            get { return _filteredAccounts; }
+            private set
+            {
+                _filteredAccounts = value;
+                onPropertyChanged(nameof(FilteredAccounts));
+            }
+        }
+
+        public ICommand CreateCommand { get; }
+        public ICommand UpdateCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand ApplyFilterCommand { get; }
+
+        public AccountViewModel()
+        {
+            _filteredAccounts = new ObservableCollection<Account>(Accounts);
+            CreateCommand = new RelayCommand(Create);
+            UpdateCommand = new RelayCommand(Update);
+            DeleteCommand = new RelayCommand(Delete);
+            ApplyFilterCommand = new RelayCommand<string>(ApplyFilter);
+        }
+
+        public void ApplyFilter(string interestRateFilter)
+        {
+            if (double.TryParse(interestRateFilter, out double interestRate))
+            {
+                FilteredAccounts = new ObservableCollection<Account>(Accounts
+                    .Where(acc => double.TryParse(acc.InterestPercentage, out double rate) && rate >= interestRate));
+            }
+            else
+            {
+                MessageBox.Show("Invalid Interest Rate entered. Please enter a valid number.");
+            }
+        }
+
+        public void Create() { /* Implementation here */ }
+        public void Update() { /* Implementation here */ }
+        public void Delete() { /* Implementation here */ }
+    }
+}
