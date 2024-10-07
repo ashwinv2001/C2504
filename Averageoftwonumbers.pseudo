@@ -1,1 +1,63 @@
-https://www.classmarker.com/online-test/start/?quiz=47766ff7ef6e245a
+<Window x:Class="BankManagementSystem.AccountListWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BankManagementSystem" xmlns:viewmodels="clr-namespace:BankManagementSystem.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:AccountViewModel}"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" Closed="Window_Closed" Closing="Window_Closing">
+    <Grid MaxWidth="1200" Margin="10 10 10 10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Account Manager"
+           FontSize="24"
+           FontWeight="bold"
+           TextAlignment="center"/>
+        <Button Grid.Row="1" Content="Add Account" Width="200" Height="30" Margin="0 10 0 0" HorizontalAlignment="left"
+        Background="#9e0344" Foreground="yellow" FontWeight="bold"
+        Click="Button_Click"/>
+        <DataGrid x:Name="grdAccounts" Grid.Row="2" Margin="0 10 0 0"
+           SelectedItem="{Binding SelectedAccount , Mode=TwoWay}" IsReadOnly="True" AreRowDetailsFrozen="True" AutoGenerateColumns="False"
+          SelectionMode="Single" ItemsSource="{Binding Accounts}"
+          >
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Account Number" Binding="{Binding AccountNumber}"/>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
+                <DataGridTextColumn Header="Balance" Binding="{Binding Balance}"/>
+                <DataGridTextColumn Header="Type" Binding="{Binding Type}"/>
+                <DataGridTextColumn Header="Email" Binding="{Binding Email}"/>
+                <DataGridTextColumn Header="Phone Number" Binding="{Binding PhoneNumber}"/>
+                <DataGridTextColumn Header="Address" Binding="{Binding Address}"/>
+                <DataGridTextColumn Header="IsActive" Binding="{Binding IsActive}"/>
+                <DataGridTextColumn Header="Interest Percentage" Binding="{Binding InterestPercentage}"/>
+                <DataGridTextColumn Header="Transaction Count" Binding="{Binding TransactionCount}"/>
+                <DataGridTextColumn Header="Last Transaction Date" Binding="{Binding LastTransactionDate}"/>
+
+
+            </DataGrid.Columns>
+        </DataGrid>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right"> 
+            <Button x:Name="btnView" Content="View Account" Width="200" Height="30"
+Margin="10 10 0 0" HorizontalAlignment="Right"
+Background="#9e0344" Foreground="yellow" FontWeight="bold"
+Click="btnView_Click"/>
+
+            <Button x:Name="btnDelete" Content="Mark As Delete" Width="200" Height="30"
+Margin="10 10 0 0" HorizontalAlignment="Right"
+Background="#9e0344" Foreground="yellow" FontWeight="bold" Command="{Binding DeleteCommand}"/>
+
+            <Button  Content="Update Account" Width="200" Height="30"
+        Margin="30 10 0 0" HorizontalAlignment="Right"
+        Background="#9e0344" Foreground="yellow" FontWeight="bold"
+        Click="Button_Click_1"/>
+        </StackPanel>
+
+    </Grid>
+
+</Window>
+
