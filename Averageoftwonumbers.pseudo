@@ -3,11 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:BankManagementSystem" xmlns:viewmodels="clr-namespace:BankManagementSystem.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:AccountViewModel}"
+        xmlns:local="clr-namespace:BankManagementSystem" 
+        xmlns:viewmodels="clr-namespace:BankManagementSystem.ViewModels" 
+        d:DataContext="{d:DesignInstance Type=viewmodels:AccountViewModel}"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" Closed="Window_Closed" Closing="Window_Closing">
     <Grid MaxWidth="1200" Margin="10 10 10 10">
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
@@ -18,13 +21,21 @@
            FontSize="24"
            FontWeight="bold"
            TextAlignment="center"/>
-        <Button Grid.Row="1" Content="Add Account" Width="200" Height="30" Margin="0 10 0 0" HorizontalAlignment="left"
+
+        <!-- Interest Rate Filter Section -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,0">
+            <TextBlock Text="Filter by Interest Rate:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <TextBox x:Name="txtFilterInterestRate" Width="100"/>
+            <Button Content="Apply Filter" Width="100" Margin="5,0,0,0" Click="ApplyFilter_Click"/>
+        </StackPanel>
+
+        <Button Grid.Row="2" Content="Add Account" Width="200" Height="30" Margin="0 10 0 0" HorizontalAlignment="left"
         Background="#9e0344" Foreground="yellow" FontWeight="bold"
         Click="Button_Click"/>
-        <DataGrid x:Name="grdAccounts" Grid.Row="2" Margin="0 10 0 0"
+
+        <DataGrid x:Name="grdAccounts" Grid.Row="3" Margin="0 10 0 0"
            SelectedItem="{Binding SelectedAccount , Mode=TwoWay}" IsReadOnly="True" AreRowDetailsFrozen="True" AutoGenerateColumns="False"
-          SelectionMode="Single" ItemsSource="{Binding Accounts}"
-          >
+           SelectionMode="Single" ItemsSource="{Binding FilteredAccounts}">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Account Number" Binding="{Binding AccountNumber}"/>
                 <DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
@@ -37,54 +48,40 @@
                 <DataGridTextColumn Header="Interest Percentage" Binding="{Binding InterestPercentage}"/>
                 <DataGridTextColumn Header="Transaction Count" Binding="{Binding TransactionCount}"/>
                 <DataGridTextColumn Header="Last Transaction Date" Binding="{Binding LastTransactionDate}"/>
-
-
             </DataGrid.Columns>
         </DataGrid>
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button x:Name="btnView" Content="View Account" Width="200" Height="30"
-Margin="10 10 0 0" HorizontalAlignment="Right"
-Background="#9e0344" Foreground="yellow" FontWeight="bold"
-Click="btnView_Click"/>
+                    Margin="10 10 0 0" HorizontalAlignment="Right"
+                    Background="#9e0344" Foreground="yellow" FontWeight="bold"
+                    Click="btnView_Click"/>
 
             <Button x:Name="btnDelete" Content="Mark As Delete" Width="200" Height="30"
-Margin="10 10 0 0" HorizontalAlignment="Right"
-Background="#9e0344" Foreground="yellow" FontWeight="bold" Command="{Binding DeleteCommand}"/>
+                    Margin="10 10 0 0" HorizontalAlignment="Right"
+                    Background="#9e0344" Foreground="yellow" FontWeight="bold" 
+                    Command="{Binding DeleteCommand}"/>
 
-            <Button  Content="Update Account" Width="200" Height="30"
-        Margin="30 10 0 0" HorizontalAlignment="Right"
-        Background="#9e0344" Foreground="yellow" FontWeight="bold"
-        Click="Button_Click_1"/>
+            <Button Content="Update Account" Width="200" Height="30"
+                    Margin="30 10 0 0" HorizontalAlignment="Right"
+                    Background="#9e0344" Foreground="yellow" FontWeight="bold"
+                    Click="Button_Click_1"/>
         </StackPanel>
-
     </Grid>
-
 </Window>
 
 
 
 
+
+
 using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using BankManagementSystem.Pages;
 
 namespace BankManagementSystem
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class AccountListWindow : Window
     {
         public AccountListWindow()
@@ -93,12 +90,26 @@ namespace BankManagementSystem
             this.DataContext = FormConfig.accountViewModel;
         }
 
+        private void ApplyFilter_Click(object sender, RoutedEventArgs e)
+        {
+            if (double.TryParse(txtFilterInterestRate.Text, out double interestRate))
+            {
+                var filteredAccounts = FormConfig.accountViewModel.Accounts
+                    .Where(a => a.InterestPercentage == interestRate).ToList();
+
+                FormConfig.accountViewModel.FilteredAccounts = new ObservableCollection<Account>(filteredAccounts);
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid interest rate.");
+            }
+        }
+
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             FormConfig.newAccountWindow.Show();
             NewAccountWindow newAccountWindow = (NewAccountWindow)FormConfig.newAccountWindow;
             FormConfig.accountViewModel.NewWindowClose = newAccountWindow.WindowClose;
-
         }
 
         private void Window_Closed(object sender, EventArgs e)
@@ -110,14 +121,10 @@ namespace BankManagementSystem
         {
             if (grdAccounts.SelectedIndex == -1)
             {
-                var result = MessageBox.Show(messageBoxText: "Please select an account to edit",
-                    caption: "Alert",
-                    button: MessageBoxButton.OK,
-                    icon: MessageBoxImage.Information);
+                var result = MessageBox.Show("Please select an account to edit", "Alert", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             FormConfig.editAccountWindow.Show();
-
             EditAccountWindow editAccountWindow = (EditAccountWindow)FormConfig.editAccountWindow;
             FormConfig.accountViewModel.EditWindowClose = editAccountWindow.WindowClose;
         }
@@ -132,17 +139,10 @@ namespace BankManagementSystem
         {
             if (grdAccounts.SelectedIndex == -1)
             {
-                var result = MessageBox.Show(messageBoxText: "Please select an account",
-                    caption: "Alert",
-                    button: MessageBoxButton.OK,
-                    icon: MessageBoxImage.Information);
+                var result = MessageBox.Show("Please select an account", "Alert", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             FormConfig.accountViewWindow.Show();
-
         }
     }
 }
-
-
-
