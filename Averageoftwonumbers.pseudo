@@ -1,90 +1,64 @@
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
-using System.Windows;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Input;
-using BankManagementSystem.Commands;
-using BankManagementSystem.Databases;
-using BankManagementSystem.Exceptions;
-using BankManagementSystem.Models;
-using BankManagementSystem.Repos;
 
-namespace BankManagementSystem.ViewModels
+namespace BankManagementSystem.Commands
 {
-    public delegate void DWidnowClose();
-
-    public class AccountViewModel : ViewModelBase
+    /// <summary>
+    /// Represents a command that can be executed.
+    /// </summary>
+    public class RelayCommand : ICommand
     {
-        private Account _newAccount = null;
-        private Account _selectedAccount = null;
-        private ObservableCollection<Account> _filteredAccounts;
+        /// <summary>
+        /// The action to execute when the command is invoked.
+        /// </summary>
+        private readonly Action _execute;
 
-        public DWidnowClose NewWindowClose;
-        public DWidnowClose EditWindowClose;
+        /// <summary>
+        /// A function that determines whether the command can be executed.
+        /// </summary>
+        private readonly Func<bool> _canExecute;
 
-        private IAccountRepo _repo = AccountMemoryRepo.Instance;
-
-        public Account NewAccount
+        /// <summary>
+        /// Initializes a new instance of the RelayCommand class.
+        /// </summary>
+        /// <param name="execute">The action to execute when the command is invoked.</param>
+        /// <param name="canExecute">A function that determines whether the command can be executed.</param>
+        public RelayCommand(Action execute, Func<bool> canExecute = null)
         {
-            get { return _newAccount; }
-            set
-            {
-                _newAccount = value;
-                onPropertyChanged(nameof(NewAccount));
-            }
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _canExecute = canExecute;
         }
 
-        public Account SelectedAccount
+        /// <summary>
+        /// Occurs when the CanExecute method of the command changes.
+        /// </summary>
+        public event EventHandler CanExecuteChanged
         {
-            get => _selectedAccount;
-            set
-            {
-                _selectedAccount = value;
-                onPropertyChanged(nameof(SelectedAccount));
-            }
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
         }
 
-        public ObservableCollection<Account> Accounts => _repo.ReadAll();
-
-        public ObservableCollection<Account> FilteredAccounts
+        /// <summary>
+        /// Determines whether the command can be executed.
+        /// </summary>
+        /// <param name="parameter">The parameter to pass to the CanExecute method.</param>
+        /// <returns>True if the command can be executed; otherwise, false.</returns>
+        public bool CanExecute(object parameter)
         {
-            get { return _filteredAccounts; }
-            private set
-            {
-                _filteredAccounts = value;
-                onPropertyChanged(nameof(FilteredAccounts));
-            }
+            return _canExecute == null || _canExecute();
         }
 
-        public ICommand CreateCommand { get; }
-        public ICommand UpdateCommand { get; }
-        public ICommand DeleteCommand { get; }
-        public ICommand ApplyFilterCommand { get; }
-
-        public AccountViewModel()
+        /// <summary>
+        /// Executes the command.
+        /// </summary>
+        /// <param name="parameter">The parameter to pass to the Execute method.</param>
+        public void Execute(object parameter)
         {
-            _filteredAccounts = new ObservableCollection<Account>(Accounts);
-            CreateCommand = new RelayCommand(Create);
-            UpdateCommand = new RelayCommand(Update);
-            DeleteCommand = new RelayCommand(Delete);
-            ApplyFilterCommand = new RelayCommand<string>(ApplyFilter);
+            _execute();
         }
-
-        public void ApplyFilter(string interestRateFilter)
-        {
-            if (double.TryParse(interestRateFilter, out double interestRate))
-            {
-                FilteredAccounts = new ObservableCollection<Account>(Accounts
-                    .Where(acc => double.TryParse(acc.InterestPercentage, out double rate) && rate >= interestRate));
-            }
-            else
-            {
-                MessageBox.Show("Invalid Interest Rate entered. Please enter a valid number.");
-            }
-        }
-
-        public void Create() { /* Implementation here */ }
-        public void Update() { /* Implementation here */ }
-        public void Delete() { /* Implementation here */ }
     }
 }
