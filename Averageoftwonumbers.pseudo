@@ -1,68 +1,90 @@
 using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
 using System.Windows.Input;
+using BankManagementSystem.Commands;
+using BankManagementSystem.Databases;
+using BankManagementSystem.Exceptions;
+using BankManagementSystem.Models;
+using BankManagementSystem.Repos;
 
-namespace BankManagementSystem.Commands
+namespace BankManagementSystem.ViewModels
 {
-    /// <summary>
-    /// Represents a command that can be executed without parameters.
-    /// </summary>
-    public class RelayCommand : ICommand
+    public delegate void DWidnowClose();
+
+    public class AccountViewModel : ViewModelBase
     {
-        private readonly Action _execute;
-        private readonly Func<bool> _canExecute;
+        private Account _newAccount = null;
+        private Account _selectedAccount = null;
+        private ObservableCollection<Account> _filteredAccounts;
 
-        public RelayCommand(Action execute, Func<bool> canExecute = null)
+        public DWidnowClose NewWindowClose;
+        public DWidnowClose EditWindowClose;
+
+        private IAccountRepo _repo = AccountMemoryRepo.Instance;
+
+        public Account NewAccount
         {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
+            get { return _newAccount; }
+            set
+            {
+                _newAccount = value;
+                onPropertyChanged(nameof(NewAccount));
+            }
         }
 
-        public event EventHandler CanExecuteChanged
+        public Account SelectedAccount
         {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
+            get => _selectedAccount;
+            set
+            {
+                _selectedAccount = value;
+                onPropertyChanged(nameof(SelectedAccount));
+            }
         }
 
-        public bool CanExecute(object parameter)
+        public ObservableCollection<Account> Accounts => _repo.ReadAll();
+
+        public ObservableCollection<Account> FilteredAccounts
         {
-            return _canExecute == null || _canExecute();
+            get { return _filteredAccounts; }
+            private set
+            {
+                _filteredAccounts = value;
+                onPropertyChanged(nameof(FilteredAccounts));
+            }
         }
 
-        public void Execute(object parameter)
-        {
-            _execute();
-        }
-    }
+        public ICommand CreateCommand { get; }
+        public ICommand UpdateCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand ApplyFilterCommand { get; }
 
-    /// <summary>
-    /// Represents a command that can be executed with a parameter of a specific type.
-    /// </summary>
-    /// <typeparam name="T">The type of parameter passed to the command.</typeparam>
-    public class RelayCommand<T> : ICommand
-    {
-        private readonly Action<T> _execute;
-        private readonly Func<T, bool> _canExecute;
-
-        public RelayCommand(Action<T> execute, Func<T, bool> canExecute = null)
+        public AccountViewModel()
         {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
+            _filteredAccounts = new ObservableCollection<Account>(Accounts);
+            CreateCommand = new RelayCommand(Create);
+            UpdateCommand = new RelayCommand(Update);
+            DeleteCommand = new RelayCommand(Delete);
+            ApplyFilterCommand = new RelayCommand<string>(ApplyFilter); // Now supports parameter
         }
 
-        public event EventHandler CanExecuteChanged
+        public void ApplyFilter(string interestRateFilter)
         {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
+            if (double.TryParse(interestRateFilter, out double interestRate))
+            {
+                FilteredAccounts = new ObservableCollection<Account>(Accounts
+                    .Where(acc => double.TryParse(acc.InterestPercentage, out double rate) && rate >= interestRate));
+            }
+            else
+            {
+                MessageBox.Show("Invalid Interest Rate entered. Please enter a valid number.");
+            }
         }
 
-        public bool CanExecute(object parameter)
-        {
-            return _canExecute == null || _canExecute((T)parameter);
-        }
-
-        public void Execute(object parameter)
-        {
-            _execute((T)parameter);
-        }
+        public void Create() { /* Implementation here */ }
+        public void Update() { /* Implementation here */ }
+        public void Delete() { /* Implementation here */ }
     }
 }
