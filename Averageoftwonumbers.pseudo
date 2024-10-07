@@ -1,15 +1,3 @@
-private void ApplyFilter_Click(object sender, RoutedEventArgs e)
-{
-    if (double.TryParse(txtFilterInterestRate.Text, out double interestRate))
-    {
-        var filteredAccounts = FormConfig.accountViewModel.Accounts
-            .Where(a => double.TryParse(a.InterestPercentage, out double accountRate) && accountRate == interestRate)
-            .ToList();
-
-        FormConfig.accountViewModel.FilteredAccounts = new ObservableCollection<Account>(filteredAccounts);
-    }
-    else
-    {
-        MessageBox.Show("Please enter a valid interest rate.");
-    }
-}
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS1061	'AccountViewModel' does not contain a definition for 'FilteredAccounts' and no accessible extension method 'FilteredAccounts' accepting a first argument of type 'AccountViewModel' could be found (are you missing a using directive or an assembly reference?)	BankManagementSystem	C:\Users\2021455\Desktop\New folder (2) - Copy\BankManagementSystem\Pages\AccountListWindow.xaml.cs	37	
+                                                                                                                                                                                                                                                                                                                                                    
