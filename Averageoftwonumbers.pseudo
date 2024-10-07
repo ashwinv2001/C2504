@@ -2,9 +2,11 @@ private void ApplyFilter_Click(object sender, RoutedEventArgs e)
 {
     if (double.TryParse(FilterInterestRate, out double interestRate))
     {
-        // Filter accounts based on the parsed interest rate
         FilteredAccounts = new ObservableCollection<Account>(
-            _accounts.Where(a => a.InterestPercentage == interestRate)
+            _accounts.Where(a => 
+                double.TryParse(a.InterestPercentage, out double accountInterest) && 
+                accountInterest == interestRate
+            )
         );
     }
     else
