@@ -1,4 +1,1 @@
-if (_instance == null)
-{
-    _instance = new AccountMemoryRepo();
-}
+public static AccountMemoryRepo Instance => _instance ??= new AccountMemoryRepo();
