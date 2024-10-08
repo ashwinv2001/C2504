@@ -4,18 +4,18 @@ namespace BankManagementSystem.ViewModels
 
     public class AccountViewModel : ViewModelBase
     {
-        private Account _newAccount = null;
-        private Account _selectedAccount = null;
+        private Account _newAccount;
+        private Account _selectedAccount;
         private ObservableCollection<Account> _filteredAccounts;
 
-        public DWidnowClose NewWindowClose;
-        public DWidnowClose EditWindowClose;
+        public DWidnowClose NewWindowClose { get; set; }
+        public DWidnowClose EditWindowClose { get; set; }
 
-        private IAccountRepo _repo = AccountMemoryRepo.Instance;
+        private readonly IAccountRepo _repo;
 
         public Account NewAccount
         {
-            get { return _newAccount; }
+            get => _newAccount;
             set
             {
                 _newAccount = value;
@@ -37,8 +37,8 @@ namespace BankManagementSystem.ViewModels
 
         public ObservableCollection<Account> FilteredAccounts
         {
-            get { return _filteredAccounts; }
-             set
+            get => _filteredAccounts;
+            set
             {
                 _filteredAccounts = value;
                 onPropertyChanged(nameof(FilteredAccounts));
@@ -50,21 +50,22 @@ namespace BankManagementSystem.ViewModels
         public ICommand DeleteCommand { get; }
         public ICommand ApplyFilterCommand { get; }
 
-        public AccountViewModel()
+        public AccountViewModel(IAccountRepo repo = null)
         {
+            _repo = repo ?? AccountMemoryRepo.Instance;
             _filteredAccounts = new ObservableCollection<Account>(Accounts);
             CreateCommand = new RelayCommand(Create);
             UpdateCommand = new RelayCommand(Update);
             DeleteCommand = new RelayCommand(Delete);
-            ApplyFilterCommand = new RelayCommand<string>(ApplyFilter); // Now supports parameter
+            ApplyFilterCommand = new RelayCommand<string>(ApplyFilter);
         }
 
         public void ApplyFilter(string interestRateFilter)
         {
             if (double.TryParse(interestRateFilter, out double interestRate))
             {
-                FilteredAccounts = new ObservableCollection<Account>(Accounts
-                    .Where(acc => double.TryParse(acc.InterestPercentage, out double rate) && rate >= interestRate));
+                FilteredAccounts = new ObservableCollection<Account>(
+                    Accounts.Where(acc => double.TryParse(acc.InterestPercentage, out double rate) && rate >= interestRate));
             }
             else
             {
@@ -72,8 +73,46 @@ namespace BankManagementSystem.ViewModels
             }
         }
 
-        public void Create() { /* Implementation here */ }
-        public void Update() { /* Implementation here */ }
-        public void Delete() { /* Implementation here */ }
+        public void Create()
+        {
+            if (NewAccount != null)
+            {
+                _repo.Add(NewAccount);
+                FilteredAccounts.Add(NewAccount);
+                NewAccount = new Account();
+                MessageBox.Show("Account created successfully!");
+            }
+            else
+            {
+                MessageBox.Show("Account creation failed. Please fill in all details.");
+            }
+        }
+
+        public void Update()
+        {
+            if (SelectedAccount != null)
+            {
+                _repo.Update(SelectedAccount);
+                MessageBox.Show("Account updated successfully!");
+            }
+            else
+            {
+                MessageBox.Show("Please select an account to update.");
+            }
+        }
+
+        public void Delete()
+        {
+            if (SelectedAccount != null)
+            {
+                _repo.Delete(SelectedAccount);
+                FilteredAccounts.Remove(SelectedAccount);
+                MessageBox.Show("Account deleted successfully!");
+            }
+            else
+            {
+                MessageBox.Show("Please select an account to delete.");
+            }
+        }
     }
 }
