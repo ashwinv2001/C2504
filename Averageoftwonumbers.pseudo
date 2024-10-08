@@ -1,2 +1,15 @@
- Copy\BankManagementSystem\ViewModels\WithdrawViewModel.cs(82,23,82,30): error CS1061: 'IAccountRepo' does not contain a definition for 'Withdrw' and no accessible extension method 'Withdrw' accepting a first argument of type 'IAccountRepo' could be found (are you missing a using directive or an assembly reference?)
-1>C:\Users\2021455\Desktop\New folder (2) - Copy\BankManagementSystem\ViewModels\DepositViewModel.cs(83,23,83,30): error CS1061: 'IAccountRepo' does not contain a definition for 'Deposit' and no accessible extension method 'Deposit' accepting a first argument of type 'IAccountRepo' could be found (are you missing a using directive or an assembly reference?)
+using System.Collections.ObjectModel;
+
+namespace BankManagementSystem.Databases
+{
+    public interface IAccountRepo
+    {
+        ObservableCollection<Account> ReadAll();
+        void Add(Account account);
+        void Update(Account account);
+        void Delete(Account account);
+        void Deposit(int accountNumber, int amount); // Add Deposit method
+        void Withdraw(int accountNumber, int amount); // Add Withdraw method
+        void CalculateInterestAndUpdateBalance();
+    }
+}
