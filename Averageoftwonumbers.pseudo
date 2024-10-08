@@ -1,96 +1,79 @@
-namespace BankManagementSystem.Pages
+namespace BankManagementSystem.ViewModels
 {
-    /// <summary>
-    /// Interaction logic for NewAccountWindow.xaml
-    /// </summary>
-    public partial class NewAccountWindow : Window
+    public delegate void DWidnowClose();
+
+    public class AccountViewModel : ViewModelBase
     {
-        public NewAccountWindow()
+        private Account _newAccount = null;
+        private Account _selectedAccount = null;
+        private ObservableCollection<Account> _filteredAccounts;
+
+        public DWidnowClose NewWindowClose;
+        public DWidnowClose EditWindowClose;
+
+        private IAccountRepo _repo = AccountMemoryRepo.Instance;
+
+        public Account NewAccount
         {
-            InitializeComponent();
-            this.DataContext = FormConfig.accountViewModel;
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            e.Cancel = true;
-            this.Hide();
-        }
-
-        public void WindowClose()
-        {
-            this.Hide();
-        }
-    }
-}
-
-
-
-
-
-namespace BankManagementSystem
-{
-    public partial class AccountListWindow : Window
-    {
-        public AccountListWindow()
-        {
-            InitializeComponent();
-            this.DataContext = FormConfig.accountViewModel;
-        }
-
-        private void ApplyFilter_Click(object sender, RoutedEventArgs e)
-        {
-            if (double.TryParse(txtFilterInterestRate.Text, out double interestRate))
+            get { return _newAccount; }
+            set
             {
-                var filteredAccounts = FormConfig.accountViewModel.Accounts
-                    .Where(a => double.TryParse(a.InterestPercentage, out double accountRate) && accountRate == interestRate)
-                    .ToList();
+                _newAccount = value;
+                onPropertyChanged(nameof(NewAccount));
+            }
+        }
 
-                FormConfig.accountViewModel.FilteredAccounts = new ObservableCollection<Account>(filteredAccounts);
+        public Account SelectedAccount
+        {
+            get => _selectedAccount;
+            set
+            {
+                _selectedAccount = value;
+                onPropertyChanged(nameof(SelectedAccount));
+            }
+        }
+
+        public ObservableCollection<Account> Accounts => _repo.ReadAll();
+
+        public ObservableCollection<Account> FilteredAccounts
+        {
+            get { return _filteredAccounts; }
+             set
+            {
+                _filteredAccounts = value;
+                onPropertyChanged(nameof(FilteredAccounts));
+            }
+        }
+
+        public ICommand CreateCommand { get; }
+        public ICommand UpdateCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand ApplyFilterCommand { get; }
+
+        public AccountViewModel()
+        {
+            _filteredAccounts = new ObservableCollection<Account>(Accounts);
+            CreateCommand = new RelayCommand(Create);
+            UpdateCommand = new RelayCommand(Update);
+            DeleteCommand = new RelayCommand(Delete);
+            ApplyFilterCommand = new RelayCommand<string>(ApplyFilter); // Now supports parameter
+        }
+
+        public void ApplyFilter(string interestRateFilter)
+        {
+            if (double.TryParse(interestRateFilter, out double interestRate))
+            {
+                FilteredAccounts = new ObservableCollection<Account>(Accounts
+                    .Where(acc => double.TryParse(acc.InterestPercentage, out double rate) && rate >= interestRate));
             }
             else
             {
-                MessageBox.Show("Please enter a valid interest rate.");
+                MessageBox.Show("Invalid Interest Rate entered. Please enter a valid number.");
             }
         }
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            FormConfig.newAccountWindow.Show();
-            NewAccountWindow newAccountWindow = (NewAccountWindow)FormConfig.newAccountWindow;
-            FormConfig.accountViewModel.NewWindowClose = newAccountWindow.WindowClose;
-        }
 
-        private void Window_Closed(object sender, EventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
-
-        private void Button_Click_1(object sender, RoutedEventArgs e)
-        {
-            if (grdAccounts.SelectedIndex == -1)
-            {
-                var result = MessageBox.Show("Please select an account to edit", "Alert", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-            FormConfig.editAccountWindow.Show();
-            EditAccountWindow editAccountWindow = (EditAccountWindow)FormConfig.editAccountWindow;
-            FormConfig.accountViewModel.EditWindowClose = editAccountWindow.WindowClose;
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            e.Cancel = true;
-            this.Hide();
-        }
-
-        private void btnView_Click(object sender, RoutedEventArgs e)
-        {
-            if (grdAccounts.SelectedIndex == -1)
-            {
-                var result = MessageBox.Show("Please select an account", "Alert", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-            FormConfig.accountViewWindow.Show();
-        }
+        public void Create() { /* Implementation here */ }
+        public void Update() { /* Implementation here */ }
+        public void Delete() { /* Implementation here */ }
     }
 }
