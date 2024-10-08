@@ -1,1 +1,11 @@
-public static AccountMemoryRepo Instance => _instance ??= new AccountMemoryRepo();
+public static AccountMemoryRepo Instance
+{
+    get
+    {
+        if (_instance == null)
+        {
+            _instance = new AccountMemoryRepo();
+        }
+        return _instance;
+    }
+}
