@@ -1,2 +1,1 @@
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	CS0234	The type or namespace name 'Repos' does not exist in the namespace 'BankManagementSystem' (are you missing an assembly reference?)	C:\Users\2021455\Desktop\New folder (2) - Copy\BankManagementSystem\BankManagementSystem.csproj	C:\Users\2021455\Desktop\New folder (2) - Copy\BankManagementSystem\Databases\AccountMemoryRepo.cs	10	
+error CS1061: 'IAccountRepo' does not contain a definition for 'Withdrw' and no accessible extension method 'Withdrw' accepting a first argument of type 'IAccountRepo' could be found (are you missing a using directive or an assembly reference?)
