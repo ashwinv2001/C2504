@@ -1,15 +1,2 @@
-using System.Collections.ObjectModel;
-
-namespace BankManagementSystem.Databases
-{
-    public interface IAccountRepo
-    {
-        ObservableCollection<Account> ReadAll();
-        void Add(Account account);
-        void Update(Account account);
-        void Delete(Account account);
-        void Deposit(int accountNumber, int amount); // Add Deposit method
-        void Withdraw(int accountNumber, int amount); // Add Withdraw method
-        void CalculateInterestAndUpdateBalance();
-    }
-}
+Severity	Code	Description	Project	File	Line	Suppression State
+Error	CS8370	Feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.	C:\Users\2021455\Desktop\New folder (2) - Copy\BankManagementSystem\BankManagementSystem.csproj	C:\Users\2021455\Desktop\New folder (2) - Copy\BankManagementSystem\Databases\AccountMemoryRepo.cs	28	
