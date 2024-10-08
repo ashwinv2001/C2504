@@ -1,2 +1,4 @@
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	CS8370	Feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.	C:\Users\2021455\Desktop\New folder (2) - Copy\BankManagementSystem\BankManagementSystem.csproj	C:\Users\2021455\Desktop\New folder (2) - Copy\BankManagementSystem\Databases\AccountMemoryRepo.cs	28	
+if (_instance == null)
+{
+    _instance = new AccountMemoryRepo();
+}
