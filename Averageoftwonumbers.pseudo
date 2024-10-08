@@ -1,2 +1,50 @@
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS1061	'IAccountRepo' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'IAccountRepo' could be found (are you missing a using directive or an assembly reference?)	BankManagementSystem	C:\Users\2021455\Desktop\New folder (2) - Copy\BankManagementSystem\ViewModels\AccountViewModel.cs	91	
+public interface IAccountRepo
+{
+    ObservableCollection<Account> ReadAll();
+    void Add(Account account);       // Add method
+    void Update(Account account);    // Update method
+    void Delete(Account account);    // Delete method
+}
+
+
+
+
+
+
+public class AccountMemoryRepo : IAccountRepo
+{
+    private ObservableCollection<Account> _accounts = new ObservableCollection<Account>();
+
+    public ObservableCollection<Account> ReadAll()
+    {
+        return _accounts;
+    }
+
+    public void Add(Account account)
+    {
+        if (!_accounts.Contains(account))
+        {
+            _accounts.Add(account);
+        }
+    }
+
+    public void Update(Account account)
+    {
+        var existingAccount = _accounts.FirstOrDefault(a => a.Id == account.Id);
+        if (existingAccount != null)
+        {
+            // Update properties of the existing account here, e.g.:
+            existingAccount.Name = account.Name;
+            existingAccount.InterestPercentage = account.InterestPercentage;
+            // Add other properties as needed
+        }
+    }
+
+    public void Delete(Account account)
+    {
+        if (_accounts.Contains(account))
+        {
+            _accounts.Remove(account);
+        }
+    }
+}
