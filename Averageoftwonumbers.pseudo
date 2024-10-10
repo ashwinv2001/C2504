@@ -1,8 +1,119 @@
- Doctor/Pharmacist Page (optional)
-   - Purpose: Provides access to the patient’s doctor or pharmacist 
-   to monitor adherence remotely, adjust medication schedules, and 
-   send custom notifications.
-   - Components:
-     - View patient adherence
-     - Modify medication schedules
-     - Send patient reminders or messages
+<Window x:Class="YourNamespace.DoctorPharmacistPage"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Doctor/Pharmacist Page" Height="500" Width="700">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*" />
+            <RowDefinition Height="3*" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Patient Adherence View -->
+        <GroupBox Header="Patient Adherence" FontWeight="Bold" Margin="5" Grid.Row="0">
+            <DataGrid x:Name="AdherenceDataGrid" AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Medication" Binding="{Binding Medication}" Width="*"/>
+                    <DataGridTextColumn Header="Dose" Binding="{Binding Dose}" Width="*"/>
+                    <DataGridTextColumn Header="Adherence %" Binding="{Binding AdherencePercentage}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <!-- Modify Medication Schedules -->
+        <GroupBox Header="Modify Medication Schedule" FontWeight="Bold" Margin="5" Grid.Row="1">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,5">
+                    <TextBlock Text="Medication:" Width="120" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="MedicationComboBox" Width="200"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,5">
+                    <TextBlock Text="New Schedule:" Width="120" VerticalAlignment="Center"/>
+                    <TextBox x:Name="NewScheduleTextBox" Width="200" />
+                </StackPanel>
+                <Button Content="Update Schedule" Width="120" Margin="0,10,0,0" HorizontalAlignment="Left" Click="UpdateSchedule_Click"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Send Reminders/Messages -->
+        <GroupBox Header="Send Patient Reminders/Messages" FontWeight="Bold" Margin="5" Grid.Row="2">
+            <StackPanel>
+                <TextBox x:Name="MessageTextBox" Height="60" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" AcceptsReturn="True"/>
+                <Button Content="Send Notification" Width="150" Margin="0,10,0,0" HorizontalAlignment="Left" Click="SendNotification_Click"/>
+            </StackPanel>
+        </GroupBox>
+    </Grid>
+</Window>
+
+
+
+
+
+
+using System;
+using System.Collections.ObjectModel;
+using System.Windows;
+using System.Windows.Controls;
+
+namespace YourNamespace
+{
+    public partial class DoctorPharmacistPage : Window
+    {
+        public ObservableCollection<PatientAdherence> AdherenceData { get; set; }
+        
+        public DoctorPharmacistPage()
+        {
+            InitializeComponent();
+
+            // Sample data for adherence
+            AdherenceData = new ObservableCollection<PatientAdherence>
+            {
+                new PatientAdherence { Medication = "Medication A", Dose = "10 mg", AdherencePercentage = 95 },
+                new PatientAdherence { Medication = "Medication B", Dose = "5 mg", AdherencePercentage = 80 }
+            };
+
+            AdherenceDataGrid.ItemsSource = AdherenceData;
+
+            // Sample medication list
+            MedicationComboBox.ItemsSource = new[] { "Medication A", "Medication B" };
+        }
+
+        private void UpdateSchedule_Click(object sender, RoutedEventArgs e)
+        {
+            string selectedMedication = MedicationComboBox.SelectedItem as string;
+            string newSchedule = NewScheduleTextBox.Text;
+
+            if (string.IsNullOrWhiteSpace(selectedMedication) || string.IsNullOrWhiteSpace(newSchedule))
+            {
+                MessageBox.Show("Please select a medication and enter a new schedule.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Logic to update the medication schedule (e.g., database update) goes here
+
+            MessageBox.Show($"Schedule for {selectedMedication} updated to {newSchedule}.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void SendNotification_Click(object sender, RoutedEventArgs e)
+        {
+            string message = MessageTextBox.Text;
+
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                MessageBox.Show("Please enter a message to send.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Logic to send the notification to the patient (e.g., via a messaging service) goes here
+
+            MessageBox.Show("Notification sent successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
+    public class PatientAdherence
+    {
+        public string Medication { get; set; }
+        public string Dose { get; set; }
+        public int AdherencePercentage { get; set; }
+    }
+}
