@@ -1,3 +1,4 @@
-<local:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+ GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus" Margin="200,26,200,0"/>
+
 Severity	Code	Description	Project	File	Line	Suppression State
-Error	XDG0008	The name "StringToVisibilityConverter" does not exist in the namespace "clr-namespace:MdtAppProject".	MdtAppProject	C:\Users\2021455\Source\Repos\Medication-Adherence-Tracker-App\MdiAppProject\CheckInWindow.xaml	10	
+Error	XDG0008	The name "StringToVisibilityConverter" does not exist in the namespace "clr-namespace:MdiAppProject".	MdtAppProject	C:\Users\2021455\Source\Repos\Medication-Adherence-Tracker-App\MdiAppProject\App.xaml	16	
