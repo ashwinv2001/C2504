@@ -1,11 +1,21 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace MdiAppProject
 {
-    public class Medication
+    public class Medication1
     {
         public string Name { get; set; }
         public DateTime DoseTime { get; set; }
@@ -14,7 +24,7 @@ namespace MdiAppProject
         public ICommand MarkTakenCommand { get; }
         public ICommand MarkMissedCommand { get; }
 
-        public Medication()
+        public Medication1()
         {
             MarkTakenCommand = new RelayCommand1(MarkTaken);
             MarkMissedCommand = new RelayCommand1(MarkMissed);
@@ -41,9 +51,9 @@ namespace MdiAppProject
 
             Medications = new ObservableCollection<Medication>
             {
-                new Medication { Name = "Medication A", DoseTime = DateTime.Now.AddHours(1), DoseStatus = "Upcoming" },
-                new Medication { Name = "Medication B", DoseTime = DateTime.Now.AddHours(-1), DoseStatus = "Missed" },
-                new Medication { Name = "Medication C", DoseTime = DateTime.Now, DoseStatus = "Taken" }
+                new Medication1 { Name = "Medication A", DoseTime = DateTime.Now.AddHours(1), DoseStatus = "Upcoming" },
+                new Medication1 { Name = "Medication B", DoseTime = DateTime.Now.AddHours(-1), DoseStatus = "Missed" },
+                new Medication1 { Name = "Medication C", DoseTime = DateTime.Now, DoseStatus = "Taken" }
             };
         }
     }
@@ -69,3 +79,6 @@ namespace MdiAppProject
         }
     }
 }
+
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS1950	The best overloaded Add method 'Collection<Medication>.Add(Medication)' for the collection initializer has some invalid arguments	MdtAppProject	C:\Users\2021455\source\repos\Medication-Adherence-Tracker-App\MdiAppProject\MedicationScheduleWindow.xaml.cs	54	
