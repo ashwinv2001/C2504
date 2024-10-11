@@ -1,7 +1,118 @@
-Check-in Page
-   - Purpose: Patients check in to confirm 
-   that they have taken their medication. 
-   This page logs the check-in to track adherence.
-   - Key Actions:
-     - Mark medication as taken
-     - Option to report side effects or issues
+<Window x:Class="MdiAppProject.CheckInPage"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Check-in Page" Height="400" Width="600">
+    <Grid>
+        <ListView ItemsSource="{Binding Medications}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Medication Name" DisplayMemberBinding="{Binding Name}" Width="200" />
+                    <GridViewColumn Header="Status" DisplayMemberBinding="{Binding DoseStatus}" Width="100" />
+                    <GridViewColumn Header="Actions" Width="200">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="Taken" Command="{Binding MarkTakenCommand}" CommandParameter="{Binding}" Margin="5"/>
+                                    <Button Content="Missed" Command="{Binding MarkMissedCommand}" CommandParameter="{Binding}" Margin="5"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <TextBox Width="400" Height="100" Margin="0, 10, 0, 0" 
+                 VerticalAlignment="Top" 
+                 PlaceholderText="Report side effects or issues here..." 
+                 Text="{Binding SideEffectsReport, UpdateSourceTrigger=PropertyChanged}" />
+        
+        <Button Content="Submit Check-in" Command="{Binding SubmitCheckInCommand}" 
+                Width="150" Height="30" 
+                VerticalAlignment="Bottom" Margin="0,10,0,0"/>
+    </Grid>
+</Window>
+
+
+
+using System;
+using System.Collections.ObjectModel;
+using System.Windows;
+using System.Windows.Input;
+
+namespace MdiAppProject
+{
+    public partial class CheckInPage : Window
+    {
+        public ObservableCollection<Medication> Medications { get; set; }
+        public string SideEffectsReport { get; set; }
+
+        public CheckInPage()
+        {
+            InitializeComponent();
+            Medications = new ObservableCollection<Medication>
+            {
+                new Medication { Name = "Medication A", DoseStatus = "Upcoming" },
+                new Medication { Name = "Medication B", DoseStatus = "Missed" },
+                new Medication { Name = "Medication C", DoseStatus = "Taken" }
+            };
+            DataContext = this; // Set the DataContext for data binding
+        }
+
+        // Command to submit the check-in
+        public ICommand SubmitCheckInCommand => new RelayCommand1(SubmitCheckIn);
+
+        private void SubmitCheckIn(object parameter)
+        {
+            // Logic to log the check-in, including side effects
+            MessageBox.Show($"Check-in submitted!\nSide Effects Report: {SideEffectsReport}");
+            // Here you would typically save the data to a database or service
+        }
+    }
+
+    public class Medication
+    {
+        public string Name { get; set; }
+        public string DoseStatus { get; set; }
+
+        public ICommand MarkTakenCommand { get; }
+        public ICommand MarkMissedCommand { get; }
+
+        public Medication()
+        {
+            MarkTakenCommand = new RelayCommand1(MarkTaken);
+            MarkMissedCommand = new RelayCommand1(MarkMissed);
+        }
+
+        private void MarkTaken(object parameter)
+        {
+            DoseStatus = "Taken";
+        }
+
+        private void MarkMissed(object parameter)
+        {
+            DoseStatus = "Missed";
+        }
+    }
+
+    public class RelayCommand1 : ICommand
+    {
+        private readonly Action<object> _execute;
+        private readonly Func<bool> _canExecute;
+
+        public RelayCommand1(Action<object> execute, Func<bool> canExecute = null)
+        {
+            _execute = execute;
+            _canExecute = canExecute;
+        }
+
+        public bool CanExecute(object parameter) => _canExecute == null || _canExecute();
+        public void Execute(object parameter) => _execute(parameter);
+
+        public event EventHandler CanExecuteChanged
+        {
+            add => CommandManager.RequerySuggested += value;
+            remove => CommandManager.RequerySuggested -= value;
+        }
+    }
+}
