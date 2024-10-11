@@ -1,6 +1,3 @@
-private void MarkTaken(object parameter)
-{
-    Status = "Taken";
-} 
+ public class MedicationScheduleWindow
 Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0229	Ambiguity between 'Medication.Status' and 'Medication.Status'	MdtAppProject	C:\Users\2021455\source\repos\Medication-Adherence-Tracker-App\MdiAppProject\MedicationScheduleWindow.xaml.cs	38	
+Error (active)	CS0260	Missing partial modifier on declaration of type 'MedicationScheduleWindow'; another partial declaration of this type exists	MdtAppProject	C:\Users\2021455\source\repos\Medication-Adherence-Tracker-App\MdiAppProject\MedicationScheduleWindow.xaml.cs	47	
