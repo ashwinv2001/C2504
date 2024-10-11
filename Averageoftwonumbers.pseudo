@@ -1,4 +1,7 @@
- GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus" Margin="200,26,200,0"/>
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	XDG0008	The name "StringToVisibilityConverter" does not exist in the namespace "clr-namespace:MdiAppProject".	MdtAppProject	C:\Users\2021455\Source\Repos\Medication-Adherence-Tracker-App\MdiAppProject\App.xaml	16	
+Check-in Page
+   - Purpose: Patients check in to confirm 
+   that they have taken their medication. 
+   This page logs the check-in to track adherence.
+   - Key Actions:
+     - Mark medication as taken
+     - Option to report side effects or issues
