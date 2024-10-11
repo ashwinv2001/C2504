@@ -1,36 +1,23 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace MdiAppProject
 {
-	/// <summary>
-	/// Interaction logic for MedicationScheduleWindow.xaml
-	/// </summary>
-	public  class Medication
-	{
+    public class Medication
+    {
         public string Name { get; set; }
         public DateTime DoseTime { get; set; }
-        public string DoseStatus { get; set; }
+        public string DoseStatus { get; set; } // Ensure this is used consistently
 
         public ICommand MarkTakenCommand { get; }
         public ICommand MarkMissedCommand { get; }
+
         public Medication()
-		{
-			// InitializeComponent();
-            MarkTakenCommand = new RelayCommand(MarkTaken);
-            MarkMissedCommand = new RelayCommand(MarkMissed);
+        {
+            MarkTakenCommand = new RelayCommand1(MarkTaken);
+            MarkMissedCommand = new RelayCommand1(MarkMissed);
         }
 
         private void MarkTaken(object parameter)
@@ -50,37 +37,35 @@ namespace MdiAppProject
 
         public MedicationScheduleWindow()
         {
-            Medications = new ObservableCollection<MdiAppProject.Medication>
+            InitializeComponent(); // Ensure this is called to initialize UI components
+
+            Medications = new ObservableCollection<Medication>
             {
-                new MdiAppProject.Medication { Name = "Medication A", DoseTime = DateTime.Now.AddHours(1), Status = "Upcoming" },
-                new MdiAppProject.Medication { Name = "Medication B", DoseTime = DateTime.Now.AddHours(-1), Status = "Missed" },
-                new MdiAppProject.Medication { Name = "Medication C", DoseTime = DateTime.Now, Status = "Taken" }
+                new Medication { Name = "Medication A", DoseTime = DateTime.Now.AddHours(1), DoseStatus = "Upcoming" },
+                new Medication { Name = "Medication B", DoseTime = DateTime.Now.AddHours(-1), DoseStatus = "Missed" },
+                new Medication { Name = "Medication C", DoseTime = DateTime.Now, DoseStatus = "Taken" }
             };
         }
     }
 
     public class RelayCommand1 : ICommand
     {
-        private readonly Action _execute;
+        private readonly Action<object> _execute; // Ensure this matches your usage
         private readonly Func<bool> _canExecute;
 
-        public RelayCommand1(Action execute, Func<bool> canExecute = null)
+        public RelayCommand1(Action<object> execute, Func<bool> canExecute = null)
         {
             _execute = execute;
             _canExecute = canExecute;
         }
 
         public bool CanExecute(object parameter) => _canExecute == null || _canExecute();
-        public void Execute(object parameter) => _execute();
+        public void Execute(object parameter) => _execute(parameter); // Ensure this can accept parameters
+
         public event EventHandler CanExecuteChanged
         {
             add => CommandManager.RequerySuggested += value;
             remove => CommandManager.RequerySuggested -= value;
         }
     }
-
 }
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0121	The call is ambiguous between the following methods or properties: 'Medication.Medication()' and 'Medication.Medication()'	MdtAppProject	C:\Users\2021455\source\repos\Medication-Adherence-Tracker-App\MdiAppProject\MedicationScheduleWindow.xaml.cs	55	
-
