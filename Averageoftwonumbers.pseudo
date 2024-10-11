@@ -1,30 +1,52 @@
+<Window x:Class="MdiAppProject.MedicationScheduleWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Medication Schedule" Height="400" Width="600">
+    <Grid>
+        <ListView ItemsSource="{Binding Medications}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="200" />
+                    <GridViewColumn Header="Dose Time" DisplayMemberBinding="{Binding DoseTime}" Width="200" />
+                    <GridViewColumn Header="Status" DisplayMemberBinding="{Binding DoseStatus}" Width="200" />
+                    <GridViewColumn Header="Actions" Width="100">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="Taken" Command="{Binding MarkTakenCommand}" />
+                                    <Button Content="Missed" Command="{Binding MarkMissedCommand}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</Window>
+
+
+
+
+
+
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace MdiAppProject
 {
-    public class Medication1
+    public class Medication
     {
         public string Name { get; set; }
         public DateTime DoseTime { get; set; }
-        public string DoseStatus { get; set; } // Ensure this is used consistently
+        public string DoseStatus { get; set; } 
 
         public ICommand MarkTakenCommand { get; }
         public ICommand MarkMissedCommand { get; }
 
-        public Medication1()
+        public Medication()
         {
             MarkTakenCommand = new RelayCommand1(MarkTaken);
             MarkMissedCommand = new RelayCommand1(MarkMissed);
@@ -51,16 +73,18 @@ namespace MdiAppProject
 
             Medications = new ObservableCollection<Medication>
             {
-                new Medication1 { Name = "Medication A", DoseTime = DateTime.Now.AddHours(1), DoseStatus = "Upcoming" },
-                new Medication1 { Name = "Medication B", DoseTime = DateTime.Now.AddHours(-1), DoseStatus = "Missed" },
-                new Medication1 { Name = "Medication C", DoseTime = DateTime.Now, DoseStatus = "Taken" }
+                new Medication { Name = "Medication A", DoseTime = DateTime.Now.AddHours(1), DoseStatus = "Upcoming" },
+                new Medication { Name = "Medication B", DoseTime = DateTime.Now.AddHours(-1), DoseStatus = "Missed" },
+                new Medication { Name = "Medication C", DoseTime = DateTime.Now, DoseStatus = "Taken" }
             };
+
+            DataContext = this; // Set DataContext for data binding
         }
     }
 
     public class RelayCommand1 : ICommand
     {
-        private readonly Action<object> _execute; // Ensure this matches your usage
+        private readonly Action<object> _execute;
         private readonly Func<bool> _canExecute;
 
         public RelayCommand1(Action<object> execute, Func<bool> canExecute = null)
@@ -70,7 +94,7 @@ namespace MdiAppProject
         }
 
         public bool CanExecute(object parameter) => _canExecute == null || _canExecute();
-        public void Execute(object parameter) => _execute(parameter); // Ensure this can accept parameters
+        public void Execute(object parameter) => _execute(parameter); 
 
         public event EventHandler CanExecuteChanged
         {
@@ -80,5 +104,3 @@ namespace MdiAppProject
     }
 }
 
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS1950	The best overloaded Add method 'Collection<Medication>.Add(Medication)' for the collection initializer has some invalid arguments	MdtAppProject	C:\Users\2021455\source\repos\Medication-Adherence-Tracker-App\MdiAppProject\MedicationScheduleWindow.xaml.cs	54	
