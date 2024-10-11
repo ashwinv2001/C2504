@@ -1,3 +1,11 @@
- public class MedicationScheduleWindow
+public MedicationViewModel()
+{
+    Medications = new ObservableCollection<Medication>
+    {
+        new Medication { Name = "Medication A", DoseTime = DateTime.Now.AddHours(1), Status = "Upcoming" },
+        new Medication { Name = "Medication B", DoseTime = DateTime.Now.AddHours(-1), Status = "Missed" },
+        new Medication { Name = "Medication C", DoseTime = DateTime.Now, Status = "Taken" }
+    };
+
 Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0260	Missing partial modifier on declaration of type 'MedicationScheduleWindow'; another partial declaration of this type exists	MdtAppProject	C:\Users\2021455\source\repos\Medication-Adherence-Tracker-App\MdiAppProject\MedicationScheduleWindow.xaml.cs	47	
+Error (active)	CS1520	Method must have a return type	MdtAppProject	C:\Users\2021455\source\repos\Medication-Adherence-Tracker-App\MdiAppProject\MedicationScheduleWindow.xaml.cs	51	
