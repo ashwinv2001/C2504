@@ -1,3 +1,6 @@
-MarkTakenCommand = new RelayCommand(MarkTaken);
+private void MarkTaken(object parameter)
+{
+    Status = "Taken";
+} 
 Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS1503	Argument 1: cannot convert from 'method group' to 'System.Action<object>'	MdtAppProject	C:\Users\2021455\source\repos\Medication-Adherence-Tracker-App\MdiAppProject\MedicationScheduleWindow.xaml.cs	32	
+Error (active)	CS0229	Ambiguity between 'Medication.Status' and 'Medication.Status'	MdtAppProject	C:\Users\2021455\source\repos\Medication-Adherence-Tracker-App\MdiAppProject\MedicationScheduleWindow.xaml.cs	38	
