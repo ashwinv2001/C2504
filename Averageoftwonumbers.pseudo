@@ -1,11 +1,11 @@
-public MedicationViewModel()
-{
-    Medications = new ObservableCollection<Medication>
-    {
-        new Medication { Name = "Medication A", DoseTime = DateTime.Now.AddHours(1), Status = "Upcoming" },
-        new Medication { Name = "Medication B", DoseTime = DateTime.Now.AddHours(-1), Status = "Missed" },
-        new Medication { Name = "Medication C", DoseTime = DateTime.Now, Status = "Taken" }
-    };
-
+ public MedicationScheduleWindow()
+ {
+     Medications = new ObservableCollection<Medication>
+     {
+         new Medication { Name = "Medication A", DoseTime = DateTime.Now.AddHours(1), Status = "Upcoming" },
+         new Medication { Name = "Medication B", DoseTime = DateTime.Now.AddHours(-1), Status = "Missed" },
+         new Medication { Name = "Medication C", DoseTime = DateTime.Now, Status = "Taken" }
+     };
+ }
 Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS1520	Method must have a return type	MdtAppProject	C:\Users\2021455\source\repos\Medication-Adherence-Tracker-App\MdiAppProject\MedicationScheduleWindow.xaml.cs	51	
+Error (active)	CS0121	The call is ambiguous between the following methods or properties: 'Medication.Medication()' and 'Medication.Medication()'	MdtAppProject	C:\Users\2021455\source\repos\Medication-Adherence-Tracker-App\MdiAppProject\MedicationScheduleWindow.xaml.cs	55	
