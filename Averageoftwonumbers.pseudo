@@ -1,31 +1,81 @@
-<Grid>
-	<TabControl>
-
-		<TabItem Header="Login">
-			<Canvas Margin="0,0,0,-3" >
-				<local:LoginUserControl />
-			</Canvas>
-		</TabItem>
-		<TabItem Header="Sign Up">
-			<Canvas Margin="0,0,0,2" >
-				<local:SignUpUserControl/>
-			</Canvas>
-		</TabItem>
-
-	</TabControl>
-</Grid>
-
-namespace MdiAppProject
+public partial class LoginUserControl : UserControl
 {
-	/// <summary>
-	/// Interaction logic for HomeWindow.xaml
-	/// </summary>
-	public partial class HomeWindow : Window
-	{
-		public HomeWindow()
-		{
-			InitializeComponent();
-			DataContext = new LoginViewModel();
-		}
-	}
+    public event EventHandler LoginSuccessful;
+
+    public LoginUserControl()
+    {
+        InitializeComponent();
+    }
+
+    private void LoginButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Perform your login validation here (or call ViewModel logic)
+        bool loginValid = ValidateLogin();
+        if (loginValid)
+        {
+            // Raise an event to indicate successful login
+            LoginSuccessful?.Invoke(this, EventArgs.Empty);
+        }
+        else
+        {
+            MessageBox.Show("Invalid login credentials.");
+        }
+    }
+
+    private bool ValidateLogin()
+    {
+        // Replace with actual validation logic
+        return UsernameTextBox.Text == "user" && PasswordBox.Password == "password";
+    }
 }
+
+
+
+public partial class HomeWindow : Window
+{
+    public HomeWindow()
+    {
+        InitializeComponent();
+
+        // Access the LoginUserControl instance and subscribe to the event
+        var loginControl = (LoginUserControl)FindName("LoginUserControlName");
+        loginControl.LoginSuccessful += OnLoginSuccessful;
+    }
+
+    private void OnLoginSuccessful(object sender, EventArgs e)
+    {
+        MessageBox.Show("Login Successful!");
+
+        // Navigate to the logged-in page or display the logged-in content
+        // For example, you could change the DataContext or switch to a new TabItem
+    }
+}
+
+
+
+
+public class LoginViewModel : INotifyPropertyChanged
+{
+    public ICommand LoginCommand { get; }
+
+    public LoginViewModel()
+    {
+        LoginCommand = new RelayCommand(ExecuteLogin, CanExecuteLogin);
+    }
+
+    private void ExecuteLogin(object parameter)
+    {
+        // Perform login logic and raise an event or navigate
+    }
+
+    private bool CanExecuteLogin(object parameter)
+    {
+        return true; // Or add your login validation conditions
+    }
+}
+
+
+
+
+
+<Button Content="Login" Command="{Binding LoginCommand}" />
