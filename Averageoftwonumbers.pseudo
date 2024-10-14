@@ -1,71 +1,31 @@
-<Window x:Class="MdiAppProject.AdherenceTrackingPage"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Adherence Tracking Page" Height="450" Width="800">
-    <Grid>
-        <TabControl>
-            <!-- Tab for Missed Doses -->
-            <TabItem Header="Missed Doses">
-                <DataGrid ItemsSource="{Binding MissedDoses}" AutoGenerateColumns="False" Margin="10">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Medicine Name" Binding="{Binding Name}" Width="*"/>
-                        <DataGridTextColumn Header="Dose Time" Binding="{Binding DoseTime, StringFormat=MM/dd/yyyy HH:mm}" Width="*"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </TabItem>
-            <!-- Tab for Delayed Doses -->
-            <TabItem Header="Delayed Doses">
-                <DataGrid ItemsSource="{Binding DelayedDoses}" AutoGenerateColumns="False" Margin="10">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Medicine Name" Binding="{Binding Name}" Width="*"/>
-                        <DataGridTextColumn Header="Delayed Time" Binding="{Binding DelayedTime, StringFormat=MM/dd/yyyy HH:mm}" Width="*"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </TabItem>
-        </TabControl>
-    </Grid>
-</Window>
+<Grid>
+	<TabControl>
 
+		<TabItem Header="Login">
+			<Canvas Margin="0,0,0,-3" >
+				<local:LoginUserControl />
+			</Canvas>
+		</TabItem>
+		<TabItem Header="Sign Up">
+			<Canvas Margin="0,0,0,2" >
+				<local:SignUpUserControl/>
+			</Canvas>
+		</TabItem>
 
-
-using System;
-using System.Collections.ObjectModel;
-using System.Windows;
+	</TabControl>
+</Grid>
 
 namespace MdiAppProject
 {
-    public partial class AdherenceTrackingPage : Window
-    {
-        public ObservableCollection<AdherenceRecord> MissedDoses { get; set; }
-        public ObservableCollection<AdherenceRecord> DelayedDoses { get; set; }
-
-        public AdherenceTrackingPage()
-        {
-            InitializeComponent();
-
-            // Initialize sample data for testing
-            MissedDoses = new ObservableCollection<AdherenceRecord>
-            {
-                new AdherenceRecord { Name = "Medication A", DoseTime = DateTime.Now.AddHours(-5) },
-                new AdherenceRecord { Name = "Medication B", DoseTime = DateTime.Now.AddDays(-1).AddHours(-3) }
-            };
-
-            DelayedDoses = new ObservableCollection<AdherenceRecord>
-            {
-                new AdherenceRecord { Name = "Medication C", DelayedTime = DateTime.Now.AddHours(-2) },
-                new AdherenceRecord { Name = "Medication D", DelayedTime = DateTime.Now.AddDays(-1).AddHours(-6) }
-            };
-
-            DataContext = this; // Set the DataContext to itself to bind data to the UI
-        }
-    }
-
-    public class AdherenceRecord
-    {
-        public string Name { get; set; }
-        public DateTime DoseTime { get; set; }
-        public DateTime DelayedTime { get; set; }
-    }
+	/// <summary>
+	/// Interaction logic for HomeWindow.xaml
+	/// </summary>
+	public partial class HomeWindow : Window
+	{
+		public HomeWindow()
+		{
+			InitializeComponent();
+			DataContext = new LoginViewModel();
+		}
+	}
 }
-
-
