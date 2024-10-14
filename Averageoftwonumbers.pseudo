@@ -1,11 +1,54 @@
-      private bool ValidateLogin()
+<UserControl x:Class="MdiAppProject.LoginUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <TextBox x:Name="UsernameTextBox" Width="200" Height="30" Margin="10" />
+        <PasswordBox x:Name="PasswordBox" Width="200" Height="30" Margin="10,50,10,10" />
+        <Button Content="Login" Click="LoginButton_Click" Width="100" Height="30" Margin="10,100,10,10" />
+    </Grid>
+</UserControl>
+
+
+
+
+public partial class LoginUserControl : UserControl
 {
-    // Replace with actual validation logic
-    return UsernameTextBox.Text == "user" && PasswordBox.Password == "password";
+    public event EventHandler LoginSuccessful;
+
+    public LoginUserControl()
+    {
+        InitializeComponent();
+    }
+
+    private void LoginButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Perform login validation
+        bool loginValid = ValidateLogin();
+        if (loginValid)
+        {
+            // Raise an event to indicate successful login
+            LoginSuccessful?.Invoke(this, EventArgs.Empty);
+        }
+        else
+        {
+            MessageBox.Show("Invalid login credentials.");
+        }
+    }
+
+    private bool ValidateLogin()
+    {
+        // Ensure these names match those in your XAML file
+        return UsernameTextBox.Text == "user" && PasswordBox.Password == "password";
+    }
 }
 
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0103	The name 'UsernameTextBox' does not exist in the current context	MdtAppProject	C:\Users\2021455\source\repos\mat\MdiAppProject\LoginUserControl.xaml.cs	50	
 
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0120	An object reference is required for the non-static field, method, or property 'PasswordBox.Password'	MdtAppProject	C:\Users\2021455\source\repos\mat\MdiAppProject\LoginUserControl.xaml.cs	50	
+
+
+public LoginUserControl()
+{
+    InitializeComponent(); // Initializes the component and its controls
+}
+
+
+
