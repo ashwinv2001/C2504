@@ -1,2 +1,4 @@
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS1061	'CheckInWindow' does not contain a definition for 'TextBox_GotFocus' and no accessible extension method 'TextBox_GotFocus' accepting a first argument of type 'CheckInWindow' could be found (are you missing a using directive or an assembly reference?)	MdtAppProject	C:\Users\2021455\Source\Repos\Medication-Adherence-Tracker-App\MdiAppProject\CheckInWindow.xaml	35	
+Adherence Tracking Page         ! Collin
+    detailed history of the patient's adherence
+    History of missed doses 
+    History of delayed doses 
