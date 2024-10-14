@@ -1,81 +1,11 @@
-public partial class LoginUserControl : UserControl
+      private bool ValidateLogin()
 {
-    public event EventHandler LoginSuccessful;
-
-    public LoginUserControl()
-    {
-        InitializeComponent();
-    }
-
-    private void LoginButton_Click(object sender, RoutedEventArgs e)
-    {
-        // Perform your login validation here (or call ViewModel logic)
-        bool loginValid = ValidateLogin();
-        if (loginValid)
-        {
-            // Raise an event to indicate successful login
-            LoginSuccessful?.Invoke(this, EventArgs.Empty);
-        }
-        else
-        {
-            MessageBox.Show("Invalid login credentials.");
-        }
-    }
-
-    private bool ValidateLogin()
-    {
-        // Replace with actual validation logic
-        return UsernameTextBox.Text == "user" && PasswordBox.Password == "password";
-    }
+    // Replace with actual validation logic
+    return UsernameTextBox.Text == "user" && PasswordBox.Password == "password";
 }
 
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0103	The name 'UsernameTextBox' does not exist in the current context	MdtAppProject	C:\Users\2021455\source\repos\mat\MdiAppProject\LoginUserControl.xaml.cs	50	
 
-
-public partial class HomeWindow : Window
-{
-    public HomeWindow()
-    {
-        InitializeComponent();
-
-        // Access the LoginUserControl instance and subscribe to the event
-        var loginControl = (LoginUserControl)FindName("LoginUserControlName");
-        loginControl.LoginSuccessful += OnLoginSuccessful;
-    }
-
-    private void OnLoginSuccessful(object sender, EventArgs e)
-    {
-        MessageBox.Show("Login Successful!");
-
-        // Navigate to the logged-in page or display the logged-in content
-        // For example, you could change the DataContext or switch to a new TabItem
-    }
-}
-
-
-
-
-public class LoginViewModel : INotifyPropertyChanged
-{
-    public ICommand LoginCommand { get; }
-
-    public LoginViewModel()
-    {
-        LoginCommand = new RelayCommand(ExecuteLogin, CanExecuteLogin);
-    }
-
-    private void ExecuteLogin(object parameter)
-    {
-        // Perform login logic and raise an event or navigate
-    }
-
-    private bool CanExecuteLogin(object parameter)
-    {
-        return true; // Or add your login validation conditions
-    }
-}
-
-
-
-
-
-<Button Content="Login" Command="{Binding LoginCommand}" />
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0120	An object reference is required for the non-static field, method, or property 'PasswordBox.Password'	MdtAppProject	C:\Users\2021455\source\repos\mat\MdiAppProject\LoginUserControl.xaml.cs	50	
