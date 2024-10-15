@@ -1,102 +1,39 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+<Window x:Class="MATProject.Pages.CheckInWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MATProject.Pages"
+        mc:Ignorable="d"
+        Title="CheckInWindow" Height="450" Width="800">
+    <Grid Margin="20">
+        <ListView ItemsSource="{Binding Medications}" Margin="0,0,0,100">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Medication Name" DisplayMemberBinding="{Binding Name}" Width="200"/>
+                    <GridViewColumn Header="Status" DisplayMemberBinding="{Binding DoseStatus}" Width="100"/>
+                    <GridViewColumn Header="Actions" Width="200">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="Mark as Taken" Command="{Binding MarkTakenCommand}" CommandParameter="{Binding}" Margin="5"/>
+                                    <Button Content="Mark as Missed" Command="{Binding MarkMissedCommand}" CommandParameter="{Binding}" Margin="5"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
 
+        <TextBox Width="400" Height="100" 
+                 VerticalAlignment="Bottom" 
+                 Text="{Binding SideEffectsReport, UpdateSourceTrigger=PropertyChanged}" 
+                 Margin="0,0,0,10"/>
 
-namespace MATProject.Pages
-{
-    public class Medication2
-    {
-        public string Name { get; set; }
-        public string DoseStatus { get; set; } // To store the status of the medication
-        public ICommand MarkTakenCommand { get; }
-        public ICommand MarkMissedCommand { get; }
+        <Button Content="Report Side Effects" Command="{Binding ReportSideEffectsCommand}" 
+                Width="150" Height="30" 
+                VerticalAlignment="Bottom" Margin="410,0,0,10"/>
+    </Grid>
 
-        public Medication2()
-        {
-            MarkTakenCommand = new RelayCommand2(MarkTaken);
-            MarkMissedCommand = new RelayCommand2(MarkMissed);
-        }
-
-        private void MarkTaken(object parameter)
-        {
-            DoseStatus = "Taken"; // Update the status when marked as taken
-        }
-
-        private void MarkMissed(object parameter)
-        {
-            DoseStatus = "Missed"; // Update the status when marked as missed
-        }
-    }
-
-    public class CheckInViewModel
-    {
-        public ObservableCollection<Medication2> Medications { get; set; }
-        public string SideEffectsReport { get; set; }
-        public ICommand ReportSideEffectsCommand { get; }
-
-        public CheckInViewModel()
-        {
-            Medications = new ObservableCollection<Medication2>
-            {
-                new Medication2 { Name = "Medication A", DoseStatus = "Upcoming" },
-                new Medication2 { Name = "Medication B", DoseStatus = "Missed" },
-                new Medication2 { Name = "Medication C", DoseStatus = "Taken" }
-            };
-
-            ReportSideEffectsCommand = new RelayCommand2(ReportSideEffects);
-        }
-
-        private void ReportSideEffects(object parameter)
-        {
-            // Handle side effects reporting (e.g., save to a database or display a message)
-            MessageBox.Show($"Reported side effects/issues: {SideEffectsReport}", "Side Effects Reported", MessageBoxButton.OK, MessageBoxImage.Information);
-            SideEffectsReport = string.Empty; // Clear the report after submission
-        }
-    }
-
-    public partial class CheckInWindow : Window
-    {
-        public CheckInWindow()
-        {
-            InitializeComponent();
-           // DataContext = new CheckInViewModel(); // Set the DataContext to the ViewModel
-        }
-
-        //private void InitializeComponent()
-        //{
-        //    throw new NotImplementedException();
-        //}
-    }
-
-    public class RelayCommand2 : ICommand
-    {
-        private readonly Action<object> _execute;
-        private readonly Func<bool> _canExecute;
-
-        public RelayCommand2(Action<object> execute, Func<bool> canExecute = null)
-        {
-            _execute = execute;
-            _canExecute = canExecute;
-        }
-
-        public bool CanExecute(object parameter) => _canExecute == null || _canExecute();
-        public void Execute(object parameter) => _execute(parameter);
-        public event EventHandler CanExecuteChanged
-        {
-            add => CommandManager.RequerySuggested += value;
-            remove => CommandManager.RequerySuggested -= value;
-        }
-    }
-}
+</Window>
