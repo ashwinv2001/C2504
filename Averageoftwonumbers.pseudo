@@ -1,2 +1,3 @@
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS1061	'MainWindow' does not contain a definition for 'SendButton_Click' and no accessible extension method 'SendButton_Click' accepting a first argument of type 'MainWindow' could be found (are you missing a using directive or an assembly reference?)	Wpfchatbackground	C:\Users\2021455\source\repos\Wpfchatbackgroundsolution\Wpfchatbackground\MainWindow.xaml	17	
+The type or namespace name 'DoWorkEventArgs' could not be found (are you missing a using directive or an assembly reference?)
+1>C:\Users\2021455\source\repos\Wpfchatbackgroundsolution\Wpfchatbackground\PartnerWindow.xaml.cs(146,53,146,80): error CS0246: The type or namespace name 'RunWorkerCompletedEventArgs' could not be found (are you missing a using directive or an assembly reference?)
+1>C:\Users\2021455\source\repos\Wpfchatbackgroundsolution\Wpfchatbackground\PartnerWindow.xaml.cs(22,17,22,33): error CS0246: The type or namespace name 'BackgroundWorker' could not be found (are you missing a using directive or an assembly reference?)
