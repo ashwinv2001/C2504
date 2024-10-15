@@ -1,113 +1,78 @@
-using System;
-using System.Collections.ObjectModel;
-using System.Data;
-using System.Data.SqlClient;
-using System.Windows;
-using System.Windows.Input;
+<Window x:Class="MATProject.Pages.PatientProfileWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MATProject.Pages"
+        mc:Ignorable="d"
+        Title="PatientProfileWindow" Height="450" Width="800">
+    <Grid>
 
-namespace MATProject.Pages
-{
-    public class Medication2
-    {
-        public string Name { get; set; }
-        public string DoseStatus { get; set; }
-        public ICommand MarkTakenCommand { get; }
-        public ICommand MarkMissedCommand { get; }
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
 
-        public Medication2()
-        {
-            MarkTakenCommand = new RelayCommand2(MarkTaken);
-            MarkMissedCommand = new RelayCommand2(MarkMissed);
-        }
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        private void MarkTaken(object parameter)
-        {
-            DoseStatus = "Taken";
-            // You can also update the status in the database here
-        }
+        <TextBlock TextAlignment ="Center" TextWrapping="Wrap" Text="PATIENT PROFILE " 
+                   Width="799" Height="62" FontSize="36" FontWeight="Bold" 
+                   Background="Wheat" FontFamily="Georgia" Grid.Row="0" Grid.ColumnSpan="2" VerticalAlignment="Center" IsEnabled="False"/>
 
-        private void MarkMissed(object parameter)
-        {
-            DoseStatus = "Missed";
-            // You can also update the status in the database here
-        }
-    }
+        <TextBlock x:Name="lblName" TextWrapping="Wrap" Text="Name" 
+                   FontSize="18" Foreground="Black" 
+                   Grid.Row="1" Grid.Column="0" Margin="5" VerticalAlignment="Center" FontWeight="Bold" HorizontalAlignment="Center"/>
+        <TextBox x:Name="txtName" TextWrapping="Wrap" 
+                 Width="300" FontSize="18" Background="#FFDACACA" 
+                 Grid.Row="1" Grid.Column="1"  VerticalAlignment="Center" Height="28" HorizontalAlignment="Left"/>
 
-    public class CheckInViewModel
-    {
-        private readonly string connectionString = "YourConnectionStringHere";
+        <TextBlock x:Name="lblDateofBirth" TextWrapping="Wrap" 
+                   Text="Date of Birth" FontSize="18" 
+                   Foreground="Black" Grid.Row="2" Grid.Column="0" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold"/>
+        <DatePicker Grid.Row="2" Grid.Column="1" Margin="5" 
+                     Width="300" Height="28" VerticalAlignment="Center" HorizontalAlignment="Left"/>
 
-        public ObservableCollection<Medication2> Medications { get; set; }
-        public string SideEffectsReport { get; set; }
-        public ICommand ReportSideEffectsCommand { get; }
+        <TextBlock x:Name="lblMedicalConditions" TextWrapping="Wrap" 
+                   Text="Medical Conditions" FontSize="18" HorizontalAlignment="Center" 
+                   Foreground="Black" Grid.Row="3" Grid.Column="0" Margin="5" VerticalAlignment="Center" FontWeight="Bold"/>
+        <TextBox x:Name="txtMedicalConditions" TextWrapping="Wrap" 
+                 Width="300" FontSize="18" Background="#FFDACACA" 
+                 Grid.Row="3" Grid.Column="1" Margin="5" Height="28" VerticalAlignment="Center" HorizontalAlignment="Left"/>
 
-        public CheckInViewModel()
-        {
-            Medications = new ObservableCollection<Medication2>();
-            LoadMedications();
-            ReportSideEffectsCommand = new RelayCommand2(ReportSideEffects);
-        }
+        <TextBlock x:Name="lblAllergies" TextWrapping="Wrap" 
+                   Text="Allergies" FontSize="18" HorizontalAlignment="Center" 
+                   Foreground="Black" Grid.Row="4" Grid.Column="0" Margin="5" VerticalAlignment="Center" FontWeight="Bold"/>
+        <TextBox x:Name="txtAllergies" TextWrapping="Wrap" 
+                 Width="300" FontSize="18" Background="#FFDACACA" 
+                 Grid.Row="4" Grid.Column="1" Margin="5" Height="28" VerticalAlignment="Center" HorizontalAlignment="Left"/>
 
-        private void LoadMedications()
-        {
-            try
-            {
-                using (SqlConnection connection = new SqlConnection(connectionString))
-                {
-                    connection.Open();
-                    SqlCommand command = new SqlCommand("SELECT Name, DoseStatus FROM Medications", connection);
-                    SqlDataReader reader = command.ExecuteReader();
+        <TextBlock x:Name="lblEmergencyContacts" TextWrapping="Wrap" 
+                   Text="Emergency Contacts" FontSize="18" HorizontalAlignment="Center" 
+                   Foreground="Black" Grid.Row="5" Grid.Column="0" Margin="5" VerticalAlignment="Center" FontWeight="Bold"/>
+        <TextBox x:Name="txtEmergecyContacts" TextWrapping="Wrap" 
+                 Width="300" FontSize="18" Background="#FFDACACA" 
+                 Grid.Row="5" Grid.Column="1" Margin="5" Height="28" VerticalAlignment="Center" HorizontalAlignment="Left"/>
 
-                    while (reader.Read())
-                    {
-                        Medications.Add(new Medication2
-                        {
-                            Name = reader["Name"].ToString(),
-                            DoseStatus = reader["DoseStatus"].ToString()
-                        });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error loading medications: {ex.Message}", "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
+        <Button x:Name="btnSave" Content="Save Profile" 
+                HorizontalAlignment="Left" VerticalAlignment="Center" 
+                Width="145" Height="34" FontWeight="Bold" FontSize="18" 
+                BorderBrush="Brown" Background="CadetBlue" Foreground="White"
+                Grid.Row="6" Grid.Column="1" Margin="5,0,0,0"/>
 
-        private void ReportSideEffects(object parameter)
-        {
-            MessageBox.Show($"Reported side effects/issues: {SideEffectsReport}", "Side Effects Reported", MessageBoxButton.OK, MessageBoxImage.Information);
-            SideEffectsReport = string.Empty;
-        }
-    }
+        <Border  
+                 VerticalAlignment="Top">
+            <Border.Background>
+                <ImageBrush Stretch="Fill"/>
+            </Border.Background>
+        </Border>
+    </Grid>
 
-    public partial class CheckInWindow : Window
-    {
-        public CheckInWindow()
-        {
-            InitializeComponent();
-            DataContext = new CheckInViewModel();
-        }
-    }
-
-    public class RelayCommand2 : ICommand
-    {
-        private readonly Action<object> _execute;
-        private readonly Func<bool> _canExecute;
-
-        public RelayCommand2(Action<object> execute, Func<bool> canExecute = null)
-        {
-            _execute = execute;
-            _canExecute = canExecute;
-        }
-
-        public bool CanExecute(object parameter) => _canExecute == null || _canExecute();
-        public void Execute(object parameter) => _execute(parameter);
-
-        public event EventHandler CanExecuteChanged
-        {
-            add => CommandManager.RequerySuggested += value;
-            remove => CommandManager.RequerySuggested -= value;
-        }
-    }
-}
+</Window>
