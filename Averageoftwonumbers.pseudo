@@ -1,33 +1,34 @@
-namespace BankManagementSystem
-{
-    public static class FormConfig
-    {
-        public static AccountViewModel accountViewModel = null;
-        public static DepositViewModel depositViewModel = null;
-        public static WithdrawViewModel withdrawViewModel = null;
-        public static NewAccountWindow newAccountWindow = null;
-        public static EditAccountWindow editAccountWindow = null; 
-        public static DepositWindow depositWindow = null;
-        public static AccountListWindow accountListWindow = null;
-        public static WithdrawWindow withdrawWindow = null;
-        public static DashBoardWindow dashBoardWindow = null;
-        public static AccountViewWindow accountViewWindow = null;
-        
-        static FormConfig()
-        {
-            accountViewModel = new AccountViewModel();
-            depositViewModel = new DepositViewModel();
-            withdrawViewModel = new WithdrawViewModel();
-            editAccountWindow = new EditAccountWindow();
-            newAccountWindow = new NewAccountWindow();
-            depositWindow = new DepositWindow();
-            accountListWindow = new AccountListWindow();
-            withdrawWindow = new WithdrawWindow();
-            dashBoardWindow = new DashBoardWindow();
-            accountViewWindow = new AccountViewWindow();
+<Window x:Class="BankManagementSystem.Pages.DepositWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BankManagementSystem.Pages" xmlns:viewmodels="clr-namespace:BankManagementSystem.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:DepositViewModel}"
+        mc:Ignorable="d"
+        Title="DepositWindow" Height="450" Width="800" Closing="Window_Closing">
+    <Grid MaxWidth="1200">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" Background="AliceBlue" HorizontalAlignment="Center" VerticalAlignment="Center"
+                CornerRadius="5">
+            <StackPanel Margin="30">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Account Number" VerticalAlignment="Center" Width="200" FontWeight="bold"
+                           FontSize="14" />
+                    <TextBox Style="{StaticResource MyTextBoxStyle}" Text="{Binding AccountNumber}"/>
+                </StackPanel>
 
-            
-        }
+                <StackPanel Orientation="Horizontal" Margin="0 10 0 0">
+                    <TextBlock Text="Amount" VerticalAlignment="Center" Width="200" FontWeight="bold"
+           FontSize="14"/>
+                    <TextBox Style="{StaticResource MyTextBoxStyle}" Text="{Binding Amount}"/>
+                </StackPanel>
 
-    }
-}
+                <Button Content="Deposit" Background="Green" Foreground="white" FontWeight="bold"
+                        Width="250" Height="50" Margin="0 20 0 0"
+                        Command="{Binding DepositCommand}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
