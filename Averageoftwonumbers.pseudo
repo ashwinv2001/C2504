@@ -49,3 +49,21 @@ promote better medication management practices.
 The system integrates modern technologies and databases, 
 leveraging WPF, C# and SQL Server as stack for robust data handling, 
 while providing secure and efficient user interactions.
+
+
+
+
+
+
+
+   CREATE TABLE Medications (
+       MedicationID INT PRIMARY KEY IDENTITY(1,1),
+       UserID INT FOREIGN KEY REFERENCES Users(UserID),
+       MedicationName NVARCHAR(100) NOT NULL,
+       Dosage NVARCHAR(50) NOT NULL,
+       Frequency NVARCHAR(50) NOT NULL,  -- e.g., 'Once a day', 'Twice a day'
+       StartDate DATE NOT NULL,
+       EndDate DATE,
+       CreatedAt DATETIME DEFAULT GETDATE(),
+       UpdatedAt DATETIME
+   );
