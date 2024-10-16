@@ -1,36 +1,33 @@
-namespace BankManagementSystem.Pages
+namespace BankManagementSystem
 {
-    /// <summary>
-    /// Interaction logic for LoginPageWindow.xaml
-    /// </summary>
-    public partial class LoginPageWindow : Window
+    public static class FormConfig
     {
-        public LoginPageWindow()
+        public static AccountViewModel accountViewModel = null;
+        public static DepositViewModel depositViewModel = null;
+        public static WithdrawViewModel withdrawViewModel = null;
+        public static NewAccountWindow newAccountWindow = null;
+        public static EditAccountWindow editAccountWindow = null; 
+        public static DepositWindow depositWindow = null;
+        public static AccountListWindow accountListWindow = null;
+        public static WithdrawWindow withdrawWindow = null;
+        public static DashBoardWindow dashBoardWindow = null;
+        public static AccountViewWindow accountViewWindow = null;
+        
+        static FormConfig()
         {
-            InitializeComponent();
+            accountViewModel = new AccountViewModel();
+            depositViewModel = new DepositViewModel();
+            withdrawViewModel = new WithdrawViewModel();
+            editAccountWindow = new EditAccountWindow();
+            newAccountWindow = new NewAccountWindow();
+            depositWindow = new DepositWindow();
+            accountListWindow = new AccountListWindow();
+            withdrawWindow = new WithdrawWindow();
+            dashBoardWindow = new DashBoardWindow();
+            accountViewWindow = new AccountViewWindow();
 
+            
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            if(txtUsername.Text == "quest" && txtPassword.Password == "1234")
-            {
-                FormConfig.dashBoardWindow.Show();
-                this.Hide();
-            }
-            else
-            {
-                MessageBox.Show(messageBoxText: $"Invalid username or password",
-                   caption: "Warning",
-                   button: MessageBoxButton.OK,
-                   icon: MessageBoxImage.Warning);
-                return;
-            }
-        }
-
-        private void Window_Closed(object sender, EventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
     }
 }
