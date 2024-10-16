@@ -213,3 +213,72 @@ namespace MATProject.Pages
     </Grid>
 
 </Window>
+
+
+
+
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace MATProject.Data
+{
+    public class PatientProfileRepo
+    {
+        private readonly AppDbContext _context;
+
+        public PatientProfileRepo(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        // Method to add a new patient profile
+        public void AddPatientProfile(PatientProfile profile)
+        {
+            _context.PatientProfiles.Add(profile);
+            _context.SaveChanges();
+        }
+
+        // Method to retrieve all patient profiles
+        public List<PatientProfile> GetAllPatientProfiles()
+        {
+            return _context.PatientProfiles.ToList();
+        }
+
+        // Method to retrieve a patient profile by ID
+        public PatientProfile GetPatientProfileById(int id)
+        {
+            return _context.PatientProfiles.FirstOrDefault(p => p.Id == id);
+        }
+
+        // Method to update an existing patient profile
+        public void UpdatePatientProfile(PatientProfile profile)
+        {
+            var existingProfile = _context.PatientProfiles.Find(profile.Id);
+            if (existingProfile != null)
+            {
+                existingProfile.Name = profile.Name;
+                existingProfile.DateOfBirth = profile.DateOfBirth;
+                existingProfile.MedicalConditions = profile.MedicalConditions;
+                existingProfile.Allergies = profile.Allergies;
+                existingProfile.EmergencyContacts = profile.EmergencyContacts;
+
+                _context.SaveChanges();
+            }
+        }
+
+        // Method to delete a patient profile
+        public void DeletePatientProfile(int id)
+        {
+            var profile = _context.PatientProfiles.Find(id);
+            if (profile != null)
+            {
+                _context.PatientProfiles.Remove(profile);
+                _context.SaveChanges();
+            }
+        }
+    }
+}
