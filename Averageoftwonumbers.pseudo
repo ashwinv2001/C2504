@@ -22,3 +22,30 @@
 		<Button x:Name="btnCreate"  Background="CadetBlue" Foreground="White" Content="Create" Canvas.Left="315" Canvas.Top="380" HorizontalAlignment="Left" VerticalAlignment="Center" Width="85" Height="34" Command="{Binding CreateMedicationCommand}"/>
 	</Canvas>
 </Window>
+
+
+
+The Medication Adherence Tracker is 
+a healthcare application designed 
+to improve patient compliance with prescribed medication regimens. 
+The system enables patients to manage their medications effectively 
+by providing features such as automated reminders, medication schedules, and 
+adherence tracking. Through regular check-ins and notifications, 
+the app ensures that patients take their medications on time, 
+reducing the risk of missed doses. 
+
+The app also generates detailed adherence reports, 
+allowing both patients and healthcare providers 
+to monitor treatment progress. Optional features 
+include goal setting for medication adherence and 
+doctor-patient interaction, where healthcare professionals 
+can track and support patient adherence in real-time. 
+By offering a streamlined, user-friendly platform, 
+the Medication Adherence Tracker aims 
+to enhance overall health outcomes, 
+improve communication between patients and doctors, and 
+promote better medication management practices.
+
+The system integrates modern technologies and databases, 
+leveraging WPF, C# and SQL Server as stack for robust data handling, 
+while providing secure and efficient user interactions.
