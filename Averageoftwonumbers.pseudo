@@ -6,43 +6,16 @@
         xmlns:local="clr-namespace:MATProject.Pages"
         mc:Ignorable="d"
         Title="MedicationScheduleWindow" Height="450" Width="800">
-
+    
     <Grid>
         <ListView ItemsSource="{Binding Medications}">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="200" />
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding MedicationName}" Width="200" />
                     <GridViewColumn Header="Dose Time" DisplayMemberBinding="{Binding DoseTime}" Width="200" />
                     <GridViewColumn Header="Status" DisplayMemberBinding="{Binding DoseStatus}" Width="200" />
-
                 </GridView>
             </ListView.View>
         </ListView>
     </Grid>
-
-=======
-	<Grid>
-		<ListView ItemsSource="{Binding Medication}">
-			<ListView.View>
-				<GridView>
-					<GridViewColumn Header="Name" DisplayMemberBinding="{Binding MedicationName}" Width="200" />
-					<GridViewColumn Header="Dose Time" DisplayMemberBinding="{Binding DoseTime}" Width="200" />
-					<GridViewColumn Header="Status" DisplayMemberBinding="{Binding DoseStatus}" Width="200" />
-
-				</GridView>
-			</ListView.View>
-		</ListView>
-	</Grid>
->>>>>>> a334da6ebbc996d0c8adf0004748b443fce7dce8
 </Window>
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	XDG0040	The property "Content" can only be set once.	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat\MATProjectsln\MATProject\Pages\MedicationScheduleWindow.xaml	1	
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	XLS0501	The property 'Content' is set more than once.	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat\MATProjectsln\MATProject\Pages\MedicationScheduleWindow.xaml	1	
-Severity	Code	Description	Project	File	Line	Suppression State
-Error		'Name cannot begin with the '<' character, hexadecimal value 0x3C. Line 9, position 2.' XML is not valid.	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat\MATProjectsln\MATProject\Pages\MedicationScheduleWindow.xaml	9	
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	XLS0501	The property 'Content' is set more than once.	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat\MATProjectsln\MATProject\Pages\MedicationScheduleWindow.xaml	10	
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	XLS0501	The property 'Content' is set more than once.	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat\MATProjectsln\MATProject\Pages\MedicationScheduleWindow.xaml	24	
