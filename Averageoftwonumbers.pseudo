@@ -1,2 +1,112 @@
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0103	The name 'dpDateOfBirth' does not exist in the current context	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat\MATProjectsln\MATProject\Pages\PatientProfileWindow.xaml.cs	35	
+.xaml.cs file
+using System.Windows;
+
+namespace MATProject.Pages
+{
+    public partial class PatientProfileWindow : Window
+    {
+        public PatientProfileWindow()
+        {
+            InitializeComponent();
+            DataContext = new PatientProfileViewModel(); // Set DataContext to ViewModel
+        }
+    }
+}
+
+
+
+.cs file
+
+
+using System;
+using System.Windows;
+using System.Windows.Input;
+
+namespace MATProject.Pages
+{
+    public class PatientProfileViewModel
+    {
+        private readonly PatientProfileRepository _repository;
+
+        public string Name { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public string MedicalConditions { get; set; }
+        public string Allergies { get; set; }
+        public string EmergencyContacts { get; set; }
+        public ICommand SaveCommand { get; }
+
+        public PatientProfileViewModel()
+        {
+            _repository = new PatientProfileRepository();
+            SaveCommand = new RelayCommand2(SaveProfile);
+        }
+
+        private void SaveProfile(object parameter)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(Name) || !DateOfBirth.HasValue)
+                {
+                    MessageBox.Show("Please enter the required fields.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                _repository.SavePatientProfile(Name, DateOfBirth.Value, MedicalConditions, Allergies, EmergencyContacts);
+                MessageBox.Show("Profile saved successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                ClearFields();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error saving profile: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ClearFields()
+        {
+            Name = string.Empty;
+            DateOfBirth = null;
+            MedicalConditions = string.Empty;
+            Allergies = string.Empty;
+            EmergencyContacts = string.Empty;
+        }
+    }
+}
+
+repository.cs file
+using System;
+using System.Data.SqlClient;
+
+namespace MATProject.Pages
+{
+    public class PatientProfileRepository
+    {
+        private readonly string connectionString = "Server=YourServerName;Database=YourDatabaseName;User Id=YourUsername;Password=YourPassword;";
+
+        public void SavePatientProfile(string name, DateTime dateOfBirth, string medicalConditions, string allergies, string emergencyContacts)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "INSERT INTO PatientProfiles (Name, DateOfBirth, MedicalConditions, Allergies, EmergencyContacts) VALUES (@Name, @DateOfBirth, @MedicalConditions, @Allergies, @EmergencyContacts)";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Name", name);
+                    command.Parameters.AddWithValue("@DateOfBirth", dateOfBirth);
+                    command.Parameters.AddWithValue("@MedicalConditions", medicalConditions);
+                    command.Parameters.AddWithValue("@Allergies", allergies);
+                    command.Parameters.AddWithValue("@EmergencyContacts", emergencyContacts);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+    }
+}
+
+xaml update
+
+<TextBox x:Name="txtName" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" ... />
+<DatePicker x:Name="dpDateOfBirth" SelectedDate="{Binding DateOfBirth, UpdateSourceTrigger=PropertyChanged}" ... />
+<TextBox x:Name="txtMedicalConditions" Text="{Binding MedicalConditions, UpdateSourceTrigger=PropertyChanged}" ... />
+<TextBox x:Name="txtAllergies" Text="{Binding Allergies, UpdateSourceTrigger=PropertyChanged}" ... />
+<TextBox x:Name="txtEmergencyContacts" Text="{Binding EmergencyContacts, UpdateSourceTrigger=PropertyChanged}" ... />
+<Button x:Name="btnSave" Content="Save Profile" Command="{Binding SaveCommand}" ... />
