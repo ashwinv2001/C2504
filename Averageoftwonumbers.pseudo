@@ -1,112 +1,48 @@
-.xaml.cs file
-using System.Windows;
+<Window x:Class="MATProject.Pages.MedicationScheduleWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MATProject.Pages"
+        mc:Ignorable="d"
+        Title="MedicationScheduleWindow" Height="450" Width="800">
 
-namespace MATProject.Pages
-{
-    public partial class PatientProfileWindow : Window
-    {
-        public PatientProfileWindow()
-        {
-            InitializeComponent();
-            DataContext = new PatientProfileViewModel(); // Set DataContext to ViewModel
-        }
-    }
-}
+    <Grid>
+        <ListView ItemsSource="{Binding Medications}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="200" />
+                    <GridViewColumn Header="Dose Time" DisplayMemberBinding="{Binding DoseTime}" Width="200" />
+                    <GridViewColumn Header="Status" DisplayMemberBinding="{Binding DoseStatus}" Width="200" />
 
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
 
+=======
+	<Grid>
+		<ListView ItemsSource="{Binding Medication}">
+			<ListView.View>
+				<GridView>
+					<GridViewColumn Header="Name" DisplayMemberBinding="{Binding MedicationName}" Width="200" />
+					<GridViewColumn Header="Dose Time" DisplayMemberBinding="{Binding DoseTime}" Width="200" />
+					<GridViewColumn Header="Status" DisplayMemberBinding="{Binding DoseStatus}" Width="200" />
 
-.cs file
+				</GridView>
+			</ListView.View>
+		</ListView>
+	</Grid>
+>>>>>>> a334da6ebbc996d0c8adf0004748b443fce7dce8
+</Window>
 
-
-using System;
-using System.Windows;
-using System.Windows.Input;
-
-namespace MATProject.Pages
-{
-    public class PatientProfileViewModel
-    {
-        private readonly PatientProfileRepository _repository;
-
-        public string Name { get; set; }
-        public DateTime? DateOfBirth { get; set; }
-        public string MedicalConditions { get; set; }
-        public string Allergies { get; set; }
-        public string EmergencyContacts { get; set; }
-        public ICommand SaveCommand { get; }
-
-        public PatientProfileViewModel()
-        {
-            _repository = new PatientProfileRepository();
-            SaveCommand = new RelayCommand2(SaveProfile);
-        }
-
-        private void SaveProfile(object parameter)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(Name) || !DateOfBirth.HasValue)
-                {
-                    MessageBox.Show("Please enter the required fields.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                _repository.SavePatientProfile(Name, DateOfBirth.Value, MedicalConditions, Allergies, EmergencyContacts);
-                MessageBox.Show("Profile saved successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                ClearFields();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error saving profile: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void ClearFields()
-        {
-            Name = string.Empty;
-            DateOfBirth = null;
-            MedicalConditions = string.Empty;
-            Allergies = string.Empty;
-            EmergencyContacts = string.Empty;
-        }
-    }
-}
-
-repository.cs file
-using System;
-using System.Data.SqlClient;
-
-namespace MATProject.Pages
-{
-    public class PatientProfileRepository
-    {
-        private readonly string connectionString = "Server=YourServerName;Database=YourDatabaseName;User Id=YourUsername;Password=YourPassword;";
-
-        public void SavePatientProfile(string name, DateTime dateOfBirth, string medicalConditions, string allergies, string emergencyContacts)
-        {
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                connection.Open();
-                string query = "INSERT INTO PatientProfiles (Name, DateOfBirth, MedicalConditions, Allergies, EmergencyContacts) VALUES (@Name, @DateOfBirth, @MedicalConditions, @Allergies, @EmergencyContacts)";
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@Name", name);
-                    command.Parameters.AddWithValue("@DateOfBirth", dateOfBirth);
-                    command.Parameters.AddWithValue("@MedicalConditions", medicalConditions);
-                    command.Parameters.AddWithValue("@Allergies", allergies);
-                    command.Parameters.AddWithValue("@EmergencyContacts", emergencyContacts);
-                    command.ExecuteNonQuery();
-                }
-            }
-        }
-    }
-}
-
-xaml update
-
-<TextBox x:Name="txtName" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" ... />
-<DatePicker x:Name="dpDateOfBirth" SelectedDate="{Binding DateOfBirth, UpdateSourceTrigger=PropertyChanged}" ... />
-<TextBox x:Name="txtMedicalConditions" Text="{Binding MedicalConditions, UpdateSourceTrigger=PropertyChanged}" ... />
-<TextBox x:Name="txtAllergies" Text="{Binding Allergies, UpdateSourceTrigger=PropertyChanged}" ... />
-<TextBox x:Name="txtEmergencyContacts" Text="{Binding EmergencyContacts, UpdateSourceTrigger=PropertyChanged}" ... />
-<Button x:Name="btnSave" Content="Save Profile" Command="{Binding SaveCommand}" ... />
+Severity	Code	Description	Project	File	Line	Suppression State
+Error	XDG0040	The property "Content" can only be set once.	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat\MATProjectsln\MATProject\Pages\MedicationScheduleWindow.xaml	1	
+Severity	Code	Description	Project	File	Line	Suppression State
+Error	XLS0501	The property 'Content' is set more than once.	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat\MATProjectsln\MATProject\Pages\MedicationScheduleWindow.xaml	1	
+Severity	Code	Description	Project	File	Line	Suppression State
+Error		'Name cannot begin with the '<' character, hexadecimal value 0x3C. Line 9, position 2.' XML is not valid.	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat\MATProjectsln\MATProject\Pages\MedicationScheduleWindow.xaml	9	
+Severity	Code	Description	Project	File	Line	Suppression State
+Error	XLS0501	The property 'Content' is set more than once.	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat\MATProjectsln\MATProject\Pages\MedicationScheduleWindow.xaml	10	
+Severity	Code	Description	Project	File	Line	Suppression State
+Error	XLS0501	The property 'Content' is set more than once.	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat\MATProjectsln\MATProject\Pages\MedicationScheduleWindow.xaml	24	
