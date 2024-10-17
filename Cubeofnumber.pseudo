@@ -1,89 +1,44 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MATProject.Commands;
-using MATProject.Orm;
-using System.Windows.Input;
-using MATProject.Entities;
 using MATProject.Repo;
+using MATProject.Entities;
 
-namespace MATProject.ViewModels
+namespace MATProject.Orm
 {
-	public class CheckInViewModel
+    public class CheckInsRepo : ICheckInsRepo
     {
-        private readonly ICheckInsRepo _repository;
+        private readonly MatDbEntities _context;
 
-        public CheckInViewModel(ICheckInsRepo repository)
+        public CheckInsRepo(MatDbEntities context)
         {
-            _repository = repository;
-            LoadMedications();
-            MarkAsTakenCommand = new RelayCommand(OnMarkAsTaken);
-            MarkAsMissedCommand = new RelayCommand(OnMarkAsMissed);
-            ReportSideEffectsCommand = new RelayCommand(OnReportSideEffects);
+            _context = context;
         }
 
-        public ObservableCollection<CheckIn> Medications { get; set; }
-        public Medication SelectedMedication { get; set; }
-        public string SideEffects { get; set; }
-
-        public ICommand MarkAsTakenCommand { get; }
-        public ICommand MarkAsMissedCommand { get; }
-        public ICommand ReportSideEffectsCommand { get; }
-
-        private void LoadMedications()
+        public void LogCheckIn(int CheckInID, int ScheduleID  ,string AdherenceStatus, string sideEffects = null)
         {
-            using (var context = new MatDbEntities())
+            var checkIn = new CheckIn
             {
-                Medications = new ObservableCollection<Medication>(context.Medications.ToList());
-            }
-        }
+                CheckInID = CheckInID,
+                ScheduleID = ScheduleID,
+                AdherenceStatus = AdherenceStatus,
+                SideEffects = sideEffects,
+                CreatedAt = DateTime.Now
+            };
 
-        private void OnMarkAsTaken()
-        {
-            if (SelectedMedication != null)
-            {
-                _repository.LogCheckIn(SelectedMedication.Id, true);
-            }
-        }
-
-        private void OnMarkAsMissed()
-        {
-            if (SelectedMedication != null)
-            {
-                _repository.LogCheckIn(SelectedMedication.Id, false);
-            }
-        }
-
-        private void OnReportSideEffects()
-        {
-            if (SelectedMedication != null && !string.IsNullOrEmpty(SideEffects))
-            {
-                _repository.LogCheckIn(SelectedMedication.Id, true, SideEffects);
-            }
+            _context.CheckIns.Add(checkIn);
+            _context.SaveChanges();
         }
     }
+
+    //public interface ICheckInsRepo
+    //{
+    //    void LogCheckIn(int medicationId, bool isTaken, string sideEffects = null);
+    //}
 }
+
 
 Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS1061	'ICheckInsRepo' does not contain a definition for 'LogCheckIn' and no accessible extension method 'LogCheckIn' accepting a first argument of type 'ICheckInsRepo' could be found (are you missing a using directive or an assembly reference?)	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\ViewModels\CheckInViewModel.cs	48	
-
-ICheckInsRepo.cs code
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MATProject.Repo
-{
-    public interface ICheckInsRepo
-    {
-    }
-}
-
-
-
+Error (active)	CS0535	'CheckInsRepo' does not implement interface member 'ICheckInsRepo.LogCheckIn(int, bool, string)'	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\Orm\CheckInsRepo.cs	11	
