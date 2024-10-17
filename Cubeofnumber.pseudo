@@ -1,14 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using log4net;
-
-namespace BankManagementSystem
-{
-    public static class Logger
-    {
-        public static readonly ILog log = LogManager.GetLogger(typeof(Logger));
-    }
-}
+Check-in Page
+   - Purpose: Patients check in to confirm 
+   that they have taken their medication. 
+   This page logs the check-in to track adherence.
+   - Key Actions:
+     - Mark medication as taken
+     - Option to report side effects or issues
