@@ -29,3 +29,7 @@ namespace MATProject.Pages
         }
     }
 }
+
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0246	The type or namespace name 'MatDbEntities' could not be found (are you missing a using directive or an assembly reference?)	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\Pages\CheckInWindow.xaml.cs	28	
+
