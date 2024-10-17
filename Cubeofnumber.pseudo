@@ -1,5 +1,13 @@
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0103	The name 'InitializeComponent' does not exist in the current context	Example13Project	C:\Users\2021455\source\repos\Example13Solution\Example13Project\Square.xaml.cs	12	
+namespace BankManagementSystem.Exceptions
+{
+    /// <summary>
+    /// Represents the userdefined exception class
+    /// </summary>
+    public class AccountException : Exception
+    {
+        public AccountException() : base() { }
 
-       
- 
+        public AccountException(string message) : base(message) { }
+
+    }
+}
