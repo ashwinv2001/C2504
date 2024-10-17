@@ -335,3 +335,119 @@ namespace Checkinpage
 
 
 
+medicationschedule-------------------------------------------------------------------------
+
+
+
+.xaml.cs file
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+
+namespace MdiAppProject
+{
+    public class Medication1
+    {
+        public string Name { get; set; }
+        public DateTime DoseTime { get; set; }
+        public string DoseStatus { get; set; } // Ensure this is used consistently
+
+        public ICommand MarkTakenCommand { get; }
+        public ICommand MarkMissedCommand { get; }
+
+        public Medication1()
+        {
+            MarkTakenCommand = new RelayCommand1(MarkTaken);
+            MarkMissedCommand = new RelayCommand1(MarkMissed);
+        }
+
+        private void MarkTaken(object parameter)
+        {
+            DoseStatus = "Taken";
+        }
+       
+        
+
+        private void MarkMissed(object parameter)
+        {
+            DoseStatus = "Missed";
+        }
+    }
+
+    public partial class MedicationScheduleWindow : Window
+    {
+        public ObservableCollection<Medication1> Medications { get; set; }
+
+        public MedicationScheduleWindow()
+        {
+            InitializeComponent(); // Ensure this is called to initialize UI components
+
+            Medications = new ObservableCollection<Medication1>
+            {
+                new Medication1 { Name = "Medication A", DoseTime = DateTime.Now.AddHours(1), DoseStatus = "Upcoming" },
+                new Medication1 { Name = "Medication B", DoseTime = DateTime.Now.AddHours(-1), DoseStatus = "Missed" },
+                new Medication1 { Name = "Medication C", DoseTime = DateTime.Now, DoseStatus = "Taken" }
+            };
+            DataContext = this;
+        }
+    }
+
+    public class RelayCommand1 : ICommand
+    {
+        private readonly Action<object> _execute; // Ensure this matches your usage
+        private readonly Func<bool> _canExecute;
+
+        public RelayCommand1(Action<object> execute, Func<bool> canExecute = null)
+        {
+            _execute = execute;
+            _canExecute = canExecute;
+        }
+
+        public bool CanExecute(object parameter) => _canExecute == null || _canExecute();
+        public void Execute(object parameter) => _execute(parameter); // Ensure this can accept parameters
+
+        public event EventHandler CanExecuteChanged
+        {
+            add => CommandManager.RequerySuggested += value;
+            remove => CommandManager.RequerySuggested -= value;
+        }
+    }
+}
+
+
+.xaml file
+
+
+
+<Window x:Class="MdiAppProject.MedicationScheduleWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Medication Schedule" Height="400" Width="775">
+    <Grid>
+        <ListView ItemsSource="{Binding Medications}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="200" />
+                    <GridViewColumn Header="Dose Time" DisplayMemberBinding="{Binding DoseTime}" Width="200" />
+                    <GridViewColumn Header="Status" DisplayMemberBinding="{Binding DoseStatus}" Width="200" />
+                  
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</Window>
+
