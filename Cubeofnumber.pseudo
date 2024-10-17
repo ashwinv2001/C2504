@@ -3,42 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using MATProject.Orm;
+using MATProject.ViewModels;
 using MATProject.Repo;
-using MATProject.Entities;
 
-namespace MATProject.Orm
+namespace MATProject.Pages
 {
-    public class CheckInsRepo : ICheckInsRepo
+    /// <summary>
+    /// Interaction logic for CheckInWindow.xaml
+    /// </summary>
+    public partial class CheckInWindow : Window
     {
-        private readonly MatDbEntities _context;
-
-        public CheckInsRepo(MatDbEntities context)
+        public CheckInWindow()
         {
-            _context = context;
-        }
-
-        public void LogCheckIn(int CheckInID, int ScheduleID  ,string AdherenceStatus, string sideEffects = null)
-        {
-            var checkIn = new CheckIn
-            {
-                CheckInID = CheckInID,
-                ScheduleID = ScheduleID,
-                AdherenceStatus = AdherenceStatus,
-                SideEffects = sideEffects,
-                CreatedAt = DateTime.Now
-            };
-
-            _context.CheckIns.Add(checkIn);
-            _context.SaveChanges();
+            InitializeComponent();
+            DataContext = new CheckInViewModel(new CheckInsRepo(new MatDbEntities()));
         }
     }
-
-    //public interface ICheckInsRepo
-    //{
-    //    void LogCheckIn(int medicationId, bool isTaken, string sideEffects = null);
-    //}
 }
-
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0535	'CheckInsRepo' does not implement interface member 'ICheckInsRepo.LogCheckIn(int, bool, string)'	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\Orm\CheckInsRepo.cs	11	
