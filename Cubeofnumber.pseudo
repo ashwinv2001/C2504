@@ -1,7 +1,23 @@
-private readonly ICheckInsRepo _checkInsRepo;
+public class CheckInViewModel
+{
+    private readonly ICheckInsRepo _checkInsRepo;
 
     public CheckInViewModel(ICheckInsRepo checkInsRepo)
     {
         _checkInsRepo = checkInsRepo;
-        LoadMedications();
+        try
+        {
+            LoadMedications();
+        }
+        catch (Exception ex)
+        {
+            // Log or display the error message
+            MessageBox.Show($"An error occurred: {ex.Message}");
+        }
     }
+
+    private void LoadMedications()
+    {
+        // Logic to load medications
+    }
+}
