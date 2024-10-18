@@ -46,10 +46,9 @@ namespace MATProject.ViewModels
             MarkAsTakenCommand = new RelayCommand(MarkAsTaken, CanMarkStatus);
             MarkAsMissedCommand = new RelayCommand(MarkAsMissed, CanMarkStatus);
             ReportSideEffectsCommand = new RelayCommand(OnReportSideEffects);
-            
-                LoadMedications();
-                LoadCheckIns();
-           
+
+            LoadMedications();
+            LoadCheckIns();
         }
 
         // Event for property changes
@@ -65,8 +64,16 @@ namespace MATProject.ViewModels
 
         // Selected medication property
         private Medication _selectedMedication;
-        // ICommand for reporting side effects
-        public ICommand ReportSideEffectsCommand { get; }
+
+        public Medication SelectedMedication
+        {
+            get => _selectedMedication;
+            set
+            {
+                _selectedMedication = value;
+                OnPropertyChanged(nameof(SelectedMedication));
+            }
+        }
 
         // Property to store side effects from the textbox
         private string _sideEffects;
@@ -79,6 +86,9 @@ namespace MATProject.ViewModels
                 OnPropertyChanged(nameof(SideEffects));
             }
         }
+
+        // ICommand for reporting side effects
+        public ICommand ReportSideEffectsCommand { get; }
 
         // Method to report side effects
         private void OnReportSideEffects()
@@ -100,23 +110,32 @@ namespace MATProject.ViewModels
         {
             return SelectedCheckIn != null && !string.IsNullOrWhiteSpace(SideEffects); // Enable only when conditions are met
         }
-        public Medication SelectedMedication
-        {
-            get => _selectedMedication;
-            set
-            {
-                _selectedMedication = value;
-                OnPropertyChanged(nameof(SelectedMedication));
-            }
-        }
-
-        // Property for side effects
-        public string SideEffects { get; set; }
 
         // ICommand properties
         public ICommand MarkAsTakenCommand { get; }
         public ICommand MarkAsMissedCommand { get; }
-        public ICommand ReportSideEffectsCommand { get; }
+
+        // Method to mark medication as taken
+        private void MarkAsTaken()
+        {
+            if (SelectedCheckIn != null)
+            {
+                SelectedCheckIn.AdherenceStatus = "Taken";
+                _checkInsRepo.UpdateCheckIn(SelectedCheckIn);
+                _checkInsRepo.SaveChanges();
+            }
+        }
+
+        // Method to mark medication as missed
+        private void MarkAsMissed()
+        {
+            if (SelectedCheckIn != null)
+            {
+                SelectedCheckIn.AdherenceStatus = "Missed";
+                _checkInsRepo.UpdateCheckIn(SelectedCheckIn);
+                _checkInsRepo.SaveChanges();
+            }
+        }
 
         // Method to load medications from the database
         private void LoadMedications()
@@ -148,67 +167,9 @@ namespace MATProject.ViewModels
             }
         }
 
-        // Method to mark medication as taken
-        private void OnMarkAsTaken()
-        {
-            if (SelectedMedication != null)
-            {
-                int scheduleId = SelectedMedication.MedicationID;  // Assuming MedicationID is used
-                _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken");
-            }
-        }
-
-        // Method to mark medication as missed
-        private void OnMarkAsMissed()
-        {
-            if (SelectedMedication != null)
-            {
-                int scheduleId = SelectedMedication.MedicationID;
-                _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Missed");
-            }
-        }
-
-        // Method to report side effects
-        private void OnReportSideEffects()
-        {
-            if (SelectedMedication != null && !string.IsNullOrEmpty(SideEffects))
-            {
-                int scheduleId = SelectedMedication.MedicationID;
-                _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken", SideEffects);
-            }
-        }
-
         private bool CanMarkStatus()
         {
             return SelectedCheckIn != null;
         }
-
-        private void MarkAsTaken()
-        {
-            if (SelectedCheckIn != null)
-            {
-                SelectedCheckIn.AdherenceStatus = "Taken";
-                _checkInsRepo.UpdateCheckIn(SelectedCheckIn);
-                _checkInsRepo.SaveChanges();
-            }
-        }
-
-        private void MarkAsMissed()
-        {
-            if (SelectedCheckIn != null)
-            {
-                SelectedCheckIn.AdherenceStatus = "Missed";
-                _checkInsRepo.UpdateCheckIn(SelectedCheckIn);
-                _checkInsRepo.SaveChanges();
-            }
-        }
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 }
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0121	The call is ambiguous between the following methods or properties: 'CheckInViewModel.OnPropertyChanged(string)' and 'CheckInViewModel.OnPropertyChanged(string)'	MATProject	C:\Users\2021455\Desktop\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\ViewModels\CheckInViewModel.cs	29	
