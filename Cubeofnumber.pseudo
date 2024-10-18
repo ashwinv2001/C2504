@@ -1,71 +1,27 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MATProject.Commands;
-using MATProject.Orm;
-using System.Windows.Input;
-using MATProject.Entities;
-using MATProject.Repo;
-
-namespace MATProject.ViewModels
+private void OnMarkAsTaken()
 {
-	public class CheckInViewModel
+    if (SelectedMedication != null)
     {
-        private readonly ICheckInsRepo _repository;
-
-        public CheckInViewModel(ICheckInsRepo repository)
-        {
-            _repository = repository;
-            LoadMedications();
-            MarkAsTakenCommand = new RelayCommand(OnMarkAsTaken);
-            MarkAsMissedCommand = new RelayCommand(OnMarkAsMissed);
-            ReportSideEffectsCommand = new RelayCommand(OnReportSideEffects);
-        }
-
-        public ObservableCollection<CheckIn> Medications { get; set; }
-        public Medication SelectedMedication { get; set; }
-        public string SideEffects { get; set; }
-
-        public ICommand MarkAsTakenCommand { get; }
-        public ICommand MarkAsMissedCommand { get; }
-        public ICommand ReportSideEffectsCommand { get; }
-
-        private void LoadMedications()
-        {
-            using (var context = new MatDbEntities())
-            {
-                Medications = new ObservableCollection<Medication>(context.Medications.ToList());
-            }
-        }
-
-        private void OnMarkAsTaken()
-        {
-            if (SelectedMedication != null)
-            {
-                _repository.LogCheckIn(SelectedMedication.MedicationID, true);
-            }
-        }
-
-        private void OnMarkAsMissed()
-        {
-            if (SelectedMedication != null)
-            {
-                _repository.LogCheckIn(SelectedMedication.MedicationID, false);
-            }
-        }
-
-        private void OnReportSideEffects()
-        {
-            if (SelectedMedication != null && !string.IsNullOrEmpty(SideEffects))
-            {
-                _repository.LogCheckIn(SelectedMedication.MedicationID, true, SideEffects);
-            }
-        }
+        // Assuming MedicationID is used as CheckInID, and setting ScheduleID to a constant value for now
+        int scheduleId = SelectedMedication.ScheduleID;  // Assuming Medication has a ScheduleID property
+        _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken");
     }
 }
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS7036	There is no argument given that corresponds to the required parameter 'AdherenceStatus' of 'ICheckInsRepo.LogCheckIn(int, int, string, string)'	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\ViewModels\CheckInViewModel.cs	48	
 
+private void OnMarkAsMissed()
+{
+    if (SelectedMedication != null)
+    {
+        int scheduleId = SelectedMedication.ScheduleID;  // Assuming Medication has a ScheduleID property
+        _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Missed");
+    }
+}
+
+private void OnReportSideEffects()
+{
+    if (SelectedMedication != null && !string.IsNullOrEmpty(SideEffects))
+    {
+        int scheduleId = SelectedMedication.ScheduleID;  // Assuming Medication has a ScheduleID property
+        _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken", SideEffects);
+    }
+}
