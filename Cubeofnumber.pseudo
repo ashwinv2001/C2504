@@ -1,35 +1,71 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using MATProject.Commands;
 using MATProject.Orm;
-using MATProject.ViewModels;
+using System.Windows.Input;
+using MATProject.Entities;
 using MATProject.Repo;
 
-namespace MATProject.Pages
+namespace MATProject.ViewModels
 {
-    /// <summary>
-    /// Interaction logic for CheckInWindow.xaml
-    /// </summary>
-    public partial class CheckInWindow : Window
+	public class CheckInViewModel
     {
-        public CheckInWindow()
+        private readonly ICheckInsRepo _repository;
+
+        public CheckInViewModel(ICheckInsRepo repository)
         {
-            InitializeComponent();
-            DataContext = new CheckInViewModel(new CheckInsRepo(new MatDbEntities()));
+            _repository = repository;
+            LoadMedications();
+            MarkAsTakenCommand = new RelayCommand(OnMarkAsTaken);
+            MarkAsMissedCommand = new RelayCommand(OnMarkAsMissed);
+            ReportSideEffectsCommand = new RelayCommand(OnReportSideEffects);
+        }
+
+        public ObservableCollection<CheckIn> Medications { get; set; }
+        public Medication SelectedMedication { get; set; }
+        public string SideEffects { get; set; }
+
+        public ICommand MarkAsTakenCommand { get; }
+        public ICommand MarkAsMissedCommand { get; }
+        public ICommand ReportSideEffectsCommand { get; }
+
+        private void LoadMedications()
+        {
+            using (var context = new MatDbEntities())
+            {
+                Medications = new ObservableCollection<Medication>(context.Medications.ToList());
+            }
+        }
+
+        private void OnMarkAsTaken()
+        {
+            if (SelectedMedication != null)
+            {
+                _repository.LogCheckIn(SelectedMedication.Id, true);
+            }
+        }
+
+        private void OnMarkAsMissed()
+        {
+            if (SelectedMedication != null)
+            {
+                _repository.LogCheckIn(SelectedMedication.Id, false);
+            }
+        }
+
+        private void OnReportSideEffects()
+        {
+            if (SelectedMedication != null && !string.IsNullOrEmpty(SideEffects))
+            {
+                _repository.LogCheckIn(SelectedMedication.Id, true, SideEffects);
+            }
         }
     }
 }
 
 Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0246	The type or namespace name 'MatDbEntities' could not be found (are you missing a using directive or an assembly reference?)	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\Pages\CheckInWindow.xaml.cs	28	
-
+Error (active)	CS1061	'Medication' does not contain a definition for 'Id' and no accessible extension method 'Id' accepting a first argument of type 'Medication' could be found (are you missing a using directive or an assembly reference?)	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\ViewModels\CheckInViewModel.cs	48	
