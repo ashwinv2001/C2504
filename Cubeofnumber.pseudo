@@ -1,27 +1,30 @@
-private void OnMarkAsTaken()
-{
-    if (SelectedMedication != null)
-    {
-        // Assuming MedicationID is used as CheckInID, and setting ScheduleID to a constant value for now
-        int scheduleId = SelectedMedication.ScheduleID;  // Assuming Medication has a ScheduleID property
-        _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken");
-    }
-}
+ private void OnMarkAsTaken()
+ {
+     if (SelectedMedication != null)
+     {
+         // Assuming MedicationID is used as CheckInID, and setting ScheduleID to a constant value for now
+         int scheduleId = SelectedMedication.ScheduleID;  // Assuming Medication has a ScheduleID property
+         _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken");
+     }
+ }
 
-private void OnMarkAsMissed()
-{
-    if (SelectedMedication != null)
-    {
-        int scheduleId = SelectedMedication.ScheduleID;  // Assuming Medication has a ScheduleID property
-        _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Missed");
-    }
-}
+ private void OnMarkAsMissed()
+ {
+     if (SelectedMedication != null)
+     {
+         int scheduleId = SelectedMedication.ScheduleID;  // Assuming Medication has a ScheduleID property
+         _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Missed");
+     }
+ }
 
-private void OnReportSideEffects()
-{
-    if (SelectedMedication != null && !string.IsNullOrEmpty(SideEffects))
-    {
-        int scheduleId = SelectedMedication.ScheduleID;  // Assuming Medication has a ScheduleID property
-        _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken", SideEffects);
-    }
-}
+ private void OnReportSideEffects()
+ {
+     if (SelectedMedication != null && !string.IsNullOrEmpty(SideEffects))
+     {
+         int scheduleId = SelectedMedication.ScheduleID;  // Assuming Medication has a ScheduleID property
+         _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken", SideEffects);
+     }
+ }
+
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS1061	'Medication' does not contain a definition for 'ScheduleID' and no accessible extension method 'ScheduleID' accepting a first argument of type 'Medication' could be found (are you missing a using directive or an assembly reference?)	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\ViewModels\CheckInViewModel.cs	49	
