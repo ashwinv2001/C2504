@@ -1,97 +1,214 @@
-public class CheckInViewModel : INotifyPropertyChanged
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using MATProject.Commands;
+using MATProject.Orm;
+using System.Windows.Input;
+using MATProject.Entities;
+using MATProject.Repo;
+using System.ComponentModel;
+using System.Windows;
+
+namespace MATProject.ViewModels
 {
-    private ICheckInsRepo _checkInsRepo;
-
-    // Constructor (already exists)
-    public CheckInViewModel(ICheckInsRepo repository)
+    public class CheckInViewModel : INotifyPropertyChanged
     {
-        _checkInsRepo = repository;
+        private ICheckInsRepo _checkInsRepo;
 
-        // Initialize commands
-        MarkAsTakenCommand = new RelayCommand(MarkAsTaken, CanMarkStatus);
-        MarkAsMissedCommand = new RelayCommand(MarkAsMissed, CanMarkStatus);
-        ReportSideEffectsCommand = new RelayCommand(OnReportSideEffects, CanReportSideEffects);
-
-        // Load medications and check-ins
-        LoadMedications();
-        LoadCheckIns();
-    }
-
-    // ICommand for reporting side effects
-    public ICommand ReportSideEffectsCommand { get; }
-
-    // Property to store side effects from the textbox
-    private string _sideEffects;
-    public string SideEffects
-    {
-        get => _sideEffects;
-        set
+        // Add SelectedCheckIn property
+        private CheckIn _selectedCheckIn;
+        public CheckIn SelectedCheckIn
         {
-            _sideEffects = value;
-            OnPropertyChanged(nameof(SideEffects));
+            get => _selectedCheckIn;
+            set
+            {
+                _selectedCheckIn = value;
+                OnPropertyChanged(nameof(SelectedCheckIn));
+            }
         }
-    }
 
-    // Method to report side effects
-    private void OnReportSideEffects()
-    {
-        if (SelectedCheckIn != null && !string.IsNullOrWhiteSpace(SideEffects))
+        private readonly ICheckInsRepo _repository;
+
+        // Constructor
+        public CheckInViewModel(ICheckInsRepo repository)
         {
-            SelectedCheckIn.SideEffects = SideEffects; // Update the side effects for the selected check-in
-            _checkInsRepo.UpdateCheckIn(SelectedCheckIn); // Update in the repository
-            _checkInsRepo.SaveChanges();
-            MessageBox.Show("Side effects updated successfully.");
+            _checkInsRepo = repository;
+            _repository = repository;
+
+            // Initialize collections
+            Medications = new ObservableCollection<Medication>();
+            CheckIns = new ObservableCollection<CheckIn>();
+
+            // Load data
+            MarkAsTakenCommand = new RelayCommand(MarkAsTaken, CanMarkStatus);
+            MarkAsMissedCommand = new RelayCommand(MarkAsMissed, CanMarkStatus);
+            ReportSideEffectsCommand = new RelayCommand(OnReportSideEffects);
+            
+                LoadMedications();
+                LoadCheckIns();
+           
         }
-        else
+
+        // Event for property changes
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
         {
-            MessageBox.Show("Please enter side effects or select a check-in.");
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-    }
 
-    private bool CanReportSideEffects()
-    {
-        return SelectedCheckIn != null && !string.IsNullOrWhiteSpace(SideEffects); // Enable only when conditions are met
-    }
+        // ObservableCollection to store medications and check-ins
+        public ObservableCollection<Medication> Medications { get; set; }
+        public ObservableCollection<CheckIn> CheckIns { get; set; }
 
-    // Other existing methods
-    // LoadMedications(), LoadCheckIns(), etc.
+        // Selected medication property
+        private Medication _selectedMedication;
+        // ICommand for reporting side effects
+        public ICommand ReportSideEffectsCommand { get; }
 
-    public event PropertyChangedEventHandler PropertyChanged;
-    protected void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        // Property to store side effects from the textbox
+        private string _sideEffects;
+        public string SideEffects
+        {
+            get => _sideEffects;
+            set
+            {
+                _sideEffects = value;
+                OnPropertyChanged(nameof(SideEffects));
+            }
+        }
+
+        // Method to report side effects
+        private void OnReportSideEffects()
+        {
+            if (SelectedCheckIn != null && !string.IsNullOrWhiteSpace(SideEffects))
+            {
+                SelectedCheckIn.SideEffects = SideEffects; // Update the side effects for the selected check-in
+                _checkInsRepo.UpdateCheckIn(SelectedCheckIn); // Update in the repository
+                _checkInsRepo.SaveChanges();
+                MessageBox.Show("Side effects updated successfully.");
+            }
+            else
+            {
+                MessageBox.Show("Please enter side effects or select a check-in.");
+            }
+        }
+
+        private bool CanReportSideEffects()
+        {
+            return SelectedCheckIn != null && !string.IsNullOrWhiteSpace(SideEffects); // Enable only when conditions are met
+        }
+        public Medication SelectedMedication
+        {
+            get => _selectedMedication;
+            set
+            {
+                _selectedMedication = value;
+                OnPropertyChanged(nameof(SelectedMedication));
+            }
+        }
+
+        // Property for side effects
+        public string SideEffects { get; set; }
+
+        // ICommand properties
+        public ICommand MarkAsTakenCommand { get; }
+        public ICommand MarkAsMissedCommand { get; }
+        public ICommand ReportSideEffectsCommand { get; }
+
+        // Method to load medications from the database
+        private void LoadMedications()
+        {
+            using (var context = new MatDbEntities())
+            {
+                var medicationsList = context.Medications.ToList();
+                Medications = new ObservableCollection<Medication>(medicationsList);
+
+                if (!medicationsList.Any())
+                {
+                    Console.WriteLine("No medications found.");
+                }
+            }
+        }
+
+        // Method to load check-ins from the database
+        private void LoadCheckIns()
+        {
+            using (var context = new MatDbEntities())
+            {
+                var checkInsList = context.CheckIns.ToList();
+                CheckIns = new ObservableCollection<CheckIn>(_checkInsRepo.GetAllCheckIns());
+
+                if (!checkInsList.Any())
+                {
+                    Console.WriteLine("No check-ins found.");
+                }
+            }
+        }
+
+        // Method to mark medication as taken
+        private void OnMarkAsTaken()
+        {
+            if (SelectedMedication != null)
+            {
+                int scheduleId = SelectedMedication.MedicationID;  // Assuming MedicationID is used
+                _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken");
+            }
+        }
+
+        // Method to mark medication as missed
+        private void OnMarkAsMissed()
+        {
+            if (SelectedMedication != null)
+            {
+                int scheduleId = SelectedMedication.MedicationID;
+                _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Missed");
+            }
+        }
+
+        // Method to report side effects
+        private void OnReportSideEffects()
+        {
+            if (SelectedMedication != null && !string.IsNullOrEmpty(SideEffects))
+            {
+                int scheduleId = SelectedMedication.MedicationID;
+                _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken", SideEffects);
+            }
+        }
+
+        private bool CanMarkStatus()
+        {
+            return SelectedCheckIn != null;
+        }
+
+        private void MarkAsTaken()
+        {
+            if (SelectedCheckIn != null)
+            {
+                SelectedCheckIn.AdherenceStatus = "Taken";
+                _checkInsRepo.UpdateCheckIn(SelectedCheckIn);
+                _checkInsRepo.SaveChanges();
+            }
+        }
+
+        private void MarkAsMissed()
+        {
+            if (SelectedCheckIn != null)
+            {
+                SelectedCheckIn.AdherenceStatus = "Missed";
+                _checkInsRepo.UpdateCheckIn(SelectedCheckIn);
+                _checkInsRepo.SaveChanges();
+            }
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
 
-
-
-
-
-
-
-
-public void UpdateCheckIn(CheckIn checkIn)
-{
-    var existingCheckIn = _context.CheckIns.FirstOrDefault(c => c.CheckInID == checkIn.CheckInID);
-    if (existingCheckIn != null)
-    {
-        existingCheckIn.AdherenceStatus = checkIn.AdherenceStatus;  // Update status if necessary
-        existingCheckIn.SideEffects = checkIn.SideEffects;  // Update the side effects
-        _context.SaveChanges();
-    }
-}
-
-
-
-
-
-
-
-
-<StackPanel>
-    <!-- TextBox to enter side effects -->
-    <TextBox Text="{Binding SideEffects, UpdateSourceTrigger=PropertyChanged}" Width="300" Height="100" AcceptsReturn="True" TextWrapping="Wrap" />
-
-    <!-- Report Side Effects Button -->
-    <Button Content="Report Side Effects" Command="{Binding ReportSideEffectsCommand}" Width="150" Margin="10"/>
-</StackPanel>
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0121	The call is ambiguous between the following methods or properties: 'CheckInViewModel.OnPropertyChanged(string)' and 'CheckInViewModel.OnPropertyChanged(string)'	MATProject	C:\Users\2021455\Desktop\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\ViewModels\CheckInViewModel.cs	29	
