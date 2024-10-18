@@ -1,24 +1,45 @@
-using System.ComponentModel;
+<Window x:Class="MATProject.Pages.CheckInWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MATProject.Pages" 
+        xmlns:viewmodels="clr-namespace:MATProject.ViewModels" 
+        mc:Ignorable="d"
+        Title="CheckInWindow" Height="485" Width="800">
 
-public class CheckInViewModel : INotifyPropertyChanged
-{
-    // Your existing code...
+    <Window.DataContext>
+        <viewmodels:CheckInViewModel />
+    </Window.DataContext>
 
-    public event PropertyChangedEventHandler PropertyChanged;
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-    protected void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
+        <!-- Medication Selection -->
+        <ComboBox x:Name="MedicationComboBox" 
+                  ItemsSource="{Binding Medications}" 
+                  DisplayMemberPath="MedicationName"  
+            SelectedItem="{Binding SelectedMedication}"
+                  Margin="10"/>
 
-    private Medication _selectedMedication;
-    public Medication SelectedMedication
-    {
-        get => _selectedMedication;
-        set
-        {
-            _selectedMedication = value;
-            OnPropertyChanged(nameof(SelectedMedication));
-        }
-    }
-}
+            <!-- Action Buttons -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+                <Button Content="Taken" Command="{Binding MarkAsTakenCommand}" Width="100" Margin="5" Height="58"/>
+                <Button Content="Missed" Command="{Binding MarkAsMissedCommand}" Width="100" Margin="5" Height="58"/>
+            </StackPanel>
+
+            <!-- Report Side Effects -->
+            <StackPanel Grid.Row="2" Orientation="Vertical" HorizontalAlignment="Center" Margin="10">
+                <TextBox x:Name="SideEffectsTextBox" Text="{Binding SideEffects}" Width="300" Height="100" Margin="5"/>
+                <Button Content="Report Side Effects" Command="{Binding ReportSideEffectsCommand}" Width="150" Margin="5"/>
+            </StackPanel>
+    </Grid>
+</Window>
+
+Severity	Code	Description	Project	File	Line	Suppression State
+Error	XDG0023	The type "CheckInViewModel" does not include any accessible constructors.	MATProject	C:\Users\2021455\Desktop\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\Pages\CheckInWindow.xaml	12	
+
