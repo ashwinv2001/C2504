@@ -5,25 +5,51 @@ using MATProject.Repo;
 
 namespace MATProject.Pages
 {
+    /// <summary>
+    /// Interaction logic for CheckInWindow.xaml
+    /// </summary>
     public partial class CheckInWindow : Window
     {
+        // Default constructor
         public CheckInWindow()
         {
             InitializeComponent();
             this.Closing += CheckInWindow_Closing;
         }
 
+        // Event handler for window closing event
         private void CheckInWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             MessageBox.Show("CheckInWindow is closing");
         }
 
+        // Constructor that accepts ICheckInsRepo and sets DataContext
         public CheckInWindow(ICheckInsRepo repository)
         {
             InitializeComponent();
 
-            // Use the correct constructor for the view model
-            this.DataContext = new CheckInViewModel(repository);
+            // Set DataContext with the repository passed from constructor
+            DataContext = new CheckInViewModel(repository);
         }
+    }
+}
+
+
+
+
+namespace MATProject.ViewModels
+{
+    public class CheckInViewModel
+    {
+        private readonly ICheckInsRepo _repo;
+
+        // Constructor that accepts ICheckInsRepo
+        public CheckInViewModel(ICheckInsRepo repo)
+        {
+            _repo = repo;
+            // Initialize other properties or methods as needed
+        }
+        
+        // Other properties, commands, and methods of the ViewModel
     }
 }
