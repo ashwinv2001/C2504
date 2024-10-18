@@ -23,10 +23,15 @@ namespace MATProject.ViewModels
         {
             _repository = repository;
 
-            // Load medications and initialize commands
+            // Initialize collections
+            Medications = new ObservableCollection<Medication>();
+            CheckIns = new ObservableCollection<CheckIn>();
+
+            // Load data
             try
             {
                 LoadMedications();
+                LoadCheckIns();
             }
             catch (Exception ex)
             {
@@ -46,8 +51,9 @@ namespace MATProject.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        // ObservableCollection to store medications
+        // ObservableCollection to store medications and check-ins
         public ObservableCollection<Medication> Medications { get; set; }
+        public ObservableCollection<CheckIn> CheckIns { get; set; }
 
         // Selected medication property
         private Medication _selectedMedication;
@@ -84,6 +90,21 @@ namespace MATProject.ViewModels
             }
         }
 
+        // Method to load check-ins from the database
+        private void LoadCheckIns()
+        {
+            using (var context = new MatDbEntities())
+            {
+                var checkInsList = context.CheckIns.ToList();
+                CheckIns = new ObservableCollection<CheckIn>(checkInsList);
+
+                if (!checkInsList.Any())
+                {
+                    Console.WriteLine("No check-ins found.");
+                }
+            }
+        }
+
         // Method to mark medication as taken
         private void OnMarkAsTaken()
         {
@@ -114,4 +135,34 @@ namespace MATProject.ViewModels
             }
         }
     }
+}
+
+
+
+<Window x:Class="MATProject.Pages.CheckInWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Check In Window" Height="450" Width="800">
+
+    <Grid>
+        <DataGrid ItemsSource="{Binding CheckIns}" AutoGenerateColumns="False" 
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="CheckIn ID" Binding="{Binding CheckInID}" />
+                <DataGridTextColumn Header="Medication ID" Binding="{Binding MedicationID}" />
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" />
+                <DataGridTextColumn Header="Side Effects" Binding="{Binding SideEffects}" />
+                <DataGridTextColumn Header="CheckIn Date" Binding="{Binding CheckInDate}" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>
+
+
+
+
+public CheckInWindow(ICheckInsRepo repository)
+{
+    InitializeComponent();
+    DataContext = new CheckInViewModel(repository);
 }
