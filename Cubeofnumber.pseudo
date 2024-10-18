@@ -148,7 +148,7 @@ namespace MATProject.ViewModels
                 _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken", SideEffects);
             }
         }
-        
+
         private bool CanMarkStatus()
         {
             return SelectedCheckIn != null;
@@ -175,3 +175,6 @@ namespace MATProject.ViewModels
         }
     }
 }
+
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS1061	'ICheckInsRepo' does not contain a definition for 'GetAllCheckIns' and no accessible extension method 'GetAllCheckIns' accepting a first argument of type 'ICheckInsRepo' could be found (are you missing a using directive or an assembly reference?)	MATProject	C:\Users\2021455\Desktop\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\ViewModels\CheckInViewModel.cs	113	
