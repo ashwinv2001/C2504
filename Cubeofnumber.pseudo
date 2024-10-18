@@ -1,51 +1,21 @@
-public interface ICheckInsRepo
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MATProject.Repo
 {
-    IEnumerable<CheckIn> GetAllCheckIns();  // Ensure the return type is IEnumerable<CheckIn>
-    void LogCheckIn(int medicationId, int scheduleId, string adherenceStatus, string sideEffects = null);
-    void UpdateCheckIn(CheckIn checkIn);
-    void SaveChanges();
+    public interface ICheckInsRepo
+    {
+        IEnumerable<CheckIn> GetAllCheckIns();
+
+        void LogCheckIn(int MedicationID, int ScheduleID, string AdherenceStatus , string sideEffects = null);
+        void UpdateCheckIn(CheckIn checkIn);
+        void SaveChanges();
+    }
 }
 
 
-
-
-
-
-public class CheckInsRepo : ICheckInsRepo
-{
-    private readonly MatDbEntities _context;
-
-    public CheckInsRepo(MatDbEntities context)
-    {
-        _context = context;
-    }
-
-    public IEnumerable<CheckIn> GetAllCheckIns()
-    {
-        return _context.CheckIns.ToList();  // This returns List<CheckIn>, which is compatible with IEnumerable<CheckIn>
-    }
-
-    public void LogCheckIn(int medicationId, int scheduleId, string adherenceStatus, string sideEffects = null)
-    {
-        var checkIn = new CheckIn
-        {
-            ScheduleID = scheduleId,
-            AdherenceStatus = adherenceStatus,
-            SideEffects = sideEffects,
-            CreatedAt = DateTime.Now
-        };
-
-        _context.CheckIns.Add(checkIn);
-        _context.SaveChanges();
-    }
-
-    public void UpdateCheckIn(CheckIn checkIn)
-    {
-        // Implementation for updating a check-in
-    }
-
-    public void SaveChanges()
-    {
-        _context.SaveChanges();
-    }
-}
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0246	The type or namespace name 'CheckIn' could not be found (are you missing a using directive or an assembly reference?)	MATProject	C:\Users\2021455\Desktop\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\Repo\ICheckInsRepo.cs	11	
