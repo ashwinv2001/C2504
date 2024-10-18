@@ -30,17 +30,6 @@ namespace MATProject.ViewModels
             }
         }
 
-
-
-
-
-
-
-
-
-
-
-
         private readonly ICheckInsRepo _repository;
 
         // Constructor
@@ -53,7 +42,7 @@ namespace MATProject.ViewModels
             Medications = new ObservableCollection<Medication>();
             CheckIns = new ObservableCollection<CheckIn>();
 
-            // Load dat
+            // Load data
             MarkAsTakenCommand = new RelayCommand(MarkAsTaken, CanMarkStatus);
             MarkAsMissedCommand = new RelayCommand(MarkAsMissed, CanMarkStatus);
             ReportSideEffectsCommand = new RelayCommand(OnReportSideEffects);
@@ -159,6 +148,7 @@ namespace MATProject.ViewModels
                 _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken", SideEffects);
             }
         }
+        
         private bool CanMarkStatus()
         {
             return SelectedCheckIn != null;
@@ -183,18 +173,5 @@ namespace MATProject.ViewModels
                 _checkInsRepo.SaveChanges();
             }
         }
-
-        // INotifyPropertyChanged implementation
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-
     }
 }
-
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0121	The call is ambiguous between the following methods or properties: 'CheckInViewModel.OnPropertyChanged(string)' and 'CheckInViewModel.OnPropertyChanged(string)'	MATProject	C:\Users\2021455\Desktop\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\ViewModels\CheckInViewModel.cs	29	
