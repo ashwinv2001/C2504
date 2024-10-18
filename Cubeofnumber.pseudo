@@ -14,42 +14,42 @@ using System.Windows;
 
 namespace MATProject.ViewModels
 {
-	public class CheckInViewModel :INotifyPropertyChanged
+    public class CheckInViewModel : INotifyPropertyChanged
     {
-        private readonly ICheckInsRepo _checkInsRepo;
+        private readonly ICheckInsRepo _repository;
 
-        public CheckInViewModel(ICheckInsRepo checkInsRepo)
+        // Constructor
+        public CheckInViewModel(ICheckInsRepo repository)
         {
-            _checkInsRepo = checkInsRepo;
+            _repository = repository;
+
+            // Load medications and initialize commands
             try
             {
                 LoadMedications();
             }
             catch (Exception ex)
             {
-                // Log or display the error message
+                // Handle errors
                 MessageBox.Show($"An error occurred: {ex.Message}");
             }
-        }
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-        private readonly ICheckInsRepo _repository;
 
-
-        public CheckInViewModel(ICheckInsRepo repository)
-        {
-            _repository = repository;
-            LoadMedications();                        
             MarkAsTakenCommand = new RelayCommand(OnMarkAsTaken);
             MarkAsMissedCommand = new RelayCommand(OnMarkAsMissed);
             ReportSideEffectsCommand = new RelayCommand(OnReportSideEffects);
         }
 
+        // Event for property changes
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        // ObservableCollection to store medications
         public ObservableCollection<Medication> Medications { get; set; }
 
+        // Selected medication property
         private Medication _selectedMedication;
         public Medication SelectedMedication
         {
@@ -60,12 +60,16 @@ namespace MATProject.ViewModels
                 OnPropertyChanged(nameof(SelectedMedication));
             }
         }
+
+        // Property for side effects
         public string SideEffects { get; set; }
 
+        // ICommand properties
         public ICommand MarkAsTakenCommand { get; }
         public ICommand MarkAsMissedCommand { get; }
         public ICommand ReportSideEffectsCommand { get; }
 
+        // Method to load medications from the database
         private void LoadMedications()
         {
             using (var context = new MatDbEntities())
@@ -73,38 +77,39 @@ namespace MATProject.ViewModels
                 var medicationsList = context.Medications.ToList();
                 Medications = new ObservableCollection<Medication>(medicationsList);
 
-                if(!medicationsList.Any())
+                if (!medicationsList.Any())
                 {
-                    Console.WriteLine("No medications found ");
+                    Console.WriteLine("No medications found.");
                 }
-
             }
         }
 
+        // Method to mark medication as taken
         private void OnMarkAsTaken()
         {
             if (SelectedMedication != null)
             {
-                // Assuming MedicationID is used as CheckInID, and setting ScheduleID to a constant value for now
-                int scheduleId = SelectedMedication.MedicationID;  // Assuming Medication has a ScheduleID property
+                int scheduleId = SelectedMedication.MedicationID;  // Assuming MedicationID is used
                 _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken");
             }
         }
 
+        // Method to mark medication as missed
         private void OnMarkAsMissed()
         {
             if (SelectedMedication != null)
             {
-                int scheduleId = SelectedMedication.MedicationID;  // Assuming Medication has a ScheduleID property
+                int scheduleId = SelectedMedication.MedicationID;
                 _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Missed");
             }
         }
 
+        // Method to report side effects
         private void OnReportSideEffects()
         {
             if (SelectedMedication != null && !string.IsNullOrEmpty(SideEffects))
             {
-                int scheduleId = SelectedMedication.MedicationID;  // Assuming Medication has a ScheduleID property
+                int scheduleId = SelectedMedication.MedicationID;
                 _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken", SideEffects);
             }
         }
