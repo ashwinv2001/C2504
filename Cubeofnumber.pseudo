@@ -17,11 +17,12 @@ namespace MATProject.Orm
             _context = context;
         }
 
-        public void LogCheckIn( int ScheduleID  ,string AdherenceStatus, string sideEffects = null)
+        public void LogCheckIn( int medicationId , int ScheduleID  ,string AdherenceStatus, string sideEffects = null)
         {
             var checkIn = new CheckIn
             {
                // CheckInID = CheckInID,
+               MedicationID = medicationId ,
                 ScheduleID = ScheduleID,
                 AdherenceStatus = AdherenceStatus,
                 SideEffects = sideEffects,
@@ -38,6 +39,5 @@ namespace MATProject.Orm
     //    void LogCheckIn(int medicationId, bool isTaken, string sideEffects = null);
     //}
 }
-
 Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0535	'CheckInsRepo' does not implement interface member 'ICheckInsRepo.LogCheckIn(int, int, string, string)'	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\Orm\CheckInsRepo.cs	11	
+Error (active)	CS0117	'CheckIn' does not contain a definition for 'MedicationID'	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\Orm\CheckInsRepo.cs	25	
