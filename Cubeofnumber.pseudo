@@ -1,21 +1,97 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MATProject.Repo
+public class CheckInViewModel : INotifyPropertyChanged
 {
-    public interface ICheckInsRepo
-    {
-        IEnumerable<CheckIn> GetAllCheckIns();
+    private ICheckInsRepo _checkInsRepo;
 
-        void LogCheckIn(int MedicationID, int ScheduleID, string AdherenceStatus , string sideEffects = null);
-        void UpdateCheckIn(CheckIn checkIn);
-        void SaveChanges();
+    // Constructor (already exists)
+    public CheckInViewModel(ICheckInsRepo repository)
+    {
+        _checkInsRepo = repository;
+
+        // Initialize commands
+        MarkAsTakenCommand = new RelayCommand(MarkAsTaken, CanMarkStatus);
+        MarkAsMissedCommand = new RelayCommand(MarkAsMissed, CanMarkStatus);
+        ReportSideEffectsCommand = new RelayCommand(OnReportSideEffects, CanReportSideEffects);
+
+        // Load medications and check-ins
+        LoadMedications();
+        LoadCheckIns();
+    }
+
+    // ICommand for reporting side effects
+    public ICommand ReportSideEffectsCommand { get; }
+
+    // Property to store side effects from the textbox
+    private string _sideEffects;
+    public string SideEffects
+    {
+        get => _sideEffects;
+        set
+        {
+            _sideEffects = value;
+            OnPropertyChanged(nameof(SideEffects));
+        }
+    }
+
+    // Method to report side effects
+    private void OnReportSideEffects()
+    {
+        if (SelectedCheckIn != null && !string.IsNullOrWhiteSpace(SideEffects))
+        {
+            SelectedCheckIn.SideEffects = SideEffects; // Update the side effects for the selected check-in
+            _checkInsRepo.UpdateCheckIn(SelectedCheckIn); // Update in the repository
+            _checkInsRepo.SaveChanges();
+            MessageBox.Show("Side effects updated successfully.");
+        }
+        else
+        {
+            MessageBox.Show("Please enter side effects or select a check-in.");
+        }
+    }
+
+    private bool CanReportSideEffects()
+    {
+        return SelectedCheckIn != null && !string.IsNullOrWhiteSpace(SideEffects); // Enable only when conditions are met
+    }
+
+    // Other existing methods
+    // LoadMedications(), LoadCheckIns(), etc.
+
+    public event PropertyChangedEventHandler PropertyChanged;
+    protected void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
 
 
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0246	The type or namespace name 'CheckIn' could not be found (are you missing a using directive or an assembly reference?)	MATProject	C:\Users\2021455\Desktop\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\Repo\ICheckInsRepo.cs	11	
+
+
+
+
+
+
+public void UpdateCheckIn(CheckIn checkIn)
+{
+    var existingCheckIn = _context.CheckIns.FirstOrDefault(c => c.CheckInID == checkIn.CheckInID);
+    if (existingCheckIn != null)
+    {
+        existingCheckIn.AdherenceStatus = checkIn.AdherenceStatus;  // Update status if necessary
+        existingCheckIn.SideEffects = checkIn.SideEffects;  // Update the side effects
+        _context.SaveChanges();
+    }
+}
+
+
+
+
+
+
+
+
+<StackPanel>
+    <!-- TextBox to enter side effects -->
+    <TextBox Text="{Binding SideEffects, UpdateSourceTrigger=PropertyChanged}" Width="300" Height="100" AcceptsReturn="True" TextWrapping="Wrap" />
+
+    <!-- Report Side Effects Button -->
+    <Button Content="Report Side Effects" Command="{Binding ReportSideEffectsCommand}" Width="150" Margin="10"/>
+</StackPanel>
