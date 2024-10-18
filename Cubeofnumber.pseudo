@@ -1,180 +1,56 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MATProject.Commands;
-using MATProject.Orm;
-using System.Windows.Input;
-using MATProject.Entities;
-using MATProject.Repo;
-using System.ComponentModel;
-using System.Windows;
-
-namespace MATProject.ViewModels
+public interface ICheckInsRepo
 {
-    public class CheckInViewModel : INotifyPropertyChanged
+    // Define the GetAllCheckIns method
+    IEnumerable<CheckIn> GetAllCheckIns();
+
+    // Other method definitions
+    void LogCheckIn(int medicationId, int scheduleId, string status, string sideEffects = null);
+    void UpdateCheckIn(CheckIn checkIn);
+    void SaveChanges();
+}
+
+
+
+
+
+
+
+public class CheckInsRepo : ICheckInsRepo
+{
+    private readonly MatDbEntities _context;
+
+    public CheckInsRepo(MatDbEntities context)
     {
-        private ICheckInsRepo _checkInsRepo;
+        _context = context;
+    }
 
-        // Add SelectedCheckIn property
-        private CheckIn _selectedCheckIn;
-        public CheckIn SelectedCheckIn
-        {
-            get => _selectedCheckIn;
-            set
-            {
-                _selectedCheckIn = value;
-                OnPropertyChanged(nameof(SelectedCheckIn));
-            }
-        }
+    public IEnumerable<CheckIn> GetAllCheckIns()
+    {
+        return _context.CheckIns.ToList();
+    }
 
-        private readonly ICheckInsRepo _repository;
+    public void LogCheckIn(int medicationId, int scheduleId, string status, string sideEffects = null)
+    {
+        // Implementation
+    }
 
-        // Constructor
-        public CheckInViewModel(ICheckInsRepo repository)
-        {
-            _checkInsRepo = repository;
-            _repository = repository;
+    public void UpdateCheckIn(CheckIn checkIn)
+    {
+        // Implementation
+    }
 
-            // Initialize collections
-            Medications = new ObservableCollection<Medication>();
-            CheckIns = new ObservableCollection<CheckIn>();
-
-            // Load data
-            MarkAsTakenCommand = new RelayCommand(MarkAsTaken, CanMarkStatus);
-            MarkAsMissedCommand = new RelayCommand(MarkAsMissed, CanMarkStatus);
-            ReportSideEffectsCommand = new RelayCommand(OnReportSideEffects);
-            try
-            {
-                LoadMedications();
-                LoadCheckIns();
-            }
-            catch (Exception ex)
-            {
-                // Handle errors
-                MessageBox.Show($"An error occurred: {ex.Message}");
-            }
-        }
-
-        // Event for property changes
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        // ObservableCollection to store medications and check-ins
-        public ObservableCollection<Medication> Medications { get; set; }
-        public ObservableCollection<CheckIn> CheckIns { get; set; }
-
-        // Selected medication property
-        private Medication _selectedMedication;
-        public Medication SelectedMedication
-        {
-            get => _selectedMedication;
-            set
-            {
-                _selectedMedication = value;
-                OnPropertyChanged(nameof(SelectedMedication));
-            }
-        }
-
-        // Property for side effects
-        public string SideEffects { get; set; }
-
-        // ICommand properties
-        public ICommand MarkAsTakenCommand { get; }
-        public ICommand MarkAsMissedCommand { get; }
-        public ICommand ReportSideEffectsCommand { get; }
-
-        // Method to load medications from the database
-        private void LoadMedications()
-        {
-            using (var context = new MatDbEntities())
-            {
-                var medicationsList = context.Medications.ToList();
-                Medications = new ObservableCollection<Medication>(medicationsList);
-
-                if (!medicationsList.Any())
-                {
-                    Console.WriteLine("No medications found.");
-                }
-            }
-        }
-
-        // Method to load check-ins from the database
-        private void LoadCheckIns()
-        {
-            using (var context = new MatDbEntities())
-            {
-                var checkInsList = context.CheckIns.ToList();
-                CheckIns = new ObservableCollection<CheckIn>(_checkInsRepo.GetAllCheckIns());
-
-                if (!checkInsList.Any())
-                {
-                    Console.WriteLine("No check-ins found.");
-                }
-            }
-        }
-
-        // Method to mark medication as taken
-        private void OnMarkAsTaken()
-        {
-            if (SelectedMedication != null)
-            {
-                int scheduleId = SelectedMedication.MedicationID;  // Assuming MedicationID is used
-                _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken");
-            }
-        }
-
-        // Method to mark medication as missed
-        private void OnMarkAsMissed()
-        {
-            if (SelectedMedication != null)
-            {
-                int scheduleId = SelectedMedication.MedicationID;
-                _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Missed");
-            }
-        }
-
-        // Method to report side effects
-        private void OnReportSideEffects()
-        {
-            if (SelectedMedication != null && !string.IsNullOrEmpty(SideEffects))
-            {
-                int scheduleId = SelectedMedication.MedicationID;
-                _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken", SideEffects);
-            }
-        }
-
-        private bool CanMarkStatus()
-        {
-            return SelectedCheckIn != null;
-        }
-
-        private void MarkAsTaken()
-        {
-            if (SelectedCheckIn != null)
-            {
-                SelectedCheckIn.AdherenceStatus = "Taken";
-                _checkInsRepo.UpdateCheckIn(SelectedCheckIn);
-                _checkInsRepo.SaveChanges();
-            }
-        }
-
-        private void MarkAsMissed()
-        {
-            if (SelectedCheckIn != null)
-            {
-                SelectedCheckIn.AdherenceStatus = "Missed";
-                _checkInsRepo.UpdateCheckIn(SelectedCheckIn);
-                _checkInsRepo.SaveChanges();
-            }
-        }
+    public void SaveChanges()
+    {
+        _context.SaveChanges();
     }
 }
 
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS1061	'ICheckInsRepo' does not contain a definition for 'GetAllCheckIns' and no accessible extension method 'GetAllCheckIns' accepting a first argument of type 'ICheckInsRepo' could be found (are you missing a using directive or an assembly reference?)	MATProject	C:\Users\2021455\Desktop\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\ViewModels\CheckInViewModel.cs	113	
+
+
+
+
+
+
+
+
+
