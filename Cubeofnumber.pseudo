@@ -1,14 +1,13 @@
-public partial class App : Application
+public CheckInWindow(ICheckInsRepo repository)
 {
-    protected override void OnStartup(StartupEventArgs e)
+    InitializeComponent();
+    try
     {
-        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-        base.OnStartup(e);
+        // Ensure that the correct CheckInViewModel constructor is used
+        this.DataContext = new CheckInViewModel(repository);
     }
-
-    private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    catch (Exception ex)
     {
-        MessageBox.Show($"An unhandled exception occurred: {e.ExceptionObject}");
-        // You can log this exception to a file if needed
+        MessageBox.Show($"Error initializing CheckInWindow: {ex.Message}");
     }
 }
