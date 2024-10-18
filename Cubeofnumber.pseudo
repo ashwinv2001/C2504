@@ -1,10 +1,18 @@
 public CheckInWindow(ICheckInsRepo repository)
 {
     InitializeComponent();
+
     try
     {
-        // Ensure that the correct CheckInViewModel constructor is used
-        this.DataContext = new CheckInViewModel(repository);
+        // Set up the DataContext
+        var viewModel = new CheckInViewModel(repository);
+        this.DataContext = viewModel;
+
+        // You can log or display the medications list for debugging
+        if (viewModel.Medications == null)
+        {
+            MessageBox.Show("Medications are null");
+        }
     }
     catch (Exception ex)
     {
