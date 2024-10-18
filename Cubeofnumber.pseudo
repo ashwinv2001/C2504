@@ -1,1 +1,43 @@
-An explicit value for the identity column in table 'CheckIns' can only be specified when a column list is used and IDENTITY_INSERT is ON.
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using MATProject.Repo;
+using MATProject.Entities;
+
+namespace MATProject.Orm
+{
+    public class CheckInsRepo : ICheckInsRepo
+    {
+        private readonly MatDbEntities _context;
+
+        public CheckInsRepo(MatDbEntities context)
+        {
+            _context = context;
+        }
+
+        public void LogCheckIn( int ScheduleID  ,string AdherenceStatus, string sideEffects = null)
+        {
+            var checkIn = new CheckIn
+            {
+               // CheckInID = CheckInID,
+                ScheduleID = ScheduleID,
+                AdherenceStatus = AdherenceStatus,
+                SideEffects = sideEffects,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.CheckIns.Add(checkIn);
+            _context.SaveChanges();
+        }
+    }
+
+    //public interface ICheckInsRepo
+    //{
+    //    void LogCheckIn(int medicationId, bool isTaken, string sideEffects = null);
+    //}
+}
+
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0535	'CheckInsRepo' does not implement interface member 'ICheckInsRepo.LogCheckIn(int, int, string, string)'	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\Orm\CheckInsRepo.cs	11	
