@@ -45,7 +45,7 @@ namespace MATProject.ViewModels
         {
             if (SelectedMedication != null)
             {
-                _repository.LogCheckIn(SelectedMedication.Id, true);
+                _repository.LogCheckIn(SelectedMedication.MedicationID, true);
             }
         }
 
@@ -53,7 +53,7 @@ namespace MATProject.ViewModels
         {
             if (SelectedMedication != null)
             {
-                _repository.LogCheckIn(SelectedMedication.Id, false);
+                _repository.LogCheckIn(SelectedMedication.MedicationID, false);
             }
         }
 
@@ -61,11 +61,11 @@ namespace MATProject.ViewModels
         {
             if (SelectedMedication != null && !string.IsNullOrEmpty(SideEffects))
             {
-                _repository.LogCheckIn(SelectedMedication.Id, true, SideEffects);
+                _repository.LogCheckIn(SelectedMedication.MedicationID, true, SideEffects);
             }
         }
     }
 }
-
 Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS1061	'Medication' does not contain a definition for 'Id' and no accessible extension method 'Id' accepting a first argument of type 'Medication' could be found (are you missing a using directive or an assembly reference?)	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\ViewModels\CheckInViewModel.cs	48	
+Error (active)	CS7036	There is no argument given that corresponds to the required parameter 'AdherenceStatus' of 'ICheckInsRepo.LogCheckIn(int, int, string, string)'	MATProject	C:\Users\2021455\source\repos\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\ViewModels\CheckInViewModel.cs	48	
+
