@@ -1,20 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using MATProject.Orm;
 using MATProject.ViewModels;
 using MATProject.Repo;
-using MATProject.Entities;
 
 namespace MATProject.Pages
 {
@@ -23,25 +11,35 @@ namespace MATProject.Pages
     /// </summary>
     public partial class CheckInWindow : Window
     {
-
         public CheckInWindow()
         {
             InitializeComponent();
             this.Closing += CheckInWindow_Closing;
         }
 
+        // Event handler for window closing event
         private void CheckInWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             MessageBox.Show("CheckInWindow is closing");
         }
+
+        // Constructor that accepts ICheckInsRepo and sets DataContext
         public CheckInWindow(ICheckInsRepo repository)
         {
             InitializeComponent();
-            DataContext = new CheckInViewModel(repository);
-            var checkInsRepo = new CheckInsRepo(new MatDbEntities());
-            this.DataContext = new CheckInViewModel(checkInsRepo);
+            
+            // Setting DataContext with the passed repository
+            this.DataContext = new CheckInViewModel(repository);
         }
     }
 }
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0121	The call is ambiguous between the following methods or properties: 'CheckInViewModel.CheckInViewModel(ICheckInsRepo)' and 'CheckInViewModel.CheckInViewModel(ICheckInsRepo)'	MATProject	C:\Users\2021455\Desktop\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\Pages\CheckInWindow.xaml.cs	40	
+
+
+
+
+
+
+
+
+var checkInWindow = new CheckInWindow(new CheckInsRepo(new MatDbEntities()));
+checkInWindow.Show();
