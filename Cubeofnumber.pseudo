@@ -3,9 +3,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:MATProject.Pages" xmlns:viewmodels="clr-namespace:MATProject.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:AddMedicationViewModel}"
+        xmlns:local="clr-namespace:MATProject.Pages" 
+        xmlns:viewmodels="clr-namespace:MATProject.ViewModels" 
         mc:Ignorable="d"
         Title="CheckInWindow" Height="485" Width="800">
+
+    <Window.DataContext>
+        <viewmodels:CheckInViewModel />
+    </Window.DataContext>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -16,7 +22,7 @@
         <!-- Medication Selection -->
         <ComboBox x:Name="MedicationComboBox" 
                   ItemsSource="{Binding Medications}" 
-                  DisplayMemberPath="Name" 
+                  DisplayMemberPath="MedicationName"  <!-- Adjust based on your property -->
                   SelectedItem="{Binding SelectedMedication}"
                   Margin="10"/>
 
@@ -33,3 +39,61 @@
         </StackPanel>
     </Grid>
 </Window>
+
+
+
+
+using System.Collections.ObjectModel;
+using System.Windows.Input;
+using MATProject.Entities;
+using MATProject.Repo;
+
+namespace MATProject.ViewModels
+{
+    public class CheckInViewModel
+    {
+        private readonly ICheckInsRepo _repository;
+
+        public CheckInViewModel(ICheckInsRepo repository)
+        {
+            _repository = repository;
+            LoadMedications();
+            MarkAsTakenCommand = new RelayCommand(OnMarkAsTaken);
+            MarkAsMissedCommand = new RelayCommand(OnMarkAsMissed);
+            ReportSideEffectsCommand = new RelayCommand(OnReportSideEffects);
+        }
+
+        public ObservableCollection<Medication> Medications { get; set; }  // Ensure this is of type Medication
+        public Medication SelectedMedication { get; set; }
+        public string SideEffects { get; set; }
+
+        public ICommand MarkAsTakenCommand { get; }
+        public ICommand MarkAsMissedCommand { get; }
+        public ICommand ReportSideEffectsCommand { get; }
+
+        private void LoadMedications()
+        {
+            using (var context = new MatDbEntities())
+            {
+                Medications = new ObservableCollection<Medication>(context.Medications.ToList());
+            }
+        }
+
+        private void OnMarkAsTaken()
+        {
+            // Implementation remains the same
+        }
+
+        private void OnMarkAsMissed()
+        {
+            // Implementation remains the same
+        }
+
+        private void OnReportSideEffects()
+        {
+            // Implementation remains the same
+        }
+    }
+}
+
+
