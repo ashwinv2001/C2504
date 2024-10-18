@@ -1,55 +1,112 @@
 using System;
-using System.Windows;
-using MATProject.ViewModels;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using MATProject.Commands;
+using MATProject.Orm;
+using System.Windows.Input;
+using MATProject.Entities;
 using MATProject.Repo;
-
-namespace MATProject.Pages
-{
-    /// <summary>
-    /// Interaction logic for CheckInWindow.xaml
-    /// </summary>
-    public partial class CheckInWindow : Window
-    {
-        // Default constructor
-        public CheckInWindow()
-        {
-            InitializeComponent();
-            this.Closing += CheckInWindow_Closing;
-        }
-
-        // Event handler for window closing event
-        private void CheckInWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            MessageBox.Show("CheckInWindow is closing");
-        }
-
-        // Constructor that accepts ICheckInsRepo and sets DataContext
-        public CheckInWindow(ICheckInsRepo repository)
-        {
-            InitializeComponent();
-
-            // Set DataContext with the repository passed from constructor
-            DataContext = new CheckInViewModel(repository);
-        }
-    }
-}
-
-
-
+using System.ComponentModel;
+using System.Windows;
 
 namespace MATProject.ViewModels
 {
-    public class CheckInViewModel
+	public class CheckInViewModel :INotifyPropertyChanged
     {
-        private readonly ICheckInsRepo _repo;
+        private readonly ICheckInsRepo _checkInsRepo;
 
-        // Constructor that accepts ICheckInsRepo
-        public CheckInViewModel(ICheckInsRepo repo)
+        public CheckInViewModel(ICheckInsRepo checkInsRepo)
         {
-            _repo = repo;
-            // Initialize other properties or methods as needed
+            _checkInsRepo = checkInsRepo;
+            try
+            {
+                LoadMedications();
+            }
+            catch (Exception ex)
+            {
+                // Log or display the error message
+                MessageBox.Show($"An error occurred: {ex.Message}");
+            }
         }
-        
-        // Other properties, commands, and methods of the ViewModel
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        private readonly ICheckInsRepo _repository;
+
+
+        public CheckInViewModel(ICheckInsRepo repository)
+        {
+            _repository = repository;
+            LoadMedications();                        
+            MarkAsTakenCommand = new RelayCommand(OnMarkAsTaken);
+            MarkAsMissedCommand = new RelayCommand(OnMarkAsMissed);
+            ReportSideEffectsCommand = new RelayCommand(OnReportSideEffects);
+        }
+
+        public ObservableCollection<Medication> Medications { get; set; }
+
+        private Medication _selectedMedication;
+        public Medication SelectedMedication
+        {
+            get => _selectedMedication;
+            set
+            {
+                _selectedMedication = value;
+                OnPropertyChanged(nameof(SelectedMedication));
+            }
+        }
+        public string SideEffects { get; set; }
+
+        public ICommand MarkAsTakenCommand { get; }
+        public ICommand MarkAsMissedCommand { get; }
+        public ICommand ReportSideEffectsCommand { get; }
+
+        private void LoadMedications()
+        {
+            using (var context = new MatDbEntities())
+            {
+                var medicationsList = context.Medications.ToList();
+                Medications = new ObservableCollection<Medication>(medicationsList);
+
+                if(!medicationsList.Any())
+                {
+                    Console.WriteLine("No medications found ");
+                }
+
+            }
+        }
+
+        private void OnMarkAsTaken()
+        {
+            if (SelectedMedication != null)
+            {
+                // Assuming MedicationID is used as CheckInID, and setting ScheduleID to a constant value for now
+                int scheduleId = SelectedMedication.MedicationID;  // Assuming Medication has a ScheduleID property
+                _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken");
+            }
+        }
+
+        private void OnMarkAsMissed()
+        {
+            if (SelectedMedication != null)
+            {
+                int scheduleId = SelectedMedication.MedicationID;  // Assuming Medication has a ScheduleID property
+                _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Missed");
+            }
+        }
+
+        private void OnReportSideEffects()
+        {
+            if (SelectedMedication != null && !string.IsNullOrEmpty(SideEffects))
+            {
+                int scheduleId = SelectedMedication.MedicationID;  // Assuming Medication has a ScheduleID property
+                _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken", SideEffects);
+            }
+        }
     }
 }
