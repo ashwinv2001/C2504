@@ -1,21 +1,52 @@
-public CheckInWindow(ICheckInsRepo repository)
-{
-    InitializeComponent();
+<Window x:Class="MATProject.Pages.CheckInWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MATProject.Pages" 
+        xmlns:viewmodels="clr-namespace:MATProject.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:CheckInViewModel}"
+        mc:Ignorable="d"
+        Title="CheckInWindow" Height="485" Width="800">
 
-    try
-    {
-        // Set up the DataContext
-        var viewModel = new CheckInViewModel(repository);
-        this.DataContext = viewModel;
+    <!--<Window.DataContext>
+        <viewmodels:CheckInViewModel />
+    </Window.DataContext> -->
 
-        // You can log or display the medications list for debugging
-        if (viewModel.Medications == null)
-        {
-            MessageBox.Show("Medications are null");
-        }
-    }
-    catch (Exception ex)
-    {
-        MessageBox.Show($"Error initializing CheckInWindow: {ex.Message}");
-    }
-}
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+       
+        <ComboBox x:Name="MedicationComboBox" 
+                  ItemsSource="{Binding Medications}" 
+                  DisplayMemberPath="MedicationName"  
+            SelectedItem="{Binding SelectedMedication}"
+                  Margin="10"/>
+
+        
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+                <Button Content="Taken" Command="{Binding MarkAsTakenCommand}" Width="100" Margin="5" Height="58"/>
+                <Button Content="Missed" Command="{Binding MarkAsMissedCommand}" Width="100" Margin="5" Height="58"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Orientation="Vertical" HorizontalAlignment="Center" Margin="10">
+                <TextBox x:Name="SideEffectsTextBox" Text="{Binding SideEffects}" Width="300" Height="100" Margin="5"/>
+                <Button Content="Report Side Effects" Command="{Binding ReportSideEffectsCommand}" Width="150" Margin="5"/>
+            </StackPanel>
+    
+  
+        <DataGrid ItemsSource="{Binding CheckIns}" AutoGenerateColumns="False" 
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="CheckIn ID" Binding="{Binding CheckInID}" />
+                <DataGridTextColumn Header="Schedule ID" Binding="{Binding ScheduleID}" />
+                <DataGridTextColumn Header="Adherence Status" Binding="{Binding AdherenceStatus}" />
+                <DataGridTextColumn Header="Side Effects" Binding="{Binding SideEffects}" />
+                <DataGridTextColumn Header="CheckIn Date" Binding="{Binding CheckInTime, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>
