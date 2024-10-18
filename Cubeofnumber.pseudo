@@ -1,2 +1,2 @@
->git checkout feature/ashwin
-error: pathspec 'feature/ashwin' did not match any file(s) known to git
+INSERT INTO Medications VALUES('1','PARACETAMOL','200MG','1-0-1','OCT23','NOV24','12:00','13:00');
+Conversion failed when converting date and/or time from character string.
