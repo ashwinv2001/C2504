@@ -22,78 +22,23 @@
         <!-- Medication Selection -->
         <ComboBox x:Name="MedicationComboBox" 
                   ItemsSource="{Binding Medications}" 
-                  DisplayMemberPath="MedicationName"  <!-- Adjust based on your property -->
-                  SelectedItem="{Binding SelectedMedication}"
+                  DisplayMemberPath="MedicationName"  
+            SelectedItem="{Binding SelectedMedication}"
                   Margin="10"/>
 
-        <!-- Action Buttons -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
-            <Button Content="Taken" Command="{Binding MarkAsTakenCommand}" Width="100" Margin="5" Height="58"/>
-            <Button Content="Missed" Command="{Binding MarkAsMissedCommand}" Width="100" Margin="5" Height="58"/>
-        </StackPanel>
+            <!-- Action Buttons -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+                <Button Content="Taken" Command="{Binding MarkAsTakenCommand}" Width="100" Margin="5" Height="58"/>
+                <Button Content="Missed" Command="{Binding MarkAsMissedCommand}" Width="100" Margin="5" Height="58"/>
+            </StackPanel>
 
-        <!-- Report Side Effects -->
-        <StackPanel Grid.Row="2" Orientation="Vertical" HorizontalAlignment="Center" Margin="10">
-            <TextBox x:Name="SideEffectsTextBox" Text="{Binding SideEffects}" Width="300" Height="100" Margin="5"/>
-            <Button Content="Report Side Effects" Command="{Binding ReportSideEffectsCommand}" Width="150" Margin="5"/>
-        </StackPanel>
+            <!-- Report Side Effects -->
+            <StackPanel Grid.Row="2" Orientation="Vertical" HorizontalAlignment="Center" Margin="10">
+                <TextBox x:Name="SideEffectsTextBox" Text="{Binding SideEffects}" Width="300" Height="100" Margin="5"/>
+                <Button Content="Report Side Effects" Command="{Binding ReportSideEffectsCommand}" Width="150" Margin="5"/>
+            </StackPanel>
     </Grid>
 </Window>
 
-
-
-
-using System.Collections.ObjectModel;
-using System.Windows.Input;
-using MATProject.Entities;
-using MATProject.Repo;
-
-namespace MATProject.ViewModels
-{
-    public class CheckInViewModel
-    {
-        private readonly ICheckInsRepo _repository;
-
-        public CheckInViewModel(ICheckInsRepo repository)
-        {
-            _repository = repository;
-            LoadMedications();
-            MarkAsTakenCommand = new RelayCommand(OnMarkAsTaken);
-            MarkAsMissedCommand = new RelayCommand(OnMarkAsMissed);
-            ReportSideEffectsCommand = new RelayCommand(OnReportSideEffects);
-        }
-
-        public ObservableCollection<Medication> Medications { get; set; }  // Ensure this is of type Medication
-        public Medication SelectedMedication { get; set; }
-        public string SideEffects { get; set; }
-
-        public ICommand MarkAsTakenCommand { get; }
-        public ICommand MarkAsMissedCommand { get; }
-        public ICommand ReportSideEffectsCommand { get; }
-
-        private void LoadMedications()
-        {
-            using (var context = new MatDbEntities())
-            {
-                Medications = new ObservableCollection<Medication>(context.Medications.ToList());
-            }
-        }
-
-        private void OnMarkAsTaken()
-        {
-            // Implementation remains the same
-        }
-
-        private void OnMarkAsMissed()
-        {
-            // Implementation remains the same
-        }
-
-        private void OnReportSideEffects()
-        {
-            // Implementation remains the same
-        }
-    }
-}
-
-
+Severity	Code	Description	Project	File	Line	Suppression State
+Error	XDG0023	The type "CheckInViewModel" does not include any accessible constructors.	MATProject	C:\Users\2021455\Desktop\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\Pages\CheckInWindow.xaml	12	
