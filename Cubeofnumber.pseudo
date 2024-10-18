@@ -1,6 +1,7 @@
-public CheckInViewModel()
+private readonly ICheckInsRepo _checkInsRepo;
+
+    public CheckInViewModel(ICheckInsRepo checkInsRepo)
     {
-        // Initialize repository or other services here with default values, if possible
-        _checkInsRepo = new CheckInsRepo(new MatDbEntities()); // Example of initializing with a default repository
+        _checkInsRepo = checkInsRepo;
         LoadMedications();
     }
