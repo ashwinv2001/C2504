@@ -1,56 +1,59 @@
-public interface ICheckInsRepo
-{
-    // Define the GetAllCheckIns method
-    IEnumerable<CheckIn> GetAllCheckIns();
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using MATProject.Repo;
+using MATProject.Entities;
 
-    // Other method definitions
-    void LogCheckIn(int medicationId, int scheduleId, string status, string sideEffects = null);
-    void UpdateCheckIn(CheckIn checkIn);
-    void SaveChanges();
+namespace MATProject.Orm
+{
+    public class CheckInsRepo : ICheckInsRepo
+    {
+        private readonly MatDbEntities _context;
+
+        public CheckInsRepo(MatDbEntities context)
+        {
+            _context = context;
+        }
+
+        public IEnumerable<CheckIn> GetAllCheckIns()
+        {
+            return _context.CheckIns.ToList();
+        }
+
+
+        public void LogCheckIn( int medicationId , int ScheduleID  ,string AdherenceStatus, string sideEffects = null)
+        {
+            var checkIn = new CheckIn
+            {
+               // CheckInID = CheckInID,
+              // MedicationID = medicationId ,
+                ScheduleID = ScheduleID,
+                AdherenceStatus = AdherenceStatus,
+                SideEffects = sideEffects,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.CheckIns.Add(checkIn);
+            _context.SaveChanges();
+        }
+
+        public void UpdateCheckIn(CheckIn checkIn)
+        {
+            // Implementation
+        }
+
+        public void SaveChanges()
+        {
+            _context.SaveChanges();
+        }
+    }
+
+    
 }
 
 
-
-
-
-
-
-public class CheckInsRepo : ICheckInsRepo
-{
-    private readonly MatDbEntities _context;
-
-    public CheckInsRepo(MatDbEntities context)
-    {
-        _context = context;
-    }
-
-    public IEnumerable<CheckIn> GetAllCheckIns()
-    {
-        return _context.CheckIns.ToList();
-    }
-
-    public void LogCheckIn(int medicationId, int scheduleId, string status, string sideEffects = null)
-    {
-        // Implementation
-    }
-
-    public void UpdateCheckIn(CheckIn checkIn)
-    {
-        // Implementation
-    }
-
-    public void SaveChanges()
-    {
-        _context.SaveChanges();
-    }
-}
-
-
-
-
-
-
-
-
-
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0738	'CheckInsRepo' does not implement interface member 'ICheckInsRepo.GetAllCheckIns()'. 'CheckInsRepo.GetAllCheckIns()' cannot implement 'ICheckInsRepo.GetAllCheckIns()' because it does not have the matching return type of 'IEnumerable<CheckIn>'.	MATProject	C:\Users\2021455\Desktop\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\Orm\CheckInsRepo.cs	11	
 
