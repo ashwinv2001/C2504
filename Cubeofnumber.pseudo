@@ -1,23 +1,13 @@
-public class CheckInViewModel
+public partial class CheckInWindow : Window
 {
-    private readonly ICheckInsRepo _checkInsRepo;
-
-    public CheckInViewModel(ICheckInsRepo checkInsRepo)
+    public CheckInWindow()
     {
-        _checkInsRepo = checkInsRepo;
-        try
-        {
-            LoadMedications();
-        }
-        catch (Exception ex)
-        {
-            // Log or display the error message
-            MessageBox.Show($"An error occurred: {ex.Message}");
-        }
+        InitializeComponent();
+        this.Closing += CheckInWindow_Closing;
     }
 
-    private void LoadMedications()
+    private void CheckInWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
-        // Logic to load medications
+        MessageBox.Show("CheckInWindow is closing");
     }
 }
