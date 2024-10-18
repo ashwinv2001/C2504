@@ -1,125 +1,200 @@
-public class CheckInViewModel : INotifyPropertyChanged
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using MATProject.Commands;
+using MATProject.Orm;
+using System.Windows.Input;
+using MATProject.Entities;
+using MATProject.Repo;
+using System.ComponentModel;
+using System.Windows;
+
+namespace MATProject.ViewModels
 {
-    private ICheckInsRepo _checkInsRepo;
-
-    // Add SelectedCheckIn property
-    private CheckIn _selectedCheckIn;
-    public CheckIn SelectedCheckIn
+    public class CheckInViewModel : INotifyPropertyChanged
     {
-        get => _selectedCheckIn;
-        set
+        private ICheckInsRepo _checkInsRepo;
+
+        // Add SelectedCheckIn property
+        private CheckIn _selectedCheckIn;
+        public CheckIn SelectedCheckIn
         {
-            _selectedCheckIn = value;
-            OnPropertyChanged(nameof(SelectedCheckIn));
+            get => _selectedCheckIn;
+            set
+            {
+                _selectedCheckIn = value;
+                OnPropertyChanged(nameof(SelectedCheckIn));
+            }
         }
-    }
 
-    public ObservableCollection<CheckIn> CheckIns { get; set; }
 
-    public ICommand MarkAsTakenCommand { get; }
-    public ICommand MarkAsMissedCommand { get; }
 
-    public CheckInViewModel(ICheckInsRepo checkInsRepo)
-    {
-        _checkInsRepo = checkInsRepo;
 
-        // Initialize commands
-        MarkAsTakenCommand = new RelayCommand(MarkAsTaken, CanMarkStatus);
-        MarkAsMissedCommand = new RelayCommand(MarkAsMissed, CanMarkStatus);
 
-        // Load CheckIns from database
-        LoadCheckIns();
-    }
 
-    private void LoadCheckIns()
-    {
-        CheckIns = new ObservableCollection<CheckIn>(_checkInsRepo.GetAllCheckIns());
-    }
 
-    private bool CanMarkStatus()
-    {
-        return SelectedCheckIn != null;
-    }
 
-    private void MarkAsTaken()
-    {
-        if (SelectedCheckIn != null)
+
+
+
+
+        private readonly ICheckInsRepo _repository;
+
+        // Constructor
+        public CheckInViewModel(ICheckInsRepo repository)
         {
-            SelectedCheckIn.AdherenceStatus = "Taken";
-            _checkInsRepo.UpdateCheckIn(SelectedCheckIn);
-            _checkInsRepo.SaveChanges();
-        }
-    }
+            _checkInsRepo = repository;
+            _repository = repository;
 
-    private void MarkAsMissed()
-    {
-        if (SelectedCheckIn != null)
+            // Initialize collections
+            Medications = new ObservableCollection<Medication>();
+            CheckIns = new ObservableCollection<CheckIn>();
+
+            // Load dat
+            MarkAsTakenCommand = new RelayCommand(MarkAsTaken, CanMarkStatus);
+            MarkAsMissedCommand = new RelayCommand(MarkAsMissed, CanMarkStatus);
+            ReportSideEffectsCommand = new RelayCommand(OnReportSideEffects);
+            try
+            {
+                LoadMedications();
+                LoadCheckIns();
+            }
+            catch (Exception ex)
+            {
+                // Handle errors
+                MessageBox.Show($"An error occurred: {ex.Message}");
+            }
+        }
+
+        // Event for property changes
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
         {
-            SelectedCheckIn.AdherenceStatus = "Missed";
-            _checkInsRepo.UpdateCheckIn(SelectedCheckIn);
-            _checkInsRepo.SaveChanges();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-    }
 
-    // INotifyPropertyChanged implementation
-    public event PropertyChangedEventHandler PropertyChanged;
-    protected void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        // ObservableCollection to store medications and check-ins
+        public ObservableCollection<Medication> Medications { get; set; }
+        public ObservableCollection<CheckIn> CheckIns { get; set; }
+
+        // Selected medication property
+        private Medication _selectedMedication;
+        public Medication SelectedMedication
+        {
+            get => _selectedMedication;
+            set
+            {
+                _selectedMedication = value;
+                OnPropertyChanged(nameof(SelectedMedication));
+            }
+        }
+
+        // Property for side effects
+        public string SideEffects { get; set; }
+
+        // ICommand properties
+        public ICommand MarkAsTakenCommand { get; }
+        public ICommand MarkAsMissedCommand { get; }
+        public ICommand ReportSideEffectsCommand { get; }
+
+        // Method to load medications from the database
+        private void LoadMedications()
+        {
+            using (var context = new MatDbEntities())
+            {
+                var medicationsList = context.Medications.ToList();
+                Medications = new ObservableCollection<Medication>(medicationsList);
+
+                if (!medicationsList.Any())
+                {
+                    Console.WriteLine("No medications found.");
+                }
+            }
+        }
+
+        // Method to load check-ins from the database
+        private void LoadCheckIns()
+        {
+            using (var context = new MatDbEntities())
+            {
+                var checkInsList = context.CheckIns.ToList();
+                CheckIns = new ObservableCollection<CheckIn>(_checkInsRepo.GetAllCheckIns());
+
+                if (!checkInsList.Any())
+                {
+                    Console.WriteLine("No check-ins found.");
+                }
+            }
+        }
+
+        // Method to mark medication as taken
+        private void OnMarkAsTaken()
+        {
+            if (SelectedMedication != null)
+            {
+                int scheduleId = SelectedMedication.MedicationID;  // Assuming MedicationID is used
+                _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken");
+            }
+        }
+
+        // Method to mark medication as missed
+        private void OnMarkAsMissed()
+        {
+            if (SelectedMedication != null)
+            {
+                int scheduleId = SelectedMedication.MedicationID;
+                _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Missed");
+            }
+        }
+
+        // Method to report side effects
+        private void OnReportSideEffects()
+        {
+            if (SelectedMedication != null && !string.IsNullOrEmpty(SideEffects))
+            {
+                int scheduleId = SelectedMedication.MedicationID;
+                _repository.LogCheckIn(SelectedMedication.MedicationID, scheduleId, "Taken", SideEffects);
+            }
+        }
+        private bool CanMarkStatus()
+        {
+            return SelectedCheckIn != null;
+        }
+
+        private void MarkAsTaken()
+        {
+            if (SelectedCheckIn != null)
+            {
+                SelectedCheckIn.AdherenceStatus = "Taken";
+                _checkInsRepo.UpdateCheckIn(SelectedCheckIn);
+                _checkInsRepo.SaveChanges();
+            }
+        }
+
+        private void MarkAsMissed()
+        {
+            if (SelectedCheckIn != null)
+            {
+                SelectedCheckIn.AdherenceStatus = "Missed";
+                _checkInsRepo.UpdateCheckIn(SelectedCheckIn);
+                _checkInsRepo.SaveChanges();
+            }
+        }
+
+        // INotifyPropertyChanged implementation
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+
     }
 }
 
 
-
-
-
-
-
-
-<Window x:Class="MATProject.Pages.CheckInWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:MATProject.Pages" 
-        xmlns:viewmodels="clr-namespace:MATProject.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:CheckInViewModel}"
-        mc:Ignorable="d"
-        Title="CheckInWindow" Height="485" Width="800">
-
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-
-        <ComboBox x:Name="MedicationComboBox" 
-                  ItemsSource="{Binding Medications}" 
-                  DisplayMemberPath="MedicationName"  
-                  SelectedItem="{Binding SelectedMedication}"
-                  Margin="10"/>
-        
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
-            <Button Content="Taken" Command="{Binding MarkAsTakenCommand}" Width="100" Margin="5" Height="58"/>
-            <Button Content="Missed" Command="{Binding MarkAsMissedCommand}" Width="100" Margin="5" Height="58"/>
-        </StackPanel>
-
-        <StackPanel Grid.Row="2" Orientation="Vertical" HorizontalAlignment="Center" Margin="10">
-            <TextBox x:Name="SideEffectsTextBox" Text="{Binding SideEffects}" Width="300" Height="100" Margin="5"/>
-            <Button Content="Report Side Effects" Command="{Binding ReportSideEffectsCommand}" Width="150" Margin="5"/>
-        </StackPanel>
-
-        <DataGrid ItemsSource="{Binding CheckIns}" 
-                  AutoGenerateColumns="False" 
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                  SelectedItem="{Binding SelectedCheckIn}">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="CheckIn ID" Binding="{Binding CheckInID}" />
-                <DataGridTextColumn Header="Schedule ID" Binding="{Binding ScheduleID}" />
-                <DataGridTextColumn Header="Adherence Status" Binding="{Binding AdherenceStatus}" />
-                <DataGridTextColumn Header="Side Effects" Binding="{Binding SideEffects}" />
-                <DataGridTextColumn Header="CheckIn Date" Binding="{Binding CheckInTime, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" />
-            </DataGrid.Columns>
-        </DataGrid>
-    </Grid>
-</Window>
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0121	The call is ambiguous between the following methods or properties: 'CheckInViewModel.OnPropertyChanged(string)' and 'CheckInViewModel.OnPropertyChanged(string)'	MATProject	C:\Users\2021455\Desktop\C2504_cs\c2504_cs\mat01\MATProjectsln\MATProject\ViewModels\CheckInViewModel.cs	29	
