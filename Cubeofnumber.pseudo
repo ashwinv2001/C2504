@@ -1,3 +1,2 @@
-INSERT INTO CheckIns VALUES('1','12:00','TAKEN','NILL','12:00');
-The INSERT statement conflicted with the FOREIGN KEY constraint "FK_dbo.CheckIns_dbo.MedicationSchedules_ScheduleID". The conflict occurred in database "MatDb", table "dbo.MedicationSchedules", column 'ScheduleID'.
-The statement has been terminated.
+>git checkout feature/ashwin
+error: pathspec 'feature/ashwin' did not match any file(s) known to git
