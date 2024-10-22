@@ -22,7 +22,6 @@
         <!-- TreeView -->
         <TreeView Grid.Row="1" ItemsSource="{Binding XmlTree}" 
                   SelectedItemChanged="TreeView_SelectedItemChanged" 
-                  SelectedItem="{Binding SelectedNode, Mode=TwoWay}" 
                   Margin="10">
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">
@@ -39,5 +38,31 @@
     </Grid>
 </Window>
 
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	XDG0013	The property "SelectedItem" does not have an accessible setter.	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindow.xaml	25	
+
+
+
+using System.Windows;
+using System.Windows.Controls;
+
+namespace deserialization
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+            DataContext = new MainWindowViewModel();
+        }
+
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            var viewModel = (MainWindowViewModel)DataContext;
+
+            // Update the SelectedNode in the ViewModel
+            if (e.NewValue is XmlNodeViewModel selectedNode)
+            {
+                viewModel.SelectedNode = selectedNode;
+            }
+        }
+    }
+}
