@@ -1,44 +1,22 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+<Window x:Class="deserialization.InputDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="InputDialog" Height="200" Width="400">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
-namespace deserialization
-{
-    public partial class InputDialog : Window
-    {
-        public string InputText { get; private set; }
+        <TextBlock Grid.Row="0" Text="Enter value:" Margin="0,0,0,10" />
 
-        public InputDialog(string defaultInput = "")
-        {
-            InitializeComponent();
-            InputTextBox.Text = defaultInput;
-        }
+        <!-- TextBox for user input -->
+        <TextBox Grid.Row="1" Name="InputTextBox" Width="300" Margin="0,0,0,10" />
 
-        private void OkButton_Click(object sender, RoutedEventArgs e)
-        {
-            InputText = InputTextBox.Text;
-            DialogResult = true;
-            Close();
-        }
-
-        private void CancelButton_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-            Close();
-        }
-    }
-}
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0103	The name 'InputTextBox' does not exist in the current context	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\InputDialog.xaml.cs	24	
-
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="OK" Width="80" Margin="0,0,10,0" Click="OkButton_Click" />
+            <Button Content="Cancel" Width="80" Click="CancelButton_Click" />
+        </StackPanel>
+    </Grid>
+</Window>
