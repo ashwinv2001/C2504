@@ -1,24 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
+using System.IO;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Microsoft.Win32;
 using System.Xml.Linq;
-
-
-
-
 
 namespace deserialization
 {
@@ -60,9 +45,9 @@ namespace deserialization
 
         public MainWindowViewModel()
         {
-            //BrowseCommand = new RelayCommand(OpenFileDialog);
-            //RenameCommand = new RelayCommand(RenameNode, () => CanRenameDelete);
-            //DeleteCommand = new RelayCommand(DeleteNode, () => CanRenameDelete);
+            BrowseCommand = new RelayCommand(OpenFileDialog);
+            RenameCommand = new RelayCommand(RenameNode, () => CanRenameDelete);
+            DeleteCommand = new RelayCommand(DeleteNode, () => CanRenameDelete);
         }
 
         private void OpenFileDialog()
@@ -74,22 +59,22 @@ namespace deserialization
 
             if (openFileDialog.ShowDialog() == true)
             {
-                //FilePath = openFileDialog.FileName;
-                //OnPropertyChanged(nameof(FilePath));
-                //LoadXmlTree(FilePath);
+                FilePath = openFileDialog.FileName;
+                OnPropertyChanged(nameof(FilePath));
+                LoadXmlTree(FilePath);
             }
         }
 
         private void LoadXmlTree(string filePath)
         {
-            //XmlTree.Clear();
+            XmlTree.Clear();
 
-            //if (File.Exists(filePath))
-            //{
-            //    _xmlDocument = XDocument.Load(filePath);
-            //    XmlTree.Add(new XmlNodeViewModel(_xmlDocument.Root));
-            //    OnPropertyChanged(nameof(XmlTree));
-            //}
+            if (File.Exists(filePath))
+            {
+                _xmlDocument = XDocument.Load(filePath);
+                XmlTree.Add(new XmlNodeViewModel(_xmlDocument.Root));
+                OnPropertyChanged(nameof(XmlTree));
+            }
         }
 
         private void UpdateCanRenameDelete()
@@ -115,7 +100,7 @@ namespace deserialization
                         SaveXmlChanges();
                     }
 
-                    //OnPropertyChanged(nameof(XmlTree));
+                    OnPropertyChanged(nameof(XmlTree));
                 }
             }
         }
@@ -135,28 +120,28 @@ namespace deserialization
                     var parentViewModel = FindParentNode(SelectedNode);
                     parentViewModel?.Children.Remove(SelectedNode);
 
-                    //OnPropertyChanged(nameof(XmlTree));
+                    OnPropertyChanged(nameof(XmlTree));
                 }
             }
         }
 
         private void SaveXmlChanges()
         {
-            //if (!string.IsNullOrEmpty(FilePath))
-            //{
-            //    _xmlDocument.Save(FilePath); // Save the updated XML document
-            //}
+            if (!string.IsNullOrEmpty(FilePath))
+            {
+                _xmlDocument.Save(FilePath); // Save the updated XML document
+            }
         }
 
         private XmlNodeViewModel FindParentNode(XmlNodeViewModel node)
         {
-            //foreach (var rootNode in XmlTree)
-            //{
-            //    var parent = FindParentRecursive(rootNode, node);
-            //    if (parent != null)
-            //        return parent;
-            //}
-           return null;
+            foreach (var rootNode in XmlTree)
+            {
+                var parent = FindParentRecursive(rootNode, node);
+                if (parent != null)
+                    return parent;
+            }
+            return null;
         }
 
         private XmlNodeViewModel FindParentRecursive(XmlNodeViewModel current, XmlNodeViewModel search)
@@ -178,7 +163,5 @@ namespace deserialization
             InputDialog inputDialog = new InputDialog(defaultInput);
             return inputDialog.ShowDialog() == true ? inputDialog.InputText : null;
         }
-        
-
     }
 }
