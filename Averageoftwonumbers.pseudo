@@ -1,33 +1,43 @@
-private bool _canRenameDelete;
-public bool CanRenameDelete
-{
-    get => _canRenameDelete;
-    set
-    {
-        _canRenameDelete = value;
-        OnPropertyChanged(nameof(CanRenameDelete));
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using Microsoft.Win32;
+using System.Xml.Linq;
 
-        // Notify the commands that their CanExecute state has changed
-        ((RelayCommand)RenameCommand).RaiseCanExecuteChanged();
-        ((RelayCommand)DeleteCommand).RaiseCanExecuteChanged();
+
+
+namespace deserialization
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+            DataContext = new MainWindowViewModel();
+        }
+
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (DataContext is MainWindowViewModel viewModel)
+            {
+                viewModel.SelectedNode = e.NewValue as XmlNodeViewModel;
+            }
+        }
     }
 }
 
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0229	Ambiguity between 'MainWindowViewModel.SelectedNode' and 'MainWindowViewModel.SelectedNode'	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindow.xaml.cs	35	
 
-
-private XmlNodeViewModel _selectedNode;
-public XmlNodeViewModel SelectedNode
-{
-    get => _selectedNode;
-    set
-    {
-        _selectedNode = value;
-        OnPropertyChanged(nameof(SelectedNode));
-        UpdateCanRenameDelete();  // Ensure this is called
-    }
-}
-
-private void UpdateCanRenameDelete()
-{
-    CanRenameDelete = SelectedNode != null;
-}
