@@ -1,164 +1,40 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Win32;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Windows.Input;
-using System.Xml.Linq;
+<Window x:Class="deserialization.InputDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Input" Height="150" Width="400">
+    <Grid>
+        <StackPanel Margin="10">
+            <TextBlock Text="Enter new name:" Margin="0,0,0,10" />
+            <TextBox Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                <Button Content="OK" Width="75" Margin="0,0,10,0" IsDefault="True" Click="OkButton_Click" />
+                <Button Content="Cancel" Width="75" IsCancel="True" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>
+
+
+
+
 using System.Windows;
-
-
-
 
 namespace deserialization
 {
-    public class MainWindowViewModel : BaseViewModel
+    public partial class InputDialog : Window
     {
-        public string FilePath { get; set; }
-        public ObservableCollection<XmlNodeViewModel> XmlTree { get; set; } = new ObservableCollection<XmlNodeViewModel>();
+        public string InputText { get; set; }
 
-        private XmlNodeViewModel _selectedNode;
-        public XmlNodeViewModel SelectedNode
+        public InputDialog(string defaultInput = "")
         {
-            get => _selectedNode;
-            set
-            {
-                _selectedNode = value;
-                OnPropertyChanged(nameof(SelectedNode));
-
-                // Enable/Disable Rename/Delete commands
-                CanRenameDelete = _selectedNode != null;
-                ((RelayCommand)RenameCommand).RaiseCanExecuteChanged();
-                ((RelayCommand)DeleteCommand).RaiseCanExecuteChanged();
-            }
+            InitializeComponent();
+            InputText = defaultInput;
+            DataContext = this;
         }
 
-        public bool CanRenameDelete { get; set; }
-        public ICommand BrowseCommand { get; }
-        public ICommand RenameCommand { get; }
-        public ICommand DeleteCommand { get; }
-
-        private XDocument _xmlDocument;
-
-        public MainWindowViewModel()
+        private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            BrowseCommand = new RelayCommand(OpenFileDialog);
-            RenameCommand = new RelayCommand(RenameNode, () => CanRenameDelete);
-            DeleteCommand = new RelayCommand(DeleteNode, () => CanRenameDelete);
-        }
-
-        private void OpenFileDialog()
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog
-            {
-                Filter = "XML files (*.xml)|*.xml"
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                FilePath = openFileDialog.FileName;
-                OnPropertyChanged(nameof(FilePath));
-                LoadXmlTree(FilePath);
-            }
-        }
-
-        private void LoadXmlTree(string filePath)
-        {
-            XmlTree.Clear();
-
-            if (File.Exists(filePath))
-            {
-                _xmlDocument = XDocument.Load(filePath);
-                XmlTree.Add(new XmlNodeViewModel(_xmlDocument.Root));
-                OnPropertyChanged(nameof(XmlTree));
-            }
-        }
-
-        private void RenameNode()
-        {
-            if (SelectedNode != null)
-            {
-                string newName = PromptForInput("Enter new name for the node:", SelectedNode.Name);
-                if (!string.IsNullOrEmpty(newName))
-                {
-                    // Rename in the ViewModel
-                    SelectedNode.Name = newName;
-
-                    // Rename in the actual XML
-                    var element = SelectedNode.XmlElement;
-                    if (element != null)
-                    {
-                        element.Name = newName;
-                        SaveXmlChanges();
-                    }
-
-                    OnPropertyChanged(nameof(XmlTree));
-                }
-            }
-        }
-
-        private void DeleteNode()
-        {
-            if (SelectedNode != null && SelectedNode.XmlElement != null)
-            {
-                var parentElement = SelectedNode.XmlElement.Parent;
-                if (parentElement != null)
-                {
-                    // Remove the selected element from the XML document
-                    SelectedNode.XmlElement.Remove();
-                    SaveXmlChanges();
-
-                    // Remove the node from the ViewModel
-                    var parentViewModel = FindParentNode(SelectedNode);
-                    parentViewModel?.Children.Remove(SelectedNode);
-
-                    OnPropertyChanged(nameof(XmlTree));
-                }
-            }
-        }
-
-        private void SaveXmlChanges()
-        {
-            if (!string.IsNullOrEmpty(FilePath))
-            {
-                _xmlDocument.Save(FilePath); // Save the updated XML document
-            }
-        }
-
-        private XmlNodeViewModel FindParentNode(XmlNodeViewModel node)
-        {
-            foreach (var rootNode in XmlTree)
-            {
-                var parent = FindParentRecursive(rootNode, node);
-                if (parent != null)
-                    return parent;
-            }
-            return null;
-        }
-
-        private XmlNodeViewModel FindParentRecursive(XmlNodeViewModel current, XmlNodeViewModel search)
-        {
-            foreach (var child in current.Children)
-            {
-                if (child == search)
-                    return current;
-                var result = FindParentRecursive(child, search);
-                if (result != null)
-                    return result;
-            }
-            return null;
-        }
-
-        private string PromptForInput(string message, string defaultInput = "")
-        {
-            InputDialog inputDialog = new InputDialog(defaultInput);
-            return inputDialog.ShowDialog() == true ? inputDialog.InputText : null;
+            DialogResult = true;
         }
     }
 }
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0246	The type or namespace name 'InputDialog' could not be found (are you missing a using directive or an assembly reference?)	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindowViewModel.cs	157	
