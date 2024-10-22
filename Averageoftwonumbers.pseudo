@@ -1,24 +1,26 @@
-<TreeView Grid.Row="1" ItemsSource="{Binding XmlTree}" 
-          SelectedItemChanged="TreeView_SelectedItemChanged" 
-          Margin="10">
-    <TreeView.ItemTemplate>
-        <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-            <TextBlock Text="{Binding Name}" />
-        </HierarchicalDataTemplate>
-    </TreeView.ItemTemplate>
-</TreeView>
+using System.Windows;
+using System.Windows.Controls;
 
-
-
-private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+namespace deserialization
 {
-    if (e.NewValue is XmlNodeViewModel selectedNode)
+    public partial class MainWindow : Window
     {
-        // Assuming your ViewModel has a property for the selected node
-        var viewModel = DataContext as MainWindowViewModel;
-        if (viewModel != null)
+        public MainWindow()
         {
-            viewModel.SelectedNode = selectedNode;
+            InitializeComponent();
+        }
+
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (e.NewValue is XmlNodeViewModel selectedNode)
+            {
+                // Assuming your ViewModel has a property for the selected node
+                var viewModel = DataContext as MainWindowViewModel;
+                if (viewModel != null)
+                {
+                    viewModel.SelectedNode = selectedNode;
+                }
+            }
         }
     }
 }
