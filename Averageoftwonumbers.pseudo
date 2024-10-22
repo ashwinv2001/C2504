@@ -1,18 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
 using System.Xml.Linq;
-using System.Windows;
-
-
-
-
+using Microsoft.Win32;
 
 namespace deserialization
 {
@@ -44,6 +35,7 @@ namespace deserialization
 
         private XDocument _xmlDocument;
 
+        // Single constructor without ambiguity
         public MainWindowViewModel()
         {
             BrowseCommand = new RelayCommand(OpenFileDialog);
@@ -160,4 +152,3 @@ namespace deserialization
         }
     }
 }
-
