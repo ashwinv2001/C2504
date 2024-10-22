@@ -1,26 +1,44 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace deserialization
 {
-    public partial class MainWindow : Window
+    public partial class InputDialog : Window
     {
-        public MainWindow()
+        public string InputText { get; private set; }
+
+        public InputDialog(string defaultInput = "")
         {
             InitializeComponent();
+            InputTextBox.Text = defaultInput;
         }
 
-        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            if (e.NewValue is XmlNodeViewModel selectedNode)
-            {
-                // Assuming your ViewModel has a property for the selected node
-                var viewModel = DataContext as MainWindowViewModel;
-                if (viewModel != null)
-                {
-                    viewModel.SelectedNode = selectedNode;
-                }
-            }
+            InputText = InputTextBox.Text;
+            DialogResult = true;
+            Close();
+        }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
+            Close();
         }
     }
 }
+
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0103	The name 'InputTextBox' does not exist in the current context	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\InputDialog.xaml.cs	24	
+
