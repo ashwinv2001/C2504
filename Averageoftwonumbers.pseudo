@@ -1,25 +1,164 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Win32;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Windows.Input;
+using System.Xml.Linq;
+using System.Windows;
 
-class Program
+
+
+
+namespace deserialization
 {
-    static void Main(string[] args)
+    public class MainWindowViewModel : BaseViewModel
     {
-        // Get user input in seconds
-        Console.Write("Enter time in seconds (float): ");
-        string input = Console.ReadLine();
+        public string FilePath { get; set; }
+        public ObservableCollection<XmlNodeViewModel> XmlTree { get; set; } = new ObservableCollection<XmlNodeViewModel>();
 
-        // Parse the input to float
-        if (float.TryParse(input, out float seconds))
+        private XmlNodeViewModel _selectedNode;
+        public XmlNodeViewModel SelectedNode
         {
-            // Convert seconds to milliseconds (1 second = 1000 milliseconds)
-            int milliseconds = (int)(seconds * 1000);
+            get => _selectedNode;
+            set
+            {
+                _selectedNode = value;
+                OnPropertyChanged(nameof(SelectedNode));
 
-            // Output the result
-            Console.WriteLine($"{seconds} seconds is {milliseconds} milliseconds.");
+                // Enable/Disable Rename/Delete commands
+                CanRenameDelete = _selectedNode != null;
+                ((RelayCommand)RenameCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)DeleteCommand).RaiseCanExecuteChanged();
+            }
         }
-        else
+
+        public bool CanRenameDelete { get; set; }
+        public ICommand BrowseCommand { get; }
+        public ICommand RenameCommand { get; }
+        public ICommand DeleteCommand { get; }
+
+        private XDocument _xmlDocument;
+
+        public MainWindowViewModel()
         {
-            Console.WriteLine("Invalid input. Please enter a valid float value.");
+            BrowseCommand = new RelayCommand(OpenFileDialog);
+            RenameCommand = new RelayCommand(RenameNode, () => CanRenameDelete);
+            DeleteCommand = new RelayCommand(DeleteNode, () => CanRenameDelete);
+        }
+
+        private void OpenFileDialog()
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "XML files (*.xml)|*.xml"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                FilePath = openFileDialog.FileName;
+                OnPropertyChanged(nameof(FilePath));
+                LoadXmlTree(FilePath);
+            }
+        }
+
+        private void LoadXmlTree(string filePath)
+        {
+            XmlTree.Clear();
+
+            if (File.Exists(filePath))
+            {
+                _xmlDocument = XDocument.Load(filePath);
+                XmlTree.Add(new XmlNodeViewModel(_xmlDocument.Root));
+                OnPropertyChanged(nameof(XmlTree));
+            }
+        }
+
+        private void RenameNode()
+        {
+            if (SelectedNode != null)
+            {
+                string newName = PromptForInput("Enter new name for the node:", SelectedNode.Name);
+                if (!string.IsNullOrEmpty(newName))
+                {
+                    // Rename in the ViewModel
+                    SelectedNode.Name = newName;
+
+                    // Rename in the actual XML
+                    var element = SelectedNode.XmlElement;
+                    if (element != null)
+                    {
+                        element.Name = newName;
+                        SaveXmlChanges();
+                    }
+
+                    OnPropertyChanged(nameof(XmlTree));
+                }
+            }
+        }
+
+        private void DeleteNode()
+        {
+            if (SelectedNode != null && SelectedNode.XmlElement != null)
+            {
+                var parentElement = SelectedNode.XmlElement.Parent;
+                if (parentElement != null)
+                {
+                    // Remove the selected element from the XML document
+                    SelectedNode.XmlElement.Remove();
+                    SaveXmlChanges();
+
+                    // Remove the node from the ViewModel
+                    var parentViewModel = FindParentNode(SelectedNode);
+                    parentViewModel?.Children.Remove(SelectedNode);
+
+                    OnPropertyChanged(nameof(XmlTree));
+                }
+            }
+        }
+
+        private void SaveXmlChanges()
+        {
+            if (!string.IsNullOrEmpty(FilePath))
+            {
+                _xmlDocument.Save(FilePath); // Save the updated XML document
+            }
+        }
+
+        private XmlNodeViewModel FindParentNode(XmlNodeViewModel node)
+        {
+            foreach (var rootNode in XmlTree)
+            {
+                var parent = FindParentRecursive(rootNode, node);
+                if (parent != null)
+                    return parent;
+            }
+            return null;
+        }
+
+        private XmlNodeViewModel FindParentRecursive(XmlNodeViewModel current, XmlNodeViewModel search)
+        {
+            foreach (var child in current.Children)
+            {
+                if (child == search)
+                    return current;
+                var result = FindParentRecursive(child, search);
+                if (result != null)
+                    return result;
+            }
+            return null;
+        }
+
+        private string PromptForInput(string message, string defaultInput = "")
+        {
+            InputDialog inputDialog = new InputDialog(defaultInput);
+            return inputDialog.ShowDialog() == true ? inputDialog.InputText : null;
         }
     }
 }
+
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0246	The type or namespace name 'InputDialog' could not be found (are you missing a using directive or an assembly reference?)	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindowViewModel.cs	157	
