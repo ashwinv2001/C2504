@@ -1,23 +1,39 @@
-public class RelayCommand : ICommand
-{
-    private readonly Action _execute;
-    private readonly Func<bool> _canExecute;
+<Window x:Class="deserialization.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="XML Deserialization" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-    public RelayCommand(Action execute, Func<bool> canExecute = null)
-    {
-        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-        _canExecute = canExecute;
-    }
+        <!-- File path and browse button -->
+        <StackPanel Orientation="Horizontal" Margin="10">
+            <TextBox Width="400" Text="{Binding FilePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" />
+            <Button Content="Browse" Command="{Binding BrowseCommand}" Width="100" Margin="10,0,0,0"/>
+        </StackPanel>
 
-    public bool CanExecute(object parameter) => _canExecute == null || _canExecute();
-
-    public void Execute(object parameter) => _execute();
-
-    public event EventHandler CanExecuteChanged
-    {
-        add => CommandManager.RequerySuggested += value;
-        remove => CommandManager.RequerySuggested -= value;
-    }
-
-    public void RaiseCanExecuteChanged() => CommandManager.InvalidateRequerySuggested();
-}
+        <!-- TreeView to display the XML data -->
+        <TreeView Grid.Row="1" ItemsSource="{Binding XmlTree}" 
+                  SelectedItemChanged="TreeView_SelectedItemChanged" 
+                  Margin="10">
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                    <TextBlock Text="{Binding Name}">
+                        <TextBlock.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Rename" 
+                                          Command="{Binding DataContext.RenameCommand, 
+                                          RelativeSource={RelativeSource AncestorType=Window}}" />
+                                <MenuItem Header="Delete" 
+                                          Command="{Binding DataContext.DeleteCommand, 
+                                          RelativeSource={RelativeSource AncestorType=Window}}" />
+                            </ContextMenu>
+                        </TextBlock.ContextMenu>
+                    </TextBlock>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+    </Grid>
+</Window>
