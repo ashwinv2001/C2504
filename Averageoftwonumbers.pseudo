@@ -35,31 +35,5 @@
     </Grid>
 </Window>
 
-
-
-
-
-using System.Windows;
-using System.Windows.Controls;
-
-namespace deserialization
-{
-    public partial class MainWindow : Window
-    {
-        public MainWindow()
-        {
-            InitializeComponent();
-            DataContext = new MainWindowViewModel(); // Set ViewModel as DataContext
-        }
-
-        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            // Forward the selected item to the ViewModel
-            var viewModel = DataContext as MainWindowViewModel;
-            if (viewModel != null && e.NewValue is XmlNodeViewModel selectedNode)
-            {
-                viewModel.SelectedNode = selectedNode; // Set selected node in ViewModel
-            }
-        }
-    }
-}
+Severity	Code	Description	Project	File	Line	Suppression State
+Error	XDG0012	The member "ContextMenu" is not recognized or is not accessible.	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindow.xaml	26	
