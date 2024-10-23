@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Win32;
-using System.Collections.ObjectModel;
-using System.IO;
+using System.Windows;
 using System.Windows.Input;
 using System.Xml.Linq;
-using System.Windows;
+using System.Collections.ObjectModel;
+using Microsoft.Win32;
 
 namespace deserialization
 {
@@ -23,10 +23,12 @@ namespace deserialization
             get => _selectedNode;
             set
             {
-                _selectedNode = value;
-                OnPropertyChanged(nameof(SelectedNode));
-
-                UpdateCanRenameDelete();
+                if (_selectedNode != value)
+                {
+                    _selectedNode = value;
+                    OnPropertyChanged(nameof(SelectedNode));
+                    UpdateCanRenameDelete();
+                }
             }
         }
 
@@ -36,18 +38,14 @@ namespace deserialization
             get => _canRenameDelete;
             set
             {
-                _canRenameDelete = value;
-                OnPropertyChanged(nameof(CanRenameDelete));
-
-                // Notify the commands that their CanExecute state has changed
-                ((RelayCommand)RenameCommand).RaiseCanExecuteChanged();
-                ((RelayCommand)DeleteCommand).RaiseCanExecuteChanged();
+                if (_canRenameDelete != value)
+                {
+                    _canRenameDelete = value;
+                    OnPropertyChanged(nameof(CanRenameDelete));
+                    ((RelayCommand)RenameCommand).RaiseCanExecuteChanged();
+                    ((RelayCommand)DeleteCommand).RaiseCanExecuteChanged();
+                }
             }
-        }
-
-        private void UpdateCanRenameDelete()
-        {
-            CanRenameDelete = SelectedNode != null;
         }
 
         public ICommand BrowseCommand { get; }
@@ -84,9 +82,16 @@ namespace deserialization
 
             if (File.Exists(filePath))
             {
-                _xmlDocument = XDocument.Load(filePath);
-                XmlTree.Add(new XmlNodeViewModel(_xmlDocument.Root));
-                OnPropertyChanged(nameof(XmlTree));
+                try
+                {
+                    _xmlDocument = XDocument.Load(filePath);
+                    XmlTree.Add(new XmlNodeViewModel(_xmlDocument.Root));
+                    OnPropertyChanged(nameof(XmlTree));
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error loading XML: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
@@ -138,7 +143,14 @@ namespace deserialization
         {
             if (!string.IsNullOrEmpty(FilePath))
             {
-                _xmlDocument.Save(FilePath); // Save the updated XML document
+                try
+                {
+                    _xmlDocument.Save(FilePath); // Save the updated XML document
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error saving XML: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
