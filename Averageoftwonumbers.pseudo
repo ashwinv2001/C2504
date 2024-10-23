@@ -1,20 +1,60 @@
-private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using Microsoft.Win32;
+using System.Xml.Linq;
+
+
+
+namespace deserialization
 {
-    if (treeView.SelectedItem is XmlNodeViewModel selectedNode)
+    public partial class MainWindow : Window
     {
-        var viewModel = DataContext as MainWindowViewModel;
-        if (viewModel != null)
+        public MainWindow()
         {
-            viewModel.SelectedNode = selectedNode;
+            InitializeComponent();
+            DataContext = new MainWindowViewModel(); // Set ViewModel as DataContext
         }
+
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (e.NewValue is XmlNodeViewModel selectedNode)
+            {
+                var viewModel = DataContext as MainWindowViewModel;
+                if (viewModel != null)
+                {
+                    viewModel.SelectedNode = selectedNode;
+                   // MessageBox.Show("Hello, this is a message!", "Message Box Example", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+        }
+
+        private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (treeView.SelectedItem is XmlNodeViewModel selectedNode)
+            {
+                var viewModel = DataContext as MainWindowViewModel;
+                if (viewModel != null)
+                {
+                    viewModel.SelectedNode = selectedNode;
+                }
+            }
+        }
+
     }
 }
 
-
-
-private void UpdateCanRenameDelete()
-{
-    CanRenameDelete = SelectedNode != null; // Adjust your logic as needed
-    (RenameCommand as RelayCommand)?.RaiseCanExecuteChanged();
-    (DeleteCommand as RelayCommand)?.RaiseCanExecuteChanged();
-}
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0103	The name 'treeView' does not exist in the current context	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindow.xaml.cs	46	
