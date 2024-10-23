@@ -22,14 +22,12 @@
         <!-- TreeView with ContextMenu -->
         <TreeView Grid.Row="1" ItemsSource="{Binding XmlTree}" 
                   SelectedItemChanged="TreeView_SelectedItemChanged" 
-                  Margin="10"
-                  SelectedItem="{Binding SelectedNode}">
+                  Margin="10">
             <TreeView.Resources>
                 <Style TargetType="TreeViewItem">
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu Opened="ContextMenu_Opened">
-                                <!-- Using PlacementTarget to bind commands correctly -->
                                 <MenuItem Header="Rename" Command="{Binding PlacementTarget.DataContext.RenameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           IsEnabled="{Binding PlacementTarget.DataContext.CanRenameDelete, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 <MenuItem Header="Delete" Command="{Binding PlacementTarget.DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
@@ -55,6 +53,6 @@
     </Grid>
 </Window>
 
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	XDG0013	The property "SelectedItem" does not have an accessible setter.	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindow.xaml	26	
+
+
 
