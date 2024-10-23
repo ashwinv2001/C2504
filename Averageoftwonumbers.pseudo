@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
+using Microsoft.Win32;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows.Input;
 using System.Xml.Linq;
-using System.Collections.ObjectModel;
-using Microsoft.Win32;
+using System.Windows;
 
 namespace deserialization
 {
@@ -185,3 +185,6 @@ namespace deserialization
         }
     }
 }
+
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0103	The name 'UpdateCanRenameDelete' does not exist in the current context	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindowViewModel.cs	30	
