@@ -26,11 +26,11 @@
                     <TextBlock Text="{Binding Name}" />
                     <!-- Context Menu for Rename/Delete -->
                     <TextBlock.ContextMenu>
-                        <ContextMenu>
+                        <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                             <MenuItem Header="Rename" 
-                                      Command="{Binding DataContext.RenameCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                      Command="{Binding RenameCommand}" />
                             <MenuItem Header="Delete" 
-                                      Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                      Command="{Binding DeleteCommand}" />
                         </ContextMenu>
                     </TextBlock.ContextMenu>
                 </HierarchicalDataTemplate>
@@ -38,7 +38,3 @@
         </TreeView>
     </Grid>
 </Window>
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	XDG0012	The member "ContextMenu" is not recognized or is not accessible.	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindow.xaml	28	
-
