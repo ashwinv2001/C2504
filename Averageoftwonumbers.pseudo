@@ -20,13 +20,24 @@
         </StackPanel>
 
         <!-- TreeView -->
-
         <TreeView Grid.Row="1" ItemsSource="{Binding XmlTree}" 
-          SelectedItemChanged="TreeView_SelectedItemChanged" 
-          Margin="10">
+                  SelectedItemChanged="TreeView_SelectedItemChanged" 
+                  Margin="10">
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                    <TextBlock Text="{Binding Name}"/>
+                    <TextBlock Text="{Binding Name}">
+                        <!-- ContextMenu for Rename and Delete -->
+                        <TextBlock.ContextMenu>
+                            <ContextMenu>
+                                <!-- Rename Menu Item -->
+                                <MenuItem Header="Rename" Command="{Binding DataContext.RenameCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" 
+                                          CommandParameter="{Binding}" />
+                                <!-- Delete Menu Item -->
+                                <MenuItem Header="Delete" Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" 
+                                          CommandParameter="{Binding}" />
+                            </ContextMenu>
+                        </TextBlock.ContextMenu>
+                    </TextBlock>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
         </TreeView>
@@ -38,3 +49,106 @@
         </StackPanel>
     </Grid>
 </Window>
+
+
+
+
+
+public class MainWindowViewModel : BaseViewModel
+{
+    // Properties
+    public string FilePath { get; set; }
+    public ObservableCollection<XmlNodeViewModel> XmlTree { get; set; } = new ObservableCollection<XmlNodeViewModel>();
+
+    private XmlNodeViewModel _selectedNode;
+    public XmlNodeViewModel SelectedNode
+    {
+        get => _selectedNode;
+        set
+        {
+            _selectedNode = value;
+            OnPropertyChanged(nameof(SelectedNode));
+            UpdateCanRenameDelete();
+        }
+    }
+
+    public bool CanRenameDelete => SelectedNode != null;
+
+    // Commands
+    public ICommand BrowseCommand { get; }
+    public ICommand RenameCommand { get; }
+    public ICommand DeleteCommand { get; }
+
+    public MainWindowViewModel()
+    {
+        BrowseCommand = new RelayCommand(OpenFileDialog);
+        RenameCommand = new RelayCommand<XmlNodeViewModel>(RenameNode, node => CanRenameDelete);
+        DeleteCommand = new RelayCommand<XmlNodeViewModel>(DeleteNode, node => CanRenameDelete);
+    }
+
+    private void RenameNode(XmlNodeViewModel node)
+    {
+        if (node != null)
+        {
+            // Prompt for new name and rename the node
+            string newName = PromptForInput("Enter new name for the node:", node.Name);
+            if (!string.IsNullOrEmpty(newName))
+            {
+                node.Name = newName;
+                // Also update the XML element if needed
+                node.XmlElement.Name = newName;
+                SaveXmlChanges();
+            }
+        }
+    }
+
+    private void DeleteNode(XmlNodeViewModel node)
+    {
+        if (node != null)
+        {
+            // Remove the node from the XML document and the view model
+            node.XmlElement.Remove();
+            var parentNode = FindParentNode(node);
+            parentNode?.Children.Remove(node);
+            SaveXmlChanges();
+        }
+    }
+
+    private void SaveXmlChanges()
+    {
+        if (!string.IsNullOrEmpty(FilePath))
+        {
+            _xmlDocument.Save(FilePath);
+        }
+    }
+
+    private string PromptForInput(string message, string defaultValue = "")
+    {
+        // Show input dialog for renaming (this can be replaced with a custom dialog)
+        return Microsoft.VisualBasic.Interaction.InputBox(message, "Rename Node", defaultValue);
+    }
+
+    private XmlNodeViewModel FindParentNode(XmlNodeViewModel node)
+    {
+        foreach (var rootNode in XmlTree)
+        {
+            var parent = FindParentRecursive(rootNode, node);
+            if (parent != null)
+                return parent;
+        }
+        return null;
+    }
+
+    private XmlNodeViewModel FindParentRecursive(XmlNodeViewModel current, XmlNodeViewModel search)
+    {
+        foreach (var child in current.Children)
+        {
+            if (child == search)
+                return current;
+            var result = FindParentRecursive(child, search);
+            if (result != null)
+                return result;
+        }
+        return null;
+    }
+}
