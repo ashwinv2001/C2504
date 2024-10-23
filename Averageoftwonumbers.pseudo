@@ -1,3 +1,49 @@
+<Window x:Class="deserialization.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="XML Deserialization" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- File path and browse button -->
+        <StackPanel Orientation="Horizontal" Margin="10">
+            <TextBox Width="400" Text="{Binding FilePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" />
+            <Button Content="Browse" Command="{Binding BrowseCommand}" Width="100" Margin="10,0,0,0"/>
+        </StackPanel>
+
+        <!-- TreeView to display the XML data -->
+        <TreeView Grid.Row="1" ItemsSource="{Binding XmlTree}" 
+                  SelectedItemChanged="TreeView_SelectedItemChanged" 
+                  Margin="10">
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                    <TextBlock Text="{Binding Name}" />
+                    <!-- Context Menu for Rename/Delete -->
+                    <TextBlock.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Rename" 
+                                      Command="{Binding DataContext.RenameCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                            <MenuItem Header="Delete" 
+                                      Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                        </ContextMenu>
+                    </TextBlock.ContextMenu>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+    </Grid>
+</Window>
+
+
+
+
+
+
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -199,41 +245,35 @@ namespace deserialization
 
 
 
-using System.Collections.ObjectModel;
-using System.Xml.Linq;
 
-namespace deserialization
+private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
 {
-    public class XmlNodeViewModel : BaseViewModel
+    if (e.NewValue is XmlNodeViewModel selectedNode)
     {
-        public XNode XmlNode { get; }
-        public XElement XmlElement => XmlNode as XElement;
-
-        private string _name;
-        public string Name
+        var viewModel = DataContext as MainWindowViewModel;
+        if (viewModel != null)
         {
-            get => _name;
-            set
-            {
-                if (_name != value)
-                {
-                    _name = value;
-                    OnPropertyChanged(nameof(Name));
-                }
-            }
-        }
-
-        public ObservableCollection<XmlNodeViewModel> Children { get; } = new ObservableCollection<XmlNodeViewModel>();
-
-        public XmlNodeViewModel(XElement element)
-        {
-            XmlNode = element;
-            Name = element.Name.LocalName;
-
-            foreach (var child in element.Elements())
-            {
-                Children.Add(new XmlNodeViewModel(child));
-            }
+            viewModel.SelectedNode = selectedNode;
         }
     }
 }
+
+
+
+
+
+
+
+private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+{
+    if (e.NewValue is XmlNodeViewModel selectedNode)
+    {
+        var viewModel = DataContext as MainWindowViewModel;
+        if (viewModel != null)
+        {
+            viewModel.SelectedNode = selectedNode;
+        }
+    }
+}
+
+
