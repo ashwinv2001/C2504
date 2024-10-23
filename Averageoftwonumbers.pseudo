@@ -178,6 +178,11 @@ namespace deserialization
             return null;
         }
 
+        private void UpdateCanRenameDelete()
+        {
+            CanRenameDelete = SelectedNode != null; // Update the flag based on the selected node
+        }
+
         private string PromptForInput(string message, string defaultInput = "")
         {
             InputDialog inputDialog = new InputDialog(defaultInput);
@@ -185,6 +190,3 @@ namespace deserialization
         }
     }
 }
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0103	The name 'UpdateCanRenameDelete' does not exist in the current context	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindowViewModel.cs	30	
