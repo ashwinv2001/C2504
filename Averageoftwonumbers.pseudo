@@ -19,21 +19,23 @@
 
         <!-- TreeView to display the XML data -->
         <TreeView Grid.Row="1" ItemsSource="{Binding XmlTree}" SelectedItemChanged="TreeView_SelectedItemChanged" Margin="10">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+                                <MenuItem Header="Rename" Command="{Binding DataContext.RenameCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                <MenuItem Header="Delete" Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TreeView.ItemContainerStyle>
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                     <TextBlock Text="{Binding Name}" />
-                    <!-- Context Menu for Rename/Delete -->
-                    <TextBlock.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Rename" Command="{Binding DataContext.RenameCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
-                            <MenuItem Header="Delete" Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
-                        </ContextMenu>
-                    </TextBlock.ContextMenu>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
         </TreeView>
     </Grid>
 </Window>
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	XDG0012	The member "ContextMenu" is not recognized or is not accessible.	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindow.xaml	26	
