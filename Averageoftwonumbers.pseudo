@@ -1,18 +1,2 @@
-using System.Windows;
-
-namespace MessageBoxExample
-{
-    public partial class MainWindow : Window
-    {
-        public MainWindow()
-        {
-            InitializeComponent();
-        }
-
-        private void ShowMessageBox_Click(object sender, RoutedEventArgs e)
-        {
-            // Display a simple message box
-            MessageBox.Show("Hello, this is a message!", "Message Box Example", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-    }
+     MessageBox.Show("Hello, this is a message!", "Message Box Example", MessageBoxButton.OK, MessageBoxImage.Information);
 }
