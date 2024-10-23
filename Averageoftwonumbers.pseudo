@@ -10,10 +10,6 @@ using System.Windows.Input;
 using System.Xml.Linq;
 using System.Windows;
 
-
-
-
-
 namespace deserialization
 {
     public class MainWindowViewModel : BaseViewModel
@@ -30,34 +26,29 @@ namespace deserialization
                 _selectedNode = value;
                 OnPropertyChanged(nameof(SelectedNode));
 
-              UpdateCanRenameDelete();
+                UpdateCanRenameDelete();
             }
         }
 
         private bool _canRenameDelete;
-        public bool CanRenameDelete 
-        { get => _canRenameDelete;
-
+        public bool CanRenameDelete
+        {
+            get => _canRenameDelete;
             set
-            { _canRenameDelete = value;
+            {
+                _canRenameDelete = value;
                 OnPropertyChanged(nameof(CanRenameDelete));
 
                 // Notify the commands that their CanExecute state has changed
                 ((RelayCommand)RenameCommand).RaiseCanExecuteChanged();
                 ((RelayCommand)DeleteCommand).RaiseCanExecuteChanged();
             }
-                }
-
-
-      
+        }
 
         private void UpdateCanRenameDelete()
         {
             CanRenameDelete = SelectedNode != null;
         }
-
-
-
 
         public ICommand BrowseCommand { get; }
         public ICommand RenameCommand { get; }
@@ -65,7 +56,6 @@ namespace deserialization
 
         private XDocument _xmlDocument;
 
-        // Single constructor without ambiguity
         public MainWindowViewModel()
         {
             BrowseCommand = new RelayCommand(OpenFileDialog);
@@ -114,7 +104,8 @@ namespace deserialization
                     var element = SelectedNode.XmlElement;
                     if (element != null)
                     {
-                        element.Name = newName;
+                        // Update the XML element's name (convert newName to XName)
+                        element.Name = XName.Get(newName);
                         SaveXmlChanges();
                     }
 
