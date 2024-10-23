@@ -22,12 +22,13 @@
         <!-- TreeView with ContextMenu -->
         <TreeView Grid.Row="1" ItemsSource="{Binding XmlTree}" 
                   SelectedItemChanged="TreeView_SelectedItemChanged" 
-                  Margin="10">
+                  Margin="10"
+                  SelectedItem="{Binding SelectedNode}">
             <TreeView.Resources>
                 <Style TargetType="TreeViewItem">
                     <Setter Property="ContextMenu">
                         <Setter.Value>
-                            <ContextMenu>
+                            <ContextMenu Opened="ContextMenu_Opened">
                                 <!-- Using PlacementTarget to bind commands correctly -->
                                 <MenuItem Header="Rename" Command="{Binding PlacementTarget.DataContext.RenameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           IsEnabled="{Binding PlacementTarget.DataContext.CanRenameDelete, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
@@ -53,3 +54,44 @@
         </StackPanel>
     </Grid>
 </Window>
+
+
+
+
+
+using System.Windows;
+using System.Windows.Controls;
+
+namespace deserialization
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        // Ensure the selected node is updated when the context menu is opened
+        private void ContextMenu_Opened(object sender, RoutedEventArgs e)
+        {
+            var contextMenu = sender as ContextMenu;
+            if (contextMenu != null)
+            {
+                var treeViewItem = contextMenu.PlacementTarget as TreeViewItem;
+                if (treeViewItem != null)
+                {
+                    treeViewItem.IsSelected = true;
+                }
+            }
+        }
+
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (DataContext is MainWindowViewModel viewModel)
+            {
+                viewModel.SelectedNode = e.NewValue as XmlNodeViewModel;
+            }
+        }
+    }
+}
+
