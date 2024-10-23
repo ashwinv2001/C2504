@@ -1,43 +1,210 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Microsoft.Win32;
-using System.Xml.Linq;
+<TreeView Grid.Row="1" ItemsSource="{Binding XmlTree}" 
+          SelectedItem="{Binding SelectedNode, Mode=TwoWay}" 
+          Margin="10">
+    <TreeView.ItemTemplate>
+        <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+            <TextBlock Text="{Binding Name}" />
+            <HierarchicalDataTemplate.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Name}">
+                        <!-- ContextMenu for renaming and deleting -->
+                        <TextBlock.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Rename" Command="{Binding DataContext.RenameCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" CommandParameter="{Binding}" />
+                                <MenuItem Header="Delete" Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" CommandParameter="{Binding}" />
+                            </ContextMenu>
+                        </TextBlock.ContextMenu>
+                    </TextBlock>
+                </DataTemplate>
+            </HierarchicalDataTemplate.ItemTemplate>
+        </HierarchicalDataTemplate>
+    </TreeView.ItemTemplate>
+</TreeView>
 
 
 
-namespace deserialization
+
+public class MainWindowViewModel : BaseViewModel
 {
-    public partial class MainWindow : Window
-    {
-        public MainWindow()
-        {
-            InitializeComponent();
-            DataContext = new MainWindowViewModel();
-        }
+    public string FilePath { get; set; }
+    public ObservableCollection<XmlNodeViewModel> XmlTree { get; set; } = new ObservableCollection<XmlNodeViewModel>();
 
-        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+    private XmlNodeViewModel _selectedNode;
+    public XmlNodeViewModel SelectedNode
+    {
+        get => _selectedNode;
+        set
         {
-            if (DataContext is MainWindowViewModel viewModel)
+            _selectedNode = value;
+            OnPropertyChanged(nameof(SelectedNode));
+            UpdateCanRenameDelete();
+        }
+    }
+
+    private bool _canRenameDelete;
+    public bool CanRenameDelete
+    {
+        get => _canRenameDelete;
+        set
+        {
+            _canRenameDelete = value;
+            OnPropertyChanged(nameof(CanRenameDelete));
+            ((RelayCommand)RenameCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)DeleteCommand).RaiseCanExecuteChanged();
+        }
+    }
+
+    public ICommand BrowseCommand { get; }
+    public ICommand RenameCommand { get; }
+    public ICommand DeleteCommand { get; }
+
+    private XDocument _xmlDocument;
+
+    public MainWindowViewModel()
+    {
+        BrowseCommand = new RelayCommand(OpenFileDialog);
+        RenameCommand = new RelayCommand<XmlNodeViewModel>(RenameNode, node => CanRenameDelete);
+        DeleteCommand = new RelayCommand<XmlNodeViewModel>(DeleteNode, node => CanRenameDelete);
+    }
+
+    private void OpenFileDialog()
+    {
+        OpenFileDialog openFileDialog = new OpenFileDialog
+        {
+            Filter = "XML files (*.xml)|*.xml"
+        };
+
+        if (openFileDialog.ShowDialog() == true)
+        {
+            FilePath = openFileDialog.FileName;
+            OnPropertyChanged(nameof(FilePath));
+            LoadXmlTree(FilePath);
+        }
+    }
+
+    private void LoadXmlTree(string filePath)
+    {
+        XmlTree.Clear();
+
+        if (File.Exists(filePath))
+        {
+            _xmlDocument = XDocument.Load(filePath);
+            XmlTree.Add(new XmlNodeViewModel(_xmlDocument.Root));
+            OnPropertyChanged(nameof(XmlTree));
+        }
+    }
+
+    private void UpdateCanRenameDelete()
+    {
+        CanRenameDelete = SelectedNode != null;
+    }
+
+    private void RenameNode(XmlNodeViewModel node)
+    {
+        if (node != null)
+        {
+            string newName = PromptForInput("Enter new name for the node:", node.Name);
+            if (!string.IsNullOrEmpty(newName))
             {
-                viewModel.SelectedNode = e.NewValue as XmlNodeViewModel;
+                // Rename in the ViewModel
+                node.Name = newName;
+
+                // Rename in the actual XML
+                var element = node.XmlElement;
+                if (element != null)
+                {
+                    element.Name = newName;
+                    SaveXmlChanges();
+                }
             }
         }
     }
+
+    private void DeleteNode(XmlNodeViewModel node)
+    {
+        if (node != null && node.XmlElement != null)
+        {
+            var parentElement = node.XmlElement.Parent;
+            if (parentElement != null)
+            {
+                // Remove the selected element from the XML document
+                node.XmlElement.Remove();
+                SaveXmlChanges();
+
+                // Remove the node from the ViewModel
+                var parentViewModel = FindParentNode(node);
+                parentViewModel?.Children.Remove(node);
+            }
+        }
+    }
+
+    private void SaveXmlChanges()
+    {
+        if (!string.IsNullOrEmpty(FilePath))
+        {
+            _xmlDocument.Save(FilePath); // Save the updated XML document
+        }
+    }
+
+    private XmlNodeViewModel FindParentNode(XmlNodeViewModel node)
+    {
+        foreach (var rootNode in XmlTree)
+        {
+            var parent = FindParentRecursive(rootNode, node);
+            if (parent != null)
+                return parent;
+        }
+        return null;
+    }
+
+    private XmlNodeViewModel FindParentRecursive(XmlNodeViewModel current, XmlNodeViewModel search)
+    {
+        foreach (var child in current.Children)
+        {
+            if (child == search)
+                return current;
+            var result = FindParentRecursive(child, search);
+            if (result != null)
+                return result;
+        }
+        return null;
+    }
+
+    private string PromptForInput(string message, string defaultInput = "")
+    {
+        InputDialog inputDialog = new InputDialog(defaultInput);
+        return inputDialog.ShowDialog() == true ? inputDialog.InputText : null;
+    }
 }
 
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0229	Ambiguity between 'MainWindowViewModel.SelectedNode' and 'MainWindowViewModel.SelectedNode'	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindow.xaml.cs	35	
 
+
+
+public class RelayCommand<T> : ICommand
+{
+    private readonly Action<T> _execute;
+    private readonly Func<T, bool> _canExecute;
+
+    public RelayCommand(Action<T> execute, Func<T, bool> canExecute = null)
+    {
+        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+        _canExecute = canExecute;
+    }
+
+    public bool CanExecute(object parameter)
+    {
+        return _canExecute == null || _canExecute((T)parameter);
+    }
+
+    public void Execute(object parameter)
+    {
+        _execute((T)parameter);
+    }
+
+    public event EventHandler CanExecuteChanged;
+
+    public void RaiseCanExecuteChanged()
+    {
+        CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+    }
+}
