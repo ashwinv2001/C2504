@@ -50,5 +50,6 @@
         </TreeView>
     </Grid>
 </Window>
+
 Severity	Code	Description	Project	File	Line	Suppression State
 Error	XDG0008	The name "BooleanToVisibilityConverter" does not exist in the namespace "clr-namespace:deserialization".	deserialization	C:\Users\2021455\Desktop\deserialization - Copy\deserialization\MainWindow.xaml	7	
