@@ -1,50 +1,45 @@
-public class TreeNodeViewModel : INotifyPropertyChanged
+<Window x:Class="TreeViewExample.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="TreeView Example" Height="350" Width="400">
+    <Grid>
+        <TreeView x:Name="treeView" HorizontalAlignment="Left" VerticalAlignment="Top" Width="380" Height="300"/>
+    </Grid>
+</Window>
+
+
+using System.Windows;
+using System.Windows.Controls;
+
+namespace TreeViewExample
 {
-    private string _name;
-    private bool _isEditing;
-
-    public string Name
+    public partial class MainWindow : Window
     {
-        get => _name;
-        set
+        public MainWindow()
         {
-            _name = value;
-            OnPropertyChanged(nameof(Name));
+            InitializeComponent();
+
+            // Create root node
+            TreeViewItem rootNode = new TreeViewItem() { Header = "Root Node" };
+
+            // Create child nodes
+            TreeViewItem childNode1 = new TreeViewItem() { Header = "Child Node 1" };
+            TreeViewItem childNode2 = new TreeViewItem() { Header = "Child Node 2" };
+
+            // Create sub-child nodes
+            TreeViewItem subChildNode1 = new TreeViewItem() { Header = "Sub-Child Node 1" };
+            TreeViewItem subChildNode2 = new TreeViewItem() { Header = "Sub-Child Node 2" };
+
+            // Add sub-child nodes to child nodes
+            childNode1.Items.Add(subChildNode1);
+            childNode1.Items.Add(subChildNode2);
+
+            // Add child nodes to root node
+            rootNode.Items.Add(childNode1);
+            rootNode.Items.Add(childNode2);
+
+            // Add root node to TreeView
+            treeView.Items.Add(rootNode);
         }
-    }
-
-    public bool IsEditing
-    {
-        get => _isEditing;
-        set
-        {
-            _isEditing = value;
-            OnPropertyChanged(nameof(IsEditing));
-        }
-    }
-
-    public ICommand RenameCommand { get; }
-    public ICommand DeleteCommand { get; }
-
-    public TreeNodeViewModel()
-    {
-        RenameCommand = new RelayCommand(OnRename);
-        DeleteCommand = new RelayCommand(OnDelete);
-    }
-
-    private void OnRename()
-    {
-        IsEditing = true;
-    }
-
-    private void OnDelete()
-    {
-        // Logic to delete the node
-    }
-
-    public event PropertyChangedEventHandler PropertyChanged;
-    protected virtual void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
