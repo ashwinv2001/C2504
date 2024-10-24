@@ -1,102 +1,42 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Microsoft.Win32;
-using System.Xml.Linq;
-
-
-
-
-namespace deserialization
+private void SaveChanges()
 {
-    public partial class MainWindow : Window
+    var viewModel = DataContext as MainWindowViewModel;
+    if (viewModel != null)
     {
-        public MainWindow()
+        try
         {
-            InitializeComponent();
-            DataContext = new MainWindowViewModel(); // Set ViewModel as DataContext
-              // MessageBox.Show("Hello, this is  inside Mainwindow constructor");
-        }
+            // Assuming viewModel.XmlTree is your ObservableCollection<XmlNodeViewModel> or the root of your tree.
+            XElement root = new XElement("Root"); // or whatever the root element is named
 
-        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            if (e.NewValue is XmlNodeViewModel selectedNode)
+            foreach (var node in viewModel.XmlTree)
             {
-                var viewModel = DataContext as MainWindowViewModel;
-                if (viewModel != null)
-                {
-                    viewModel.SelectedNode = selectedNode;
-                  //  MessageBox.Show("Hello, this is  inside TreeView_selectedItemChanged");
-                }
-            }
-        }
-
-        private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-          //  MessageBox.Show("Hello, this is a inside renamemenuitem click!");
-            if (treeView.SelectedItem is XmlNodeViewModel selectedNode)
-            {
-               // MessageBox.Show("Hello, this is a inside renamemenuitem click! if");
-                var viewModel = DataContext as MainWindowViewModel;
-                if (viewModel != null)
-                {
-                   // MessageBox.Show("Hello, this is a inside renamemenuitem click! ifif");
-                    viewModel.SelectedNode = selectedNode;
-                }
+                // Convert your XmlNodeViewModel to XElement
+                XElement element = ConvertToXElement(node);
+                root.Add(element);
             }
 
+            // Save the XML to the file
+            XDocument doc = new XDocument(root);
+            doc.Save(viewModel.FilePath); // FilePath holds the path to the XML file
 
+            MessageBox.Show("Changes saved successfully!");
         }
-
-        private void TextBlock_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        catch (Exception ex)
         {
-            // You can implement your logic here.
-            // For example, you can select the node and display a context menu.
-            var textBlock = sender as TextBlock;
-            if (textBlock != null)
-            {
-                // Optionally, set the data context or handle any actions needed on right-click
-            }
+            MessageBox.Show($"Failed to save changes: {ex.Message}");
         }
-
-        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            // Logic to save changes and update the XML file
-            SaveChanges();
-        }
-
-        private void TextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                // Exit edit mode and save changes when Enter is pressed
-                var textBox = sender as TextBox;
-                if (textBox != null)
-                {
-                    var node = textBox.DataContext as TreeNodeViewModel;
-                    if (node != null)
-                    {
-                        node.IsEditing = false;
-                        SaveChanges();
-                    }
-                }
-            }
-        }
-
     }
 }
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0103	The name 'SaveChanges' does not exist in the current context	deserialization	C:\Users\2021455\Desktop\deserialization - Copy\deserialization\MainWindow.xaml.cs	77	
 
+private XElement ConvertToXElement(XmlNodeViewModel node)
+{
+    XElement element = new XElement(node.Name);
+
+    // If the node has children, recursively convert them too
+    foreach (var child in node.Children)
+    {
+        element.Add(ConvertToXElement(child));
+    }
+
+    return element;
+}
