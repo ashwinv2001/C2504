@@ -3,22 +3,39 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="TreeView Example" Height="350" Width="400">
     <Grid>
-        <TreeView x:Name="treeView" HorizontalAlignment="Left" VerticalAlignment="Top" Width="380" Height="300"/>
+        <TreeView x:Name="treeView" HorizontalAlignment="Left" VerticalAlignment="Top" Width="380" Height="300" 
+                  MouseRightButtonDown="TreeView_MouseRightButtonDown">
+            <TreeView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Rename" Click="RenameMenuItem_Click"/>
+                </ContextMenu>
+            </TreeView.ContextMenu>
+        </TreeView>
     </Grid>
 </Window>
 
 
+
+
+
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace TreeViewExample
 {
     public partial class MainWindow : Window
     {
+        private TreeViewItem _selectedNode;
+
         public MainWindow()
         {
             InitializeComponent();
+            CreateTree();
+        }
 
+        private void CreateTree()
+        {
             // Create root node
             TreeViewItem rootNode = new TreeViewItem() { Header = "Root Node" };
 
@@ -40,6 +57,61 @@ namespace TreeViewExample
 
             // Add root node to TreeView
             treeView.Items.Add(rootNode);
+        }
+
+        private void TreeView_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Get the clicked node
+            _selectedNode = (TreeViewItem)treeView.SelectedItem;
+        }
+
+        private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedNode != null)
+            {
+                TextBox textBox = new TextBox
+                {
+                    Text = _selectedNode.Header.ToString(),
+                    Width = 200
+                };
+                textBox.KeyDown += TextBox_KeyDown;
+                textBox.LostFocus += TextBox_LostFocus;
+
+                // Replace the header with a TextBox
+                _selectedNode.Header = textBox;
+                textBox.Focus();
+                textBox.SelectAll();
+            }
+        }
+
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                TextBox textBox = sender as TextBox;
+                if (_selectedNode != null)
+                {
+                    _selectedNode.Header = textBox.Text; // Update the header with the new name
+                }
+            }
+            else if (e.Key == Key.Escape)
+            {
+                // Cancel renaming
+                if (_selectedNode != null)
+                {
+                    TextBox textBox = sender as TextBox;
+                    _selectedNode.Header = textBox.Text; // Restore the original name
+                }
+            }
+        }
+
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            TextBox textBox = sender as TextBox;
+            if (_selectedNode != null)
+            {
+                _selectedNode.Header = textBox.Text; // Update the header with the new name
+            }
         }
     }
 }
