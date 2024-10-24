@@ -1,55 +1,38 @@
-<Window x:Class="deserialization.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:Converter="clr-namespace:deserialization.Converter"
-        Title="XML Deserialization" Height="450" Width="800">
-    <Window.Resources>
-        <Converter:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-    </Window.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
-        <!-- File path and browse button -->
-        <StackPanel Orientation="Horizontal" Margin="10">
-            <TextBox Width="400" Text="{Binding FilePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" />
-            <Button Content="Browse" Command="{Binding BrowseCommand}" Width="100" Margin="10,0,0,0"/>
-        </StackPanel>
+namespace deserialization
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
 
-        <!-- TreeView to display the XML data -->
-        <TreeView x:Name="treeView" Grid.Row="1" ItemsSource="{Binding XmlTree}" 
-                  SelectedItemChanged="TreeView_SelectedItemChanged" 
-                  Margin="10">
-            <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                    <StackPanel Orientation="Horizontal">
-                        <!-- Non-editing mode -->
-                        <TextBlock Text="{Binding Name}" 
-                                   Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}"
-                                   MouseRightButtonDown="TextBlock_MouseRightButtonDown" />  
+        // Event handler for TextBlock right mouse button down
+        private void TextBlock_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Example: Show context menu or any desired action
+            TextBlock textBlock = sender as TextBlock;
+            if (textBlock != null)
+            {
+                // Here you could open a context menu or perform other actions
+                // For instance, you can set the data context or highlight the TextBlock
+                MessageBox.Show($"Right-clicked on: {textBlock.Text}");
+            }
+        }
 
-                        <!-- Editing mode -->
-                        <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                 Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=True}" 
-                                 LostFocus="TextBox_LostFocus" 
-                                 KeyDown="TextBox_KeyDown" 
-                                 Width="200" />
+        // Other event handlers can be defined here
+        private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Implement your rename logic here
+        }
 
-                        <!-- Context Menu for Rename/Delete -->
-                        <StackPanel.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Rename" Click="RenameMenuItem_Click" />
-                                <MenuItem Header="Delete" Click="DeleteMenuItem_Click" />
-                            </ContextMenu>
-                        </StackPanel.ContextMenu>
-                    </StackPanel>
-                </HierarchicalDataTemplate>
-            </TreeView.ItemTemplate>
-        </TreeView>
-    </Grid>
-</Window>
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS1061	'MainWindow' does not contain a definition for 'TextBlock_MouseRightButtonDown' and no accessible extension method 'TextBlock_MouseRightButtonDown' accepting a first argument of type 'MainWindow' could be found (are you missing a using directive or an assembly reference?)	deserialization	C:\Users\2021455\Desktop\deserialization - Copy\deserialization\MainWindow.xaml	31	
+        private void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Implement your delete logic here
+        }
+    }
+}
