@@ -1,42 +1,50 @@
-private void SaveChanges()
+public class TreeNodeViewModel : INotifyPropertyChanged
 {
-    var viewModel = DataContext as MainWindowViewModel;
-    if (viewModel != null)
+    private string _name;
+    private bool _isEditing;
+
+    public string Name
     {
-        try
+        get => _name;
+        set
         {
-            // Assuming viewModel.XmlTree is your ObservableCollection<XmlNodeViewModel> or the root of your tree.
-            XElement root = new XElement("Root"); // or whatever the root element is named
-
-            foreach (var node in viewModel.XmlTree)
-            {
-                // Convert your XmlNodeViewModel to XElement
-                XElement element = ConvertToXElement(node);
-                root.Add(element);
-            }
-
-            // Save the XML to the file
-            XDocument doc = new XDocument(root);
-            doc.Save(viewModel.FilePath); // FilePath holds the path to the XML file
-
-            MessageBox.Show("Changes saved successfully!");
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"Failed to save changes: {ex.Message}");
+            _name = value;
+            OnPropertyChanged(nameof(Name));
         }
     }
-}
 
-private XElement ConvertToXElement(XmlNodeViewModel node)
-{
-    XElement element = new XElement(node.Name);
-
-    // If the node has children, recursively convert them too
-    foreach (var child in node.Children)
+    public bool IsEditing
     {
-        element.Add(ConvertToXElement(child));
+        get => _isEditing;
+        set
+        {
+            _isEditing = value;
+            OnPropertyChanged(nameof(IsEditing));
+        }
     }
 
-    return element;
+    public ICommand RenameCommand { get; }
+    public ICommand DeleteCommand { get; }
+
+    public TreeNodeViewModel()
+    {
+        RenameCommand = new RelayCommand(OnRename);
+        DeleteCommand = new RelayCommand(OnDelete);
+    }
+
+    private void OnRename()
+    {
+        IsEditing = true;
+    }
+
+    private void OnDelete()
+    {
+        // Logic to delete the node
+    }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 }
