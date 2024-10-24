@@ -20,27 +20,116 @@
                   Margin="10">
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                    <StackPanel Orientation="Horizontal">
+                        <!-- Non-editing mode -->
+                        <TextBlock Text="{Binding Name}" 
+                                   Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}"
+                                   MouseLeftButtonDown="TextBlock_MouseLeftButtonDown" />
 
-                    <TextBlock Text="{Binding Name}" Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}" 
-                   MouseDoubleClick="TextBlock_MouseDoubleClick">
-                        
-                       <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                 Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=True}" 
-                 LostFocus="TextBox_LostFocus" 
-                 KeyDown="TextBox_KeyDown" 
-                 Width="200" /> 
+                        <!-- Editing mode -->
+                        <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                 Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=True}" 
+                                 LostFocus="TextBox_LostFocus" 
+                                 KeyDown="TextBox_KeyDown" 
+                                 Width="200" />
+
+                        <!-- Context Menu for Rename/Delete -->
                         <TextBlock.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Rename"  Click="RenameMenuItem_Click " />
-                                <MenuItem Header="Delete"  Click="DeleteMenuItem_Click" />
+                                <MenuItem Header="Rename" Click="RenameMenuItem_Click" />
+                                <MenuItem Header="Delete" Click="DeleteMenuItem_Click" />
                             </ContextMenu>
                         </TextBlock.ContextMenu>
-                    </TextBlock>
+                    </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
         </TreeView>
     </Grid>
 </Window>
 
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	XLS0413	The property 'MouseDoubleClick' was not found in type 'TextBlock'.	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindow.xaml	25	
+
+
+using System;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+
+namespace deserialization
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+            DataContext = new MainWindowViewModel();
+        }
+
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (e.NewValue is XmlNodeViewModel selectedNode)
+            {
+                var viewModel = DataContext as MainWindowViewModel;
+                if (viewModel != null)
+                {
+                    viewModel.SelectedNode = selectedNode;
+                }
+            }
+        }
+
+        private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Check if it's a double-click
+            if (e.ClickCount == 2)
+            {
+                if (sender is TextBlock textBlock)
+                {
+                    var selectedNode = textBlock.DataContext as XmlNodeViewModel;
+                    if (selectedNode != null)
+                    {
+                        selectedNode.IsEditing = true;
+                    }
+                }
+            }
+        }
+
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox textBox)
+            {
+                var selectedNode = textBox.DataContext as XmlNodeViewModel;
+                if (selectedNode != null)
+                {
+                    selectedNode.IsEditing = false;
+                }
+            }
+        }
+
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter || e.Key == Key.Return)
+            {
+                if (sender is TextBox textBox)
+                {
+                    var selectedNode = textBox.DataContext as XmlNodeViewModel;
+                    if (selectedNode != null)
+                    {
+                        selectedNode.IsEditing = false;
+                    }
+                }
+            }
+        }
+
+        private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (treeView.SelectedItem is XmlNodeViewModel selectedNode)
+            {
+                selectedNode.IsEditing = true; // Enable editing mode
+            }
+        }
+
+        private void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Handle delete logic here
+        }
+    }
+}
