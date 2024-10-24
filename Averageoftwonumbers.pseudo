@@ -1,40 +1,108 @@
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-
-namespace deserialization
+public class XmlNodeModel : INotifyPropertyChanged
 {
-    public partial class MainWindow : Window
+    private string _name;
+    private bool _isEditing;
+
+    public string Name
     {
-        public MainWindow()
+        get => _name;
+        set
         {
-            InitializeComponent();
-        }
-
-        // Event handler for TextBlock right mouse button down
-        private void TextBlock_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            // Example: Show context menu or any desired action
-            TextBlock textBlock = sender as TextBlock;
-            if (textBlock != null)
-            {
-                // You can implement your desired logic here
-                MessageBox.Show($"Right-clicked on: {textBlock.Text}");
-            }
-        }
-
-        // Event handler for Rename Menu Item
-        private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            // Implement your rename logic here
-            MessageBox.Show("Rename action triggered.");
-        }
-
-        // Event handler for Delete Menu Item
-        private void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            // Implement your delete logic here
-            MessageBox.Show("Delete action triggered.");
+            _name = value;
+            OnPropertyChanged(nameof(Name));
         }
     }
+
+    public bool IsEditing
+    {
+        get => _isEditing;
+        set
+        {
+            _isEditing = value;
+            OnPropertyChanged(nameof(IsEditing));
+        }
+    }
+
+    public ObservableCollection<XmlNodeModel> Children { get; set; }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    protected void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 }
+
+
+
+
+
+private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
+{
+    if (sender is MenuItem menuItem && menuItem.DataContext is XmlNodeModel node)
+    {
+        // Set the node to editing mode
+        node.IsEditing = true;
+
+        // Optionally, set focus to the TextBox after renaming
+        treeView.Focus();
+    }
+}
+
+
+
+
+
+
+<HierarchicalDataTemplate ItemsSource="{Binding Children}">
+    <StackPanel Orientation="Horizontal">
+        <!-- Non-editing mode -->
+        <TextBlock Text="{Binding Name}" 
+                   Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}"
+                   MouseRightButtonDown="TextBlock_MouseRightButtonDown" />
+
+        <!-- Editing mode -->
+        <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                 Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=True}" 
+                 LostFocus="TextBox_LostFocus" 
+                 KeyDown="TextBox_KeyDown" 
+                 Width="200" />
+
+        <!-- Context Menu for Rename/Delete -->
+        <StackPanel.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="Rename" Click="RenameMenuItem_Click" />
+                <MenuItem Header="Delete" Click="DeleteMenuItem_Click" />
+            </ContextMenu>
+        </StackPanel.ContextMenu>
+    </StackPanel>
+</HierarchicalDataTemplate>
+
+
+
+
+
+private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+{
+    if (sender is TextBox textBox && textBox.DataContext is XmlNodeModel node)
+    {
+        // Set IsEditing to false when the TextBox loses focus
+        node.IsEditing = false;
+    }
+}
+
+
+
+private void TextBox_KeyDown(object sender, KeyEventArgs e)
+{
+    if (e.Key == Key.Enter && sender is TextBox textBox && textBox.DataContext is XmlNodeModel node)
+    {
+        // Finish editing
+        node.IsEditing = false;
+        e.Handled = true; // Prevent further handling
+    }
+}
+
+
+
+
