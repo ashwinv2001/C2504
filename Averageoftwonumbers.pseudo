@@ -1,35 +1,51 @@
-private void SaveXmlChanges()
-{
-    // Assuming you have a property in your ViewModel to hold the root XElement
-    var viewModel = DataContext as MainWindowViewModel;
+<Window x:Class="deserialization.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="XML Deserialization" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-    if (viewModel != null && viewModel.XmlTree != null && viewModel.XmlTree.Count > 0)
-    {
-        // Start with the root element
-        XElement rootElement = viewModel.XmlTree.First().XmlElement;
+        <!-- File path and browse button -->
+        <StackPanel Orientation="Horizontal" Margin="10">
+            <TextBox Width="400" Text="{Binding FilePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" />
+            <Button Content="Browse" Command="{Binding BrowseCommand}" Width="100" Margin="10,0,0,0"/>
+        </StackPanel>
 
-        // Create a new XDocument
-        XDocument doc = new XDocument(new XElement(rootElement.Name));
+        <!-- TreeView to display the XML data -->
+        <TreeView x:Name="treeView" Grid.Row="1" ItemsSource="{Binding XmlTree}" 
+                  SelectedItemChanged="TreeView_SelectedItemChanged" 
+                  Margin="10">
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                    <StackPanel Orientation="Horizontal">
+                        <!-- Non-editing mode -->
+                        <TextBlock Text="{Binding Name}" 
+                                   Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}"
+                                   MouseRightButtonDown="TextBlock_MouseRightButtonDown" />
 
-        // Recursively add children
-        AddChildrenToXml(rootElement, doc.Root);
+                        <!-- Editing mode -->
+                        <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                 Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=True}" 
+                                 LostFocus="TextBox_LostFocus" 
+                                 KeyDown="TextBox_KeyDown" 
+                                 Width="200" />
 
-        // Save the XDocument back to the original XML file
-        // Replace "yourfile.xml" with the actual file path you used to load the XML
-        string filePath = viewModel.FilePath; // Assuming FilePath holds the path to the XML file
-        doc.Save(filePath);
-    }
-}
+                        <!-- Context Menu for Rename/Delete -->
+                        <StackPanel.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Rename" Click="RenameMenuItem_Click" />
+                                <MenuItem Header="Delete" Click="DeleteMenuItem_Click" />
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+    </Grid>
+</Window>
+Severity	Code	Description	Project	File	Line	Suppression State
+Error	XDG-0001	The resource "BooleanToVisibilityConverter" could not be resolved.	deserialization	C:\Users\2021455\Desktop\deserialization - Copy\deserialization\MainWindow.xaml	26	
 
-// Recursive method to add children to the XML
-private void AddChildrenToXml(XElement parentElement, XElement parentNode)
-{
-    foreach (var child in parentElement.Elements())
-    {
-        XElement childNode = new XElement(child.Name, child.Value);
-        parentNode.Add(childNode);
-        
-        // Recursively add child nodes
-        AddChildrenToXml(child, childNode);
-    }
-}
