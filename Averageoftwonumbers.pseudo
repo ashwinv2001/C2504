@@ -1,10 +1,23 @@
-private void TextBlock_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+private void TextBox_LostFocus(object sender, RoutedEventArgs e)
 {
-    // You can implement your logic here.
-    // For example, you can select the node and display a context menu.
-    var textBlock = sender as TextBlock;
-    if (textBlock != null)
+    // Logic to save changes and update the XML file
+    SaveChanges();
+}
+
+private void TextBox_KeyDown(object sender, KeyEventArgs e)
+{
+    if (e.Key == Key.Enter)
     {
-        // Optionally, set the data context or handle any actions needed on right-click
+        // Exit edit mode and save changes when Enter is pressed
+        var textBox = sender as TextBox;
+        if (textBox != null)
+        {
+            var node = textBox.DataContext as TreeNodeViewModel;
+            if (node != null)
+            {
+                node.IsEditing = false;
+                SaveChanges();
+            }
+        }
     }
 }
