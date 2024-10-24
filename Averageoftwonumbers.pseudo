@@ -1,3 +1,47 @@
+public class XmlNodeViewModel : INotifyPropertyChanged
+{
+    private string _name;
+    private bool _isEditing;
+
+    public string Name
+    {
+        get => _name;
+        set
+        {
+            if (_name != value)
+            {
+                _name = value;
+                OnPropertyChanged(nameof(Name));
+            }
+        }
+    }
+
+    public bool IsEditing
+    {
+        get => _isEditing;
+        set
+        {
+            if (_isEditing != value)
+            {
+                _isEditing = value;
+                OnPropertyChanged(nameof(IsEditing));
+            }
+        }
+    }
+
+    // Implement INotifyPropertyChanged
+    public event PropertyChangedEventHandler PropertyChanged;
+    protected void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    // Your XML element representation
+    public XElement XmlElement { get; set; }
+}
+
+
+
 <Window x:Class="deserialization.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -21,12 +65,11 @@
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                     <StackPanel Orientation="Horizontal">
-
                         <!-- Non-editing mode -->
                         <TextBlock Text="{Binding Name}" 
                                    Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}"
-                                   MouseLeftButtonDown="TextBlock_MouseLeftButtonDown" />
-
+                                   MouseRightButtonDown="TextBlock_MouseRightButtonDown" />
+                        
                         <!-- Editing mode -->
                         <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                  Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=True}" 
@@ -34,17 +77,55 @@
                                  KeyDown="TextBox_KeyDown" 
                                  Width="200" />
 
-                        <!-- Context Menu for Rename/Delete at StackPanel level -->
+                        <!-- Context Menu for Rename/Delete -->
                         <StackPanel.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Rename" Click="RenameMenuItem_Click" />
                                 <MenuItem Header="Delete" Click="DeleteMenuItem_Click" />
                             </ContextMenu>
                         </StackPanel.ContextMenu>
-
                     </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
         </TreeView>
     </Grid>
 </Window>
+
+
+
+private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
+{
+    if (treeView.SelectedItem is XmlNodeViewModel selectedNode)
+    {
+        selectedNode.IsEditing = true; // Set the node to editing mode
+    }
+}
+
+// This method will handle the LostFocus event of the TextBox to save changes
+private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+{
+    if (sender is TextBox textBox && textBox.DataContext is XmlNodeViewModel node)
+    {
+        node.IsEditing = false; // Exit editing mode
+        SaveXmlChanges(); // Save the XML changes
+    }
+}
+
+// Handle the Enter key to save changes and exit editing mode
+private void TextBox_KeyDown(object sender, KeyEventArgs e)
+{
+    if (e.Key == Key.Enter && sender is TextBox textBox && textBox.DataContext is XmlNodeViewModel node)
+    {
+        node.IsEditing = false; // Exit editing mode
+        SaveXmlChanges(); // Save the XML changes
+    }
+}
+
+// Save XML changes to file
+private void SaveXmlChanges()
+{
+    // Logic to save the XML file
+    // For example:
+    // XDocument doc = XDocument.Load("yourfile.xml");
+    // doc.Save("yourfile.xml");
+}
