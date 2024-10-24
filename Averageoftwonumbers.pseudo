@@ -1,21 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Microsoft.Win32;
-using System.Xml.Linq;
-
 
 namespace deserialization
 {
@@ -68,7 +53,37 @@ namespace deserialization
             }
         }
 
-        // Prompt the user for a new name
+        // Handle the Delete operation on ContextMenu click
+        private void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (treeView.SelectedItem is XmlNodeViewModel selectedNode)
+            {
+                var viewModel = DataContext as MainWindowViewModel;
+                if (viewModel != null)
+                {
+                    // Confirm before deleting
+                    var result = MessageBox.Show($"Are you sure you want to delete the node '{selectedNode.Name}'?", "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        // Delete the node from the ViewModel
+                        viewModel.XmlTree.Remove(selectedNode);
+
+                        // Delete the corresponding XML element
+                        var element = selectedNode.XmlElement;
+                        if (element != null)
+                        {
+                            element.Remove();
+                            viewModel.SaveXmlChanges(); // Save the changes to the XML file
+                        }
+
+                        // Notify the UI that the tree has changed
+                        viewModel.OnPropertyChanged(nameof(viewModel.XmlTree));
+                    }
+                }
+            }
+        }
+
+        // Prompt the user for a new name (used for rename)
         private string PromptForInput(string message, string defaultInput = "")
         {
             InputDialog inputDialog = new InputDialog(defaultInput);
@@ -76,6 +91,3 @@ namespace deserialization
         }
     }
 }
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0122	'MainWindowViewModel.SaveXmlChanges()' is inaccessible due to its protection level	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindow.xaml.cs	61	
