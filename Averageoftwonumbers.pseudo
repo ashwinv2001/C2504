@@ -1,132 +1,16 @@
-<HierarchicalDataTemplate ItemsSource="{Binding Children}">
-    <StackPanel Orientation="Horizontal">
-        <!-- Bind the Visibility of TextBlock and TextBox to whether the node is in edit mode or not -->
-        <TextBlock Text="{Binding Name}" 
-                   Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}" 
-                   MouseDoubleClick="TextBlock_MouseDoubleClick"/>
-        <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                 Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=True}" 
-                 LostFocus="TextBox_LostFocus" 
-                 KeyDown="TextBox_KeyDown" 
-                 Width="200" />
-    </StackPanel>
-</HierarchicalDataTemplate>
+<Application x:Class="deserialization.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:deserialization"
+             >
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Window.Resources>
+    <Application.Resources>
+         
+    </Application.Resources>
+   
+</Application>
 
-
-
-
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-
-namespace deserialization
-{
-    public partial class MainWindow : Window
-    {
-        public MainWindow()
-        {
-            InitializeComponent();
-            DataContext = new MainWindowViewModel(); // Set ViewModel as DataContext
-        }
-
-        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            if (e.NewValue is XmlNodeViewModel selectedNode)
-            {
-                var viewModel = DataContext as MainWindowViewModel;
-                if (viewModel != null)
-                {
-                    viewModel.SelectedNode = selectedNode;
-                }
-            }
-        }
-
-        // Enable in-place editing when double-clicking on the node name
-        private void TextBlock_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is TextBlock textBlock && textBlock.DataContext is XmlNodeViewModel selectedNode)
-            {
-                selectedNode.IsEditing = true;
-            }
-        }
-
-        // Disable editing when the TextBox loses focus
-        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (sender is TextBox textBox && textBox.DataContext is XmlNodeViewModel selectedNode)
-            {
-                selectedNode.IsEditing = false;
-                // Optionally, save changes to the XML file
-                var viewModel = DataContext as MainWindowViewModel;
-                viewModel?.SaveXmlChanges();
-            }
-        }
-
-        // Disable editing and commit changes when pressing Enter
-        private void TextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter && sender is TextBox textBox && textBox.DataContext is XmlNodeViewModel selectedNode)
-            {
-                selectedNode.IsEditing = false;
-                var viewModel = DataContext as MainWindowViewModel;
-                viewModel?.SaveXmlChanges(); // Save the changes to the XML file
-            }
-        }
-    }
-}
-
-
-
-
-
-using System.ComponentModel;
-using System.Xml.Linq;
-
-public class XmlNodeViewModel : INotifyPropertyChanged
-{
-    private bool _isEditing;
-    private string _name;
-
-    public string Name
-    {
-        get => _name;
-        set
-        {
-            if (_name != value)
-            {
-                _name = value;
-                OnPropertyChanged(nameof(Name));
-            }
-        }
-    }
-
-    public bool IsEditing
-    {
-        get => _isEditing;
-        set
-        {
-            if (_isEditing != value)
-            {
-                _isEditing = value;
-                OnPropertyChanged(nameof(IsEditing));
-            }
-        }
-    }
-
-    public XElement XmlElement { get; set; }
-
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    protected virtual void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-}
-
-
-
-
-
-<Window.Resources>
-    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-</Window.Resources>
+Severity	Code	Description	Project	File	Line	Suppression State
+Error	XDG0012	The member "Resources" is not recognized or is not accessible.	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\App.xaml	6	
