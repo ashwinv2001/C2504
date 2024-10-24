@@ -21,6 +21,7 @@
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                     <StackPanel Orientation="Horizontal">
+
                         <!-- Non-editing mode -->
                         <TextBlock Text="{Binding Name}" 
                                    Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}"
@@ -33,19 +34,17 @@
                                  KeyDown="TextBox_KeyDown" 
                                  Width="200" />
 
-                        <!-- Context Menu for Rename/Delete -->
-                        <TextBlock.ContextMenu>
+                        <!-- Context Menu for Rename/Delete at StackPanel level -->
+                        <StackPanel.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Rename" Click="RenameMenuItem_Click" />
                                 <MenuItem Header="Delete" Click="DeleteMenuItem_Click" />
                             </ContextMenu>
-                        </TextBlock.ContextMenu>
+                        </StackPanel.ContextMenu>
+
                     </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
         </TreeView>
     </Grid>
 </Window>
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	XDG0012	The member "ContextMenu" is not recognized or is not accessible.	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindow.xaml	37	
-
