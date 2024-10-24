@@ -1,23 +1,102 @@
-private void TextBox_LostFocus(object sender, RoutedEventArgs e)
-{
-    // Logic to save changes and update the XML file
-    SaveChanges();
-}
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using Microsoft.Win32;
+using System.Xml.Linq;
 
-private void TextBox_KeyDown(object sender, KeyEventArgs e)
+
+
+
+namespace deserialization
 {
-    if (e.Key == Key.Enter)
+    public partial class MainWindow : Window
     {
-        // Exit edit mode and save changes when Enter is pressed
-        var textBox = sender as TextBox;
-        if (textBox != null)
+        public MainWindow()
         {
-            var node = textBox.DataContext as TreeNodeViewModel;
-            if (node != null)
+            InitializeComponent();
+            DataContext = new MainWindowViewModel(); // Set ViewModel as DataContext
+              // MessageBox.Show("Hello, this is  inside Mainwindow constructor");
+        }
+
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (e.NewValue is XmlNodeViewModel selectedNode)
             {
-                node.IsEditing = false;
-                SaveChanges();
+                var viewModel = DataContext as MainWindowViewModel;
+                if (viewModel != null)
+                {
+                    viewModel.SelectedNode = selectedNode;
+                  //  MessageBox.Show("Hello, this is  inside TreeView_selectedItemChanged");
+                }
             }
         }
+
+        private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+          //  MessageBox.Show("Hello, this is a inside renamemenuitem click!");
+            if (treeView.SelectedItem is XmlNodeViewModel selectedNode)
+            {
+               // MessageBox.Show("Hello, this is a inside renamemenuitem click! if");
+                var viewModel = DataContext as MainWindowViewModel;
+                if (viewModel != null)
+                {
+                   // MessageBox.Show("Hello, this is a inside renamemenuitem click! ifif");
+                    viewModel.SelectedNode = selectedNode;
+                }
+            }
+
+
+        }
+
+        private void TextBlock_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // You can implement your logic here.
+            // For example, you can select the node and display a context menu.
+            var textBlock = sender as TextBlock;
+            if (textBlock != null)
+            {
+                // Optionally, set the data context or handle any actions needed on right-click
+            }
+        }
+
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            // Logic to save changes and update the XML file
+            SaveChanges();
+        }
+
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                // Exit edit mode and save changes when Enter is pressed
+                var textBox = sender as TextBox;
+                if (textBox != null)
+                {
+                    var node = textBox.DataContext as TreeNodeViewModel;
+                    if (node != null)
+                    {
+                        node.IsEditing = false;
+                        SaveChanges();
+                    }
+                }
+            }
+        }
+
     }
 }
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0103	The name 'SaveChanges' does not exist in the current context	deserialization	C:\Users\2021455\Desktop\deserialization - Copy\deserialization\MainWindow.xaml.cs	77	
+
