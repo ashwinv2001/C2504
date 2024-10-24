@@ -1,16 +1,9 @@
 <Application x:Class="deserialization.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:deserialization"
-             >
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-    </Window.Resources>
+             xmlns:local="clr-namespace:deserialization">
     <Application.Resources>
-         
+        <!-- Place the resources here -->
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </Application.Resources>
-   
 </Application>
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	XDG0012	The member "Resources" is not recognized or is not accessible.	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\App.xaml	6	
