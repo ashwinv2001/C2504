@@ -1,6 +1,23 @@
-using System;
+<HierarchicalDataTemplate ItemsSource="{Binding Children}">
+    <StackPanel Orientation="Horizontal">
+        <!-- Bind the Visibility of TextBlock and TextBox to whether the node is in edit mode or not -->
+        <TextBlock Text="{Binding Name}" 
+                   Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}" 
+                   MouseDoubleClick="TextBlock_MouseDoubleClick"/>
+        <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                 Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=True}" 
+                 LostFocus="TextBox_LostFocus" 
+                 KeyDown="TextBox_KeyDown" 
+                 Width="200" />
+    </StackPanel>
+</HierarchicalDataTemplate>
+
+
+
+
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace deserialization
 {
@@ -24,70 +41,92 @@ namespace deserialization
             }
         }
 
-        // Handle the Rename operation on ContextMenu click
-        private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
+        // Enable in-place editing when double-clicking on the node name
+        private void TextBlock_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (treeView.SelectedItem is XmlNodeViewModel selectedNode)
+            if (sender is TextBlock textBlock && textBlock.DataContext is XmlNodeViewModel selectedNode)
             {
-                string newName = PromptForInput("Enter new name for the node:", selectedNode.Name);
-                if (!string.IsNullOrEmpty(newName))
-                {
-                    var viewModel = DataContext as MainWindowViewModel;
-                    if (viewModel != null)
-                    {
-                        // Rename the node in the ViewModel
-                        selectedNode.Name = newName;
-
-                        // Rename the corresponding XML element
-                        var element = selectedNode.XmlElement;
-                        if (element != null)
-                        {
-                            element.Name = System.Xml.Linq.XName.Get(newName);
-                            viewModel.SaveXmlChanges(); // Save the changes to the XML file
-                        }
-
-                        // Notify the UI that the name has changed
-                        viewModel.OnPropertyChanged(nameof(viewModel.XmlTree));
-                    }
-                }
+                selectedNode.IsEditing = true;
             }
         }
 
-        // Handle the Delete operation on ContextMenu click
-        private void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
+        // Disable editing when the TextBox loses focus
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            if (treeView.SelectedItem is XmlNodeViewModel selectedNode)
+            if (sender is TextBox textBox && textBox.DataContext is XmlNodeViewModel selectedNode)
             {
+                selectedNode.IsEditing = false;
+                // Optionally, save changes to the XML file
                 var viewModel = DataContext as MainWindowViewModel;
-                if (viewModel != null)
-                {
-                    // Confirm before deleting
-                    var result = MessageBox.Show($"Are you sure you want to delete the node '{selectedNode.Name}'?", "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        // Delete the node from the ViewModel
-                        viewModel.XmlTree.Remove(selectedNode);
-
-                        // Delete the corresponding XML element
-                        var element = selectedNode.XmlElement;
-                        if (element != null)
-                        {
-                            element.Remove();
-                            viewModel.SaveXmlChanges(); // Save the changes to the XML file
-                        }
-
-                        // Notify the UI that the tree has changed
-                        viewModel.OnPropertyChanged(nameof(viewModel.XmlTree));
-                    }
-                }
+                viewModel?.SaveXmlChanges();
             }
         }
 
-        // Prompt the user for a new name (used for rename)
-        private string PromptForInput(string message, string defaultInput = "")
+        // Disable editing and commit changes when pressing Enter
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            InputDialog inputDialog = new InputDialog(defaultInput);
-            return inputDialog.ShowDialog() == true ? inputDialog.InputText : null;
+            if (e.Key == Key.Enter && sender is TextBox textBox && textBox.DataContext is XmlNodeViewModel selectedNode)
+            {
+                selectedNode.IsEditing = false;
+                var viewModel = DataContext as MainWindowViewModel;
+                viewModel?.SaveXmlChanges(); // Save the changes to the XML file
+            }
         }
     }
 }
+
+
+
+
+
+using System.ComponentModel;
+using System.Xml.Linq;
+
+public class XmlNodeViewModel : INotifyPropertyChanged
+{
+    private bool _isEditing;
+    private string _name;
+
+    public string Name
+    {
+        get => _name;
+        set
+        {
+            if (_name != value)
+            {
+                _name = value;
+                OnPropertyChanged(nameof(Name));
+            }
+        }
+    }
+
+    public bool IsEditing
+    {
+        get => _isEditing;
+        set
+        {
+            if (_isEditing != value)
+            {
+                _isEditing = value;
+                OnPropertyChanged(nameof(IsEditing));
+            }
+        }
+    }
+
+    public XElement XmlElement { get; set; }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+
+
+
+
+
+<Window.Resources>
+    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+</Window.Resources>
