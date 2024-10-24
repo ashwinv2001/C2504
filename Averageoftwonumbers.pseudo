@@ -1,73 +1,21 @@
-public class TreeNodeViewModel : INotifyPropertyChanged
-{
-    private string _name;
-    private bool _isEditing;
-
-    public string Name
-    {
-        get => _name;
-        set
-        {
-            _name = value;
-            OnPropertyChanged(nameof(Name));
-        }
-    }
-
-    public bool IsEditing
-    {
-        get => _isEditing;
-        set
-        {
-            _isEditing = value;
-            OnPropertyChanged(nameof(IsEditing));
-        }
-    }
-
-    public ICommand RenameCommand { get; }
-    public ICommand DeleteCommand { get; }
-
-    public TreeNodeViewModel()
-    {
-        RenameCommand = new RelayCommand(OnRename);
-        DeleteCommand = new RelayCommand(OnDelete);
-    }
-
-    private void OnRename()
-    {
-        IsEditing = true;
-    }
-
-    private void OnDelete()
-    {
-        // Logic to delete the node
-    }
-
-    public event PropertyChangedEventHandler PropertyChanged;
-    protected virtual void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-}
-
-
-
-<Window.Resources>
-    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-</Window.Resources>
-
-<TreeView x:Name="treeView" Grid.Row="1" ItemsSource="{Binding XmlTree}">
+<TreeView x:Name="treeView" Grid.Row="1" ItemsSource="{Binding XmlTree}" 
+          SelectedItemChanged="TreeView_SelectedItemChanged" 
+          Margin="10">
     <TreeView.ItemTemplate>
         <HierarchicalDataTemplate ItemsSource="{Binding Children}">
             <StackPanel Orientation="Horizontal">
-                <!-- Non-editing mode (TextBlock) -->
+                <!-- Non-editing mode -->
                 <TextBlock Text="{Binding Name}" 
-                           Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}" />
-                
-                <!-- Editing mode (TextBox) -->
+                           Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=False}"
+                           MouseRightButtonDown="TextBlock_MouseRightButtonDown" />
+
+                <!-- Editing mode -->
                 <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                          Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=True}" 
-                         LostFocus="TextBox_LostFocus" KeyDown="TextBox_KeyDown" />
-                
+                         LostFocus="TextBox_LostFocus" 
+                         KeyDown="TextBox_KeyDown" 
+                         Width="200" />
+
                 <!-- Context Menu for Rename/Delete -->
                 <StackPanel.ContextMenu>
                     <ContextMenu>
@@ -79,36 +27,3 @@ public class TreeNodeViewModel : INotifyPropertyChanged
         </HierarchicalDataTemplate>
     </TreeView.ItemTemplate>
 </TreeView>
-
-
-
-
-private void TextBox_LostFocus(object sender, RoutedEventArgs e)
-{
-    if (sender is TextBox textBox)
-    {
-        var node = (TreeNodeViewModel)textBox.DataContext;
-        node.IsEditing = false;
-
-        // Save changes to the XML file
-        SaveToXml();
-    }
-}
-
-private void TextBox_KeyDown(object sender, KeyEventArgs e)
-{
-    if (e.Key == Key.Enter)
-    {
-        TextBox_LostFocus(sender, e);  // Call the same logic as LostFocus when Enter is pressed
-    }
-}
-
-private void SaveToXml()
-{
-    // Logic to save the changes back to the XML file
-}
-
-
-
-
-
