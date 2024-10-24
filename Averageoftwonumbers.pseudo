@@ -1,22 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Microsoft.Win32;
-using System.Xml.Linq;
-
-
 
 namespace deserialization
 {
@@ -36,25 +20,44 @@ namespace deserialization
                 if (viewModel != null)
                 {
                     viewModel.SelectedNode = selectedNode;
-                   // MessageBox.Show("Hello, this is a message!", "Message Box Example", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
         }
 
+        // Handle the Rename operation on ContextMenu click
         private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
         {
             if (treeView.SelectedItem is XmlNodeViewModel selectedNode)
             {
-                var viewModel = DataContext as MainWindowViewModel;
-                if (viewModel != null)
+                string newName = PromptForInput("Enter new name for the node:", selectedNode.Name);
+                if (!string.IsNullOrEmpty(newName))
                 {
-                    viewModel.SelectedNode = selectedNode;
+                    var viewModel = DataContext as MainWindowViewModel;
+                    if (viewModel != null)
+                    {
+                        // Rename the node in the ViewModel
+                        selectedNode.Name = newName;
+
+                        // Rename the corresponding XML element
+                        var element = selectedNode.XmlElement;
+                        if (element != null)
+                        {
+                            element.Name = System.Xml.Linq.XName.Get(newName);
+                            viewModel.SaveXmlChanges(); // Save the changes to the XML file
+                        }
+
+                        // Notify the UI that the name has changed
+                        viewModel.OnPropertyChanged(nameof(viewModel.XmlTree));
+                    }
                 }
             }
         }
 
+        // Prompt the user for a new name
+        private string PromptForInput(string message, string defaultInput = "")
+        {
+            InputDialog inputDialog = new InputDialog(defaultInput);
+            return inputDialog.ShowDialog() == true ? inputDialog.InputText : null;
+        }
     }
 }
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0103	The name 'treeView' does not exist in the current context	deserialization	C:\Users\2021455\source\repos\deserialization\deserialization\MainWindow.xaml.cs	46	
