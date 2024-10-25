@@ -1,184 +1,232 @@
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
-using System.Windows;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Win32;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows.Input;
 using System.Xml.Linq;
+using System.Windows;
+
 
 namespace deserialization
 {
-    public partial class MainWindow : Window
+    public class MainWindowViewModel : BaseViewModel
     {
-        public MainWindow()
-        {
-            InitializeComponent();
-            DataContext = new MainWindowViewModel(); // Set ViewModel as DataContext
-        }
+        
+        public string FilePath { get; set; }
+        public ObservableCollection<XmlNodeViewModel> XmlTree { get; set; } = new ObservableCollection<XmlNodeViewModel>();
 
-        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        private XmlNodeViewModel _selectedNode;
+        public XmlNodeViewModel SelectedNode
         {
-            if (e.NewValue is XmlNodeViewModel selectedNode)
+            get => _selectedNode;
+            set
             {
-                var viewModel = DataContext as MainWindowViewModel;
-                if (viewModel != null)
+                if (_selectedNode != value)
                 {
-                    viewModel.SelectedNode = selectedNode;
+                    _selectedNode = value;
+                    OnPropertyChanged(nameof(SelectedNode));
+                    UpdateCanRenameDelete();
                 }
             }
         }
 
-        private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
+        private bool _canRenameDelete;
+        public bool CanRenameDelete
         {
-            if (treeView.SelectedItem is XmlNodeViewModel selectedNode)
+            get => _canRenameDelete;
+            set
             {
-                var viewModel = DataContext as MainWindowViewModel;
-                if (viewModel != null)
+                if (_canRenameDelete != value)
                 {
-                    viewModel.SelectedNode = selectedNode;
+                    _canRenameDelete = value;
+                    OnPropertyChanged(nameof(CanRenameDelete));
+                    ((RelayCommand)RenameCommand).RaiseCanExecuteChanged();
+                    ((RelayCommand)DeleteCommand).RaiseCanExecuteChanged();
                 }
             }
         }
 
-        private void TextBlock_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            // Logic for right-click context menu handling.
-        }
+        public ICommand BrowseCommand { get; }
+        public ICommand RenameCommand { get; }
+        public ICommand DeleteCommand { get; }
 
-        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            // Save changes when the TextBox loses focus
-            SaveChanges();
-        }
+        private XDocument _xmlDocument;
 
-        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        public MainWindowViewModel()
         {
-            if (e.Key == Key.Enter)
+            BrowseCommand = new RelayCommand(OpenFileDialog);
+            RenameCommand = new RelayCommand(RenameNode, () => CanRenameDelete);
+            DeleteCommand = new RelayCommand(DeleteNode, () => CanRenameDelete);
+
+           
+            if (RenameCommand== null)
             {
-                // Save changes and exit edit mode when Enter is pressed
-                var textBox = sender as TextBox;
-                if (textBox != null)
+                MessageBox.Show("RenameCommand is null ");
+            }
+           // MessageBox.Show("Hello, this is a message!", "Message Box Example", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void OpenFileDialog()
+        {
+            try
+            {
+                //  MessageBox.Show("Hello, this is a message!", "Message Box Example", MessageBoxButton.OK, MessageBoxImage.Information);
+                OpenFileDialog openFileDialog = new OpenFileDialog
                 {
-                    var node = textBox.DataContext as XmlNodeViewModel;
-                    if (node != null)
-                    {
-                        node.IsEditing = false;
-                        SaveChanges();
-                    }
+                    Filter = "XML files (*.xml)|*.xml"
+                };
+
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    FilePath = openFileDialog.FileName;
+                    OnPropertyChanged(nameof(FilePath));
+                    LoadXmlTree(FilePath);
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading XML file: {ex.Message}");
             }
         }
 
-        private void SaveChanges()
+        private void LoadXmlTree(string filePath)
         {
-            var viewModel = DataContext as MainWindowViewModel;
-            if (viewModel != null)
-            {
-                try
-                {
-                    XElement root = new XElement("Root");
+           // MessageBox.Show("This is inside LoadXmlTree");
+            //  MessageBox.Show("Hello, this is a message!", "Message Box Example", MessageBoxButton.OK, MessageBoxImage.Information);
+            XmlTree.Clear();
 
-                    foreach (var node in viewModel.XmlTree)
-                    {
-                        XElement element = ConvertToXElement(node);
-                        root.Add(element);
-                    }
-
-                    XDocument doc = new XDocument(root);
-                    doc.Save(viewModel.FilePath);
-
-                    MessageBox.Show("Changes saved successfully!");
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Failed to save changes: {ex.Message}");
-                }
-            }
-        }
-
-        private XElement ConvertToXElement(XmlNodeViewModel node)
-        {
-            XElement element = new XElement(node.Name);
-
-            foreach (var child in node.Children)
-            {
-                element.Add(ConvertToXElement(child));
-            }
-
-            return element;
-        }
-
-        private void LoadXmlFile(string filePath)
-        {
-            var viewModel = DataContext as MainWindowViewModel;
-            if (viewModel != null)
+            if (File.Exists(filePath))
             {
                 try
                 {
-                    XDocument xmlDoc = XDocument.Load(filePath);
-                    viewModel.XmlTree.Clear();
-
-                    XmlNodeViewModel root = ConvertXmlElementToViewModel(xmlDoc.Root);
-                    viewModel.XmlTree.Add(root);
-
-                    MessageBox.Show("Tree loaded successfully.");
+                   // MessageBox.Show("This is inside LoadXmlTree try block");
+                    _xmlDocument = XDocument.Load(filePath);
+                    MessageBox.Show("XML file loaded successfully . ");
+                    XmlTree.Add(new XmlNodeViewModel(_xmlDocument.Root));
+                    OnPropertyChanged(nameof(XmlTree));
+                    MessageBox.Show("Tree populated successfully");
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error loading the XML file: {ex.Message}");
+                    MessageBox.Show($"Error loading XML: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
 
-        private XmlNodeViewModel ConvertXmlElementToViewModel(XElement element)
+        private void RenameNode()
         {
-            if (element == null)
-                return null;
-
-            // Create a new XmlNodeViewModel using the XElement
-            XmlNodeViewModel node = new XmlNodeViewModel(element);
-
-            // Recursively convert each child element
-            foreach (var childElement in element.Elements())
+            MessageBox.Show("Hello, you are inside renamenode!");
+            if (SelectedNode != null)
             {
-                XmlNodeViewModel childNode = ConvertXmlElementToViewModel(childElement);
-                if (childNode != null)
+               // MessageBox.Show("Hello, this is a message!", "Message Box Example", MessageBoxButton.OK, MessageBoxImage.Information);
+            
+            string newName = PromptForInput("Enter new name for the node:", SelectedNode.Name);
+                if (!string.IsNullOrEmpty(newName))
                 {
-                    node.Children.Add(childNode);
+                    // Rename in the ViewModel
+                    SelectedNode.Name = newName;
+
+                    // Rename in the actual XML element
+                    var element = SelectedNode.XmlElement;
+                    if (element != null)
+                    {
+                        try
+                        {
+                            // Rename the XML element in the original XML document
+                            element.Name = XName.Get(newName);
+                            SaveXmlChanges();
+                            // MessageBox.Show("Hello, this is a message!", "Message Box Example", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Error renaming XML node: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+
+                    // Notify UI of changes
+                    OnPropertyChanged(nameof(XmlTree));
                 }
             }
+        }
 
-            return node;
+        private void DeleteNode()
+        {
+            if (SelectedNode != null && SelectedNode.XmlElement != null)
+            {
+                var parentElement = SelectedNode.XmlElement.Parent;
+                if (parentElement != null)
+                {
+                    // Remove the selected element from the XML document
+                    SelectedNode.XmlElement.Remove();
+                    SaveXmlChanges();
+
+                    // Remove the node from the ViewModel
+                    var parentViewModel = FindParentNode(SelectedNode);
+                    parentViewModel?.Children.Remove(SelectedNode);
+
+                    OnPropertyChanged(nameof(XmlTree));
+                }
+            }
+        }
+
+        private void SaveXmlChanges()
+        {
+            if (!string.IsNullOrEmpty(FilePath))
+            {
+                try
+                {
+                    _xmlDocument.Save(FilePath); // Save the updated XML document
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error saving XML: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private XmlNodeViewModel FindParentNode(XmlNodeViewModel node)
+        {
+            foreach (var rootNode in XmlTree)
+            {
+                var parent = FindParentRecursive(rootNode, node);
+                if (parent != null)
+                    return parent;
+            }
+            return null;
+        }
+
+        private XmlNodeViewModel FindParentRecursive(XmlNodeViewModel current, XmlNodeViewModel search)
+        {
+            foreach (var child in current.Children)
+            {
+                if (child == search)
+                    return current;
+                var result = FindParentRecursive(child, search);
+                if (result != null)
+                    return result;
+            }
+            return null;
+        }
+
+        private string PromptForInput(string message, string defaultInput = "")
+        {
+            InputDialog inputDialog = new InputDialog(defaultInput);
+            return inputDialog.ShowDialog() == true ? inputDialog.InputText : null;
+        }
+
+        private void UpdateCanRenameDelete()
+        {
+            CanRenameDelete = SelectedNode != null; // Adjust your logic as needed
+            (RenameCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (DeleteCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
     }
 }
 
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS1061	'XmlNodeViewModel' does not contain a definition for 'XmlElement' and no accessible extension method 'XmlElement' accepting a first argument of type 'XmlNodeViewModel' could be found (are you missing a using directive or an assembly reference?)	deserialization	C:\Users\2021455\Desktop\deserialization - Copy\deserialization\MainWindowViewModel.cs	134	
 
-
-
-
-using System.Collections.ObjectModel;
-using System.Xml.Linq;
-
-namespace deserialization
-{
-    public class XmlNodeViewModel
-    {
-        public XElement XmlNode { get; set; }
-        public string Name { get; set; }
-        public ObservableCollection<XmlNodeViewModel> Children { get; set; } = new ObservableCollection<XmlNodeViewModel>();
-        public bool IsEditing { get; set; } = false;
-
-        // Constructor that accepts XElement
-        public XmlNodeViewModel(XElement element)
-        {
-            XmlNode = element;
-            Name = element.Name.LocalName;
-
-            // Recursively add child elements to the Children collection
-            foreach (var child in element.Elements())
-            {
-                Children.Add(new XmlNodeViewModel(child));
-            }
-        }
-    }
-}
