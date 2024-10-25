@@ -1,181 +1,123 @@
-<Repository>
-<Title Value="Stack Overflow - Where Developers Learn, Share, &amp; Build Careers" ProjectName="ChromiumSolution" ProcessName="chrome">
-<DisplayName>Stack Overflow - Where Developers Learn, Share, &amp; Build Careers</DisplayName>
-<ControlInfo Value="SPAN">
-<UId>aa4da97d-2346-4376-b767-158cfd68d23a</UId>
-<DisplayName>SPAN</DisplayName>
-<ParImage>ParentImage\Comp_d4360a2a-5724-4d05-953b-b14f343d20d5.png</ParImage>
-<Image>ComponentImage\Comp_74f87d3e-5b9a-41c5-8ca7-669c56d07300.png</Image>
-<XPath>//html[1]/body[1]/div[5]/div[2]/div[1]/nav[1]/ol[1]/li[1]/ol[1]/li[1]/a[1]/div[1]/span[1]</XPath>
-<DefaultXPath>//html[1]/body[1]/div[5]/div[2]/div[1]/nav[1]/ol[1]/li[1]/ol[1]/li[1]/a[1]/div[1]/span[1]</DefaultXPath>
-<CustomXPath>/span[@innertext=Home]</CustomXPath>
-<XPathUsed>Custom XPath</XPathUsed>
-<DatasFromAI/>
-<PropertyInfo/>
-<Id/>
-<Type>SPAN</Type>
-<Title>Stack Overflow - Where Developers Learn, Share, &amp; Build Careers</Title>
-</ControlInfo>
-<ControlInfo Value="DIV">
-<UId>bdf47e38-83f0-4547-b984-c018eff4c139</UId>
-<DisplayName>DIV</DisplayName>
-<ParImage>ParentImage\Comp_e01e7339-fd3c-4ebf-9ed3-4686e407427a.png</ParImage>
-<Image>ComponentImage\Comp_6b7f7d53-1911-4bf1-923a-4baffae750cb.png</Image>
-<XPath>//html[1]/body[1]/div[5]/div[1]/div[1]/aside[1]/div[1]/button[1]/div[1]</XPath>
-<DefaultXPath>//html[1]/body[1]/div[5]/div[1]/div[1]/aside[1]/div[1]/button[1]/div[1]</DefaultXPath>
-<CustomXPath>/div[@class=s-modal--dialog pt32 pr32 pb32 ws4 overflow-visible]/?/div[@class=modal-close]</CustomXPath>
-<XPathUsed>Custom XPath</XPathUsed>
-<DatasFromAI/>
-<PropertyInfo/>
-<Id/>
-<Type>DIV</Type>
-<Title>Stack Overflow - Where Developers Learn, Share, &amp; Build Careers</Title>
-</ControlInfo>
-<ControlInfo Value="SPAN">
-<UId>b042ffd8-a28c-4ce6-8cfa-653bb90f1678</UId>
-<DisplayName>SPAN</DisplayName>
-<ParImage>ParentImage\Comp_d0ec3856-1a64-4987-bc36-f39356a50b62.png</ParImage>
-<Image>ComponentImage\Comp_ed2d88f3-59a9-42ea-a1d1-acd56905969c.png</Image>
-<XPath>//html[1]/body[1]/div[5]/div[2]/div[1]/nav[1]/ol[1]/li[1]/ol[1]/li[2]/a[1]/div[1]/span[1]</XPath>
-<DefaultXPath>//html[1]/body[1]/div[5]/div[2]/div[1]/nav[1]/ol[1]/li[1]/ol[1]/li[2]/a[1]/div[1]/span[1]</DefaultXPath>
-<CustomXPath>/span[@innertext=Questions]</CustomXPath>
-<XPathUsed>Custom XPath</XPathUsed>
-<DatasFromAI/>
-<PropertyInfo/>
-<Id/>
-<Type>SPAN</Type>
-<Title>Stack Overflow - Where Developers Learn, Share, &amp; Build Careers</Title>
-</ControlInfo>
-</Title>
-<Title Value="GitHub: Let’s build from here · GitHub" ProjectName="ChromiumSolution" ProcessName="chrome">
-<DisplayName>GitHub: Let’s build from here · GitHub</DisplayName>
-<ControlInfo Value="SPAN">
-<UId>18a29dc1-1270-42b6-a6af-f89c1824f2ef</UId>
-<DisplayName>SPAN</DisplayName>
-<ParImage>ParentImage\Comp_20f6a44e-eaf8-44b2-b11e-af3a455304e7.png</ParImage>
-<Image>ComponentImage\Comp_d877706c-8501-4c77-90b2-386ca15d49a0.png</Image>
-<XPath>//html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[2]/div[1]/div[1]/qbsearch-input[1]/div[1]/button[1]/span[1]</XPath>
-<DefaultXPath>//html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[2]/div[1]/div[1]/qbsearch-input[1]/div[1]/button[1]/span[1]</DefaultXPath>
-<CustomXPath>/span[@innertext=Search or jump to...]</CustomXPath>
-<XPathUsed>Custom XPath</XPathUsed>
-<DatasFromAI/>
-<PropertyInfo/>
-<Id/>
-<Type>SPAN</Type>
-<Title>GitHub: Let’s build from here · GitHub</Title>
-</ControlInfo>
-<ControlInfo Value="svg">
-<UId>0b63a08c-a897-4393-add2-1ec16f0e86e8</UId>
-<DisplayName>svg</DisplayName>
-<ParImage>ParentImage\Comp_9bc16b43-8f36-46e2-acaa-0bf6da0c1fd6.png</ParImage>
-<Image>ComponentImage\Comp_91bef227-b1be-441f-b3bc-49bfcc9cd3da.png</Image>
-<XPath>//html[1]/body[1]/div[1]/div[1]/global-banner[1]/div[1]/button[1]/svg:svg[1]</XPath>
-<DefaultXPath>//html[1]/body[1]/div[1]/div[1]/global-banner[1]/div[1]/button[1]/svg:svg[1]</DefaultXPath>
-<CustomXPath>/button[@type=button and @class=close-button color-fg-on-emphasis]/svg[@instance=1]</CustomXPath>
-<XPathUsed>Custom XPath</XPathUsed>
-<DatasFromAI/>
-<PropertyInfo/>
-<Id/>
-<Type>svg</Type>
-<Title>GitHub: Let’s build from here · GitHub</Title>
-</ControlInfo>
-<ControlInfo Value="DIV">
-<UId>feff5a2e-42df-4d9d-854b-8982ce241ac6</UId>
-<DisplayName>DIV</DisplayName>
-<ParImage>ParentImage\Comp_b6d6e5a4-1ad1-4437-8968-65dbb0184c1d.png</ParImage>
-<Image>ComponentImage\Comp_19c03827-9a3f-4d2e-85c4-b19cdb55e491.png</Image>
-<XPath>//html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[2]/div[1]/div[1]/qbsearch-input[1]/div[2]</XPath>
-<DefaultXPath>//html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[2]/div[1]/div[1]/qbsearch-input[1]/div[2]</DefaultXPath>
-<CustomXPath>/div[@class=dark-backdrop position-fixed]</CustomXPath>
-<XPathUsed>Custom XPath</XPathUsed>
-<DatasFromAI/>
-<PropertyInfo/>
-<Id/>
-<Type>DIV</Type>
-<Title>GitHub: Let’s build from here · GitHub</Title>
-</ControlInfo>
-<ControlInfo Value="INPUT">
-<UId>1db4aae6-d942-44d8-b175-6eb635756101</UId>
-<DisplayName>INPUT</DisplayName>
-<ParImage>ParentImage\Comp_6d63165e-e9e9-4a46-80e4-9642a914c8c2.png</ParImage>
-<Image>ComponentImage\Comp_db5155ca-5f64-438a-86a6-4b264518d57f.png</Image>
-<XPath>//html[1]/body[1]/div[1]/div[4]/main[1]/div[2]/div[2]/div[1]/div[1]/div[2]/div[2]/div[1]/form[1]/div[1]/input[1]</XPath>
-<DefaultXPath>//html[1]/body[1]/div[1]/div[4]/main[1]/div[2]/div[2]/div[1]/div[1]/div[2]/div[2]/div[1]/form[1]/div[1]/input[1]</DefaultXPath>
-<CustomXPath>/input[@id=hero_user_email]</CustomXPath>
-<XPathUsed>Custom XPath</XPathUsed>
-<DatasFromAI/>
-<PropertyInfo/>
-<Id>hero_user_email</Id>
-<Type>INPUT</Type>
-<Title>GitHub: Let’s build from here · GitHub</Title>
-<Value/>
-</ControlInfo>
-</Title>
-<Title Value="W3Schools Online Web Tutorials" ProjectName="ChromiumSolution" ProcessName="chrome">
-<DisplayName>W3Schools Online Web Tutorials</DisplayName>
-<ControlInfo Value="INPUT">
-<UId>00b92f8f-ed3a-471b-a668-36add62019bf</UId>
-<DisplayName>INPUT</DisplayName>
-<ParImage>ParentImage\Comp_195adc05-22e4-420d-960a-cdd81768e354.png</ParImage>
-<Image>ComponentImage\Comp_177f4561-0050-49a6-99b4-771069424d34.png</Image>
-<XPath>//html[1]/body[1]/div[4]/div[1]/div[1]/div[1]/div[1]/form[1]/input[1]</XPath>
-<DefaultXPath>//html[1]/body[1]/div[4]/div[1]/div[1]/div[1]/div[1]/form[1]/input[1]</DefaultXPath>
-<CustomXPath>/input[@id=search2]</CustomXPath>
-<XPathUsed>Custom XPath</XPathUsed>
-<DatasFromAI/>
-<PropertyInfo/>
-<Id>search2</Id>
-<Type>INPUT</Type>
-<Title>W3Schools Online Web Tutorials</Title>
-<Value/>
-</ControlInfo>
-<ControlInfo Value="A">
-<UId>9140ee14-353a-4f23-ba92-c829d3133d5b</UId>
-<DisplayName>A</DisplayName>
-<ParImage>ParentImage\Comp_5d715617-27ab-417c-8850-24c9f620b66c.png</ParImage>
-<Image>ComponentImage\Comp_7e0f70e7-76e7-4068-ba77-bc302c445e5a.png</Image>
-<XPath>//html[1]/body[1]/div[3]/a[17]</XPath>
-<DefaultXPath>//html[1]/body[1]/div[3]/a[17]</DefaultXPath>
-<CustomXPath>/a[@innertext=EXCEL]</CustomXPath>
-<XPathUsed>Custom XPath</XPathUsed>
-<DatasFromAI/>
-<PropertyInfo/>
-<Id/>
-<Type>A</Type>
-<Title>W3Schools Online Web Tutorials</Title>
-</ControlInfo>
-</Title>
-<Title Value="Excel Tutorial" ProjectName="ChromiumSolution" ProcessName="chrome">
-<DisplayName>Excel Tutorial</DisplayName>
-<ControlInfo Value="A">
-<UId>c55059b1-811a-490b-a680-08ec419319ff</UId>
-<DisplayName>A</DisplayName>
-<ParImage>ParentImage\Comp_2f86f68a-6457-4e23-a470-3117e0a54395.png</ParImage>
-<Image>ComponentImage\Comp_3181939c-0394-44ad-b888-3a8016683c39.png</Image>
-<XPath>//html[1]/body[1]/div[5]/div[1]/div[1]/div[2]/a[1]</XPath>
-<DefaultXPath>//html[1]/body[1]/div[5]/div[1]/div[1]/div[2]/a[1]</DefaultXPath>
-<CustomXPath>/a[@innertext=❮ Home]</CustomXPath>
-<XPathUsed>Custom XPath</XPathUsed>
-<DatasFromAI/>
-<PropertyInfo/>
-<Id/>
-<Type>A</Type>
-<Title>Excel Tutorial</Title>
-</ControlInfo>
-<ControlInfo Value="A">
-<UId>3bd67591-ec43-4a02-b56f-18217cb6d90e</UId>
-<DisplayName>A</DisplayName>
-<ParImage>ParentImage\Comp_8175ee62-1d0d-4c31-afb5-479905f5d4ad.png</ParImage>
-<Image>ComponentImage\Comp_23931947-c2a0-49a3-aeee-b9927d181c49.png</Image>
-<XPath>//html[1]/body[1]/div[3]/a[17]</XPath>
-<DefaultXPath>//html[1]/body[1]/div[3]/a[17]</DefaultXPath>
-<CustomXPath/>
-<XPathUsed>Custom XPath</XPathUsed>
-<DatasFromAI/>
-<PropertyInfo/>
-<Id/>
-<Type>A</Type>
-<Title>W3Schools Online Web Tutorials</Title>
-</ControlInfo>
-</Title>
-</Repository>
+using System;
+using System.Collections.Generic;
+using System.Xml.Serialization;
+
+[XmlRoot("Company")]
+public class Company
+{
+    [XmlElement("Department")]
+    public List<Department> Departments { get; set; }
+}
+
+public class Department
+{
+    [XmlAttribute("name")]
+    public string Name { get; set; }
+
+    [XmlElement("Employee")]
+    public List<Employee> Employees { get; set; }
+}
+
+public class Employee
+{
+    [XmlAttribute("id")]
+    public int Id { get; set; }
+
+    [XmlElement("Name")]
+    public string Name { get; set; }
+
+    [XmlElement("Position")]
+    public string Position { get; set; }
+}
+
+
+
+
+<Window x:Class="XmlTreeViewApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="XML Tree Viewer" Height="450" Width="800">
+    <StackPanel Margin="10">
+        <TextBox x:Name="FilePathTextBox" Width="600" IsReadOnly="True" Margin="0,0,10,0"/>
+        <Button Content="Browse" Width="80" Click="BrowseButton_Click" />
+        <TreeView x:Name="XmlTreeView" Margin="0,10,0,0"/>
+    </StackPanel>
+</Window>
+
+
+
+
+using System;
+using System.IO;
+using System.Windows;
+using Microsoft.Win32;
+using System.Xml.Serialization;
+
+namespace XmlTreeViewApp
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        private void BrowseButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "XML Files (*.xml)|*.xml",
+                Title = "Select an XML File"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                FilePathTextBox.Text = openFileDialog.FileName;
+                DeserializeAndDisplayXml(openFileDialog.FileName);
+            }
+        }
+
+        private void DeserializeAndDisplayXml(string filePath)
+        {
+            try
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(Company));
+                using (FileStream fs = new FileStream(filePath, FileMode.Open))
+                {
+                    Company company = (Company)serializer.Deserialize(fs);
+                    DisplayXmlInTreeView(company);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error deserializing XML: " + ex.Message);
+            }
+        }
+
+        private void DisplayXmlInTreeView(Company company)
+        {
+            XmlTreeView.Items.Clear();
+
+            TreeViewItem companyNode = new TreeViewItem { Header = "Company" };
+            XmlTreeView.Items.Add(companyNode);
+
+            foreach (var department in company.Departments)
+            {
+                TreeViewItem departmentNode = new TreeViewItem { Header = department.Name };
+                companyNode.Items.Add(departmentNode);
+
+                foreach (var employee in department.Employees)
+                {
+                    TreeViewItem employeeNode = new TreeViewItem { Header = $"Employee ID: {employee.Id}" };
+                    departmentNode.Items.Add(employeeNode);
+
+                    employeeNode.Items.Add(new TreeViewItem { Header = "Name: " + employee.Name });
+                    employeeNode.Items.Add(new TreeViewItem { Header = "Position: " + employee.Position });
+                }
+            }
+        }
+    }
+}
+
+
+
