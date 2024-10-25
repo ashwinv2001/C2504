@@ -1,11 +1,184 @@
-public XmlNodeViewModel(XElement element)
-{
-  //  MessageBox.Show("This is inside XmlNodeViewModel");
-    XmlNode = element;
-    Name = element.Name.LocalName;
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
+using System.Windows.Input;
+using System.Xml.Linq;
 
-    foreach (var child in element.Elements())
+namespace deserialization
+{
+    public partial class MainWindow : Window
     {
-        Children.Add(new XmlNodeViewModel(child));
+        public MainWindow()
+        {
+            InitializeComponent();
+            DataContext = new MainWindowViewModel(); // Set ViewModel as DataContext
+        }
+
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (e.NewValue is XmlNodeViewModel selectedNode)
+            {
+                var viewModel = DataContext as MainWindowViewModel;
+                if (viewModel != null)
+                {
+                    viewModel.SelectedNode = selectedNode;
+                }
+            }
+        }
+
+        private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (treeView.SelectedItem is XmlNodeViewModel selectedNode)
+            {
+                var viewModel = DataContext as MainWindowViewModel;
+                if (viewModel != null)
+                {
+                    viewModel.SelectedNode = selectedNode;
+                }
+            }
+        }
+
+        private void TextBlock_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Logic for right-click context menu handling.
+        }
+
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            // Save changes when the TextBox loses focus
+            SaveChanges();
+        }
+
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                // Save changes and exit edit mode when Enter is pressed
+                var textBox = sender as TextBox;
+                if (textBox != null)
+                {
+                    var node = textBox.DataContext as XmlNodeViewModel;
+                    if (node != null)
+                    {
+                        node.IsEditing = false;
+                        SaveChanges();
+                    }
+                }
+            }
+        }
+
+        private void SaveChanges()
+        {
+            var viewModel = DataContext as MainWindowViewModel;
+            if (viewModel != null)
+            {
+                try
+                {
+                    XElement root = new XElement("Root");
+
+                    foreach (var node in viewModel.XmlTree)
+                    {
+                        XElement element = ConvertToXElement(node);
+                        root.Add(element);
+                    }
+
+                    XDocument doc = new XDocument(root);
+                    doc.Save(viewModel.FilePath);
+
+                    MessageBox.Show("Changes saved successfully!");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to save changes: {ex.Message}");
+                }
+            }
+        }
+
+        private XElement ConvertToXElement(XmlNodeViewModel node)
+        {
+            XElement element = new XElement(node.Name);
+
+            foreach (var child in node.Children)
+            {
+                element.Add(ConvertToXElement(child));
+            }
+
+            return element;
+        }
+
+        private void LoadXmlFile(string filePath)
+        {
+            var viewModel = DataContext as MainWindowViewModel;
+            if (viewModel != null)
+            {
+                try
+                {
+                    XDocument xmlDoc = XDocument.Load(filePath);
+                    viewModel.XmlTree.Clear();
+
+                    XmlNodeViewModel root = ConvertXmlElementToViewModel(xmlDoc.Root);
+                    viewModel.XmlTree.Add(root);
+
+                    MessageBox.Show("Tree loaded successfully.");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error loading the XML file: {ex.Message}");
+                }
+            }
+        }
+
+        private XmlNodeViewModel ConvertXmlElementToViewModel(XElement element)
+        {
+            if (element == null)
+                return null;
+
+            // Create a new XmlNodeViewModel using the XElement
+            XmlNodeViewModel node = new XmlNodeViewModel(element);
+
+            // Recursively convert each child element
+            foreach (var childElement in element.Elements())
+            {
+                XmlNodeViewModel childNode = ConvertXmlElementToViewModel(childElement);
+                if (childNode != null)
+                {
+                    node.Children.Add(childNode);
+                }
+            }
+
+            return node;
+        }
+    }
+}
+
+
+
+
+
+using System.Collections.ObjectModel;
+using System.Xml.Linq;
+
+namespace deserialization
+{
+    public class XmlNodeViewModel
+    {
+        public XElement XmlNode { get; set; }
+        public string Name { get; set; }
+        public ObservableCollection<XmlNodeViewModel> Children { get; set; } = new ObservableCollection<XmlNodeViewModel>();
+        public bool IsEditing { get; set; } = false;
+
+        // Constructor that accepts XElement
+        public XmlNodeViewModel(XElement element)
+        {
+            XmlNode = element;
+            Name = element.Name.LocalName;
+
+            // Recursively add child elements to the Children collection
+            foreach (var child in element.Elements())
+            {
+                Children.Add(new XmlNodeViewModel(child));
+            }
+        }
     }
 }
