@@ -1,146 +1,66 @@
-<Canvas>
-    <TextBox x:Name="FilePathTextBox" Canvas.Left="50" Canvas.Top="10" IsReadOnly="True" 
+<Window x:Class="deserializationnew.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:deserializationnew"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+
+    <Canvas>
+        <TextBox x:Name="FilePathTextBox" Canvas.Left="50" Canvas.Top="10" IsReadOnly="True" 
              HorizontalAlignment="Left" Height="34" VerticalAlignment="Center" Width="554" />
-    <Button Content="Browse" Canvas.Left="625" Canvas.Top="10" Click="BrowseButton_Click" 
+        <Button Content="Browse" Canvas.Left="625" Canvas.Top="10" Click="BrowseButton_Click" 
             Height="34" Width="62"/>
-    
-    <TreeView x:Name="XmlTreeView" SelectedItemChanged="nodeclick" Canvas.Left="29" 
+
+        <TreeView x:Name="XmlTreeView" SelectedItemChanged="nodeclick" Canvas.Left="29" 
               Canvas.Top="100" HorizontalAlignment="Left" VerticalAlignment="Center" 
               Height="200" Width="306">
-        <TreeView.Resources>
-            <HierarchicalDataTemplate DataType="{x:Type local:XmlNodeViewModel}" ItemsSource="{Binding Children}">
-                <ContentPresenter>
-                    <ContentPresenter.Style>
-                        <Style TargetType="ContentPresenter">
-                            <Style.Triggers>
-                                <!-- Switch to TextBox when IsEditing is true -->
-                                <DataTrigger Binding="{Binding IsEditing}" Value="True">
-                                    <Setter Property="ContentTemplate">
-                                        <Setter.Value>
-                                            <DataTemplate>
-                                                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type local:XmlNodeViewModel}" ItemsSource="{Binding Children}">
+                    <ContentPresenter>
+                        <ContentPresenter.Style>
+                            <Style TargetType="ContentPresenter">
+                                <Style.Triggers>
+                                    <!-- Switch to TextBox when IsEditing is true -->
+                                    <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                        <Setter Property="ContentTemplate">
+                                            <Setter.Value>
+                                                <DataTemplate>
+                                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
                                                          LostFocus="TextBox_LostFocus" 
                                                          KeyDown="TextBox_KeyDown" 
                                                          Width="120"/>
-                                            </DataTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </DataTrigger>
-                                <!-- Show TextBlock when IsEditing is false -->
-                                <DataTrigger Binding="{Binding IsEditing}" Value="False">
-                                    <Setter Property="ContentTemplate">
-                                        <Setter.Value>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Name}" />
-                                            </DataTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ContentPresenter.Style>
-                </ContentPresenter>
-                <!-- Context menu to trigger rename and delete -->
-                <HierarchicalDataTemplate.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="Rename" Click="Renameclick"/>
-                        <MenuItem Header="Delete" Click="Deleteclick"/>
-                    </ContextMenu>
-                </HierarchicalDataTemplate.ContextMenu>
-            </HierarchicalDataTemplate>
-        </TreeView.Resources>
-    </TreeView>
-</Canvas>
+                                                </DataTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                    <!-- Show TextBlock when IsEditing is false -->
+                                    <DataTrigger Binding="{Binding IsEditing}" Value="False">
+                                        <Setter Property="ContentTemplate">
+                                            <Setter.Value>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Name}" />
+                                                </DataTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ContentPresenter.Style>
+                    </ContentPresenter>
+                    <!-- Context menu to trigger rename and delete -->
+                    <HierarchicalDataTemplate.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Rename" Click="Renameclick"/>
+                            <MenuItem Header="Delete" Click="Deleteclick"/>
+                        </ContextMenu>
+                    </HierarchicalDataTemplate.ContextMenu>
+                </HierarchicalDataTemplate>
+            </TreeView.Resources>
+        </TreeView>
+    </Canvas>
+</Window>
 
-
-
-
-
-
-
-public class XmlNodeViewModel : INotifyPropertyChanged
-{
-    private string _name;
-    private bool _isEditing;
-
-    public string Name
-    {
-        get => _name;
-        set
-        {
-            _name = value;
-            OnPropertyChanged(nameof(Name));
-        }
-    }
-
-    public bool IsEditing
-    {
-        get => _isEditing;
-        set
-        {
-            _isEditing = value;
-            OnPropertyChanged(nameof(IsEditing));
-        }
-    }
-
-    public ObservableCollection<XmlNodeViewModel> Children { get; set; } = new();
-
-    public event PropertyChangedEventHandler PropertyChanged;
-    protected void OnPropertyChanged(string propertyName) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-}
-
-
-
-
-
-
-
-
-public partial class MainWindow : Window
-{
-    public MainWindow()
-    {
-        InitializeComponent();
-
-        // Example data
-        XmlTreeView.ItemsSource = new ObservableCollection<XmlNodeViewModel>
-        {
-            new XmlNodeViewModel { Name = "Node1" },
-            new XmlNodeViewModel { Name = "Node2" }
-        };
-    }
-
-    private void Renameclick(object sender, RoutedEventArgs e)
-    {
-        if (XmlTreeView.SelectedItem is XmlNodeViewModel selectedNode)
-        {
-            selectedNode.IsEditing = true; // Enter edit mode
-        }
-    }
-
-    private void Deleteclick(object sender, RoutedEventArgs e)
-    {
-        if (XmlTreeView.SelectedItem is XmlNodeViewModel selectedNode)
-        {
-            // Implement deletion logic for selected node
-        }
-    }
-
-    private void TextBox_LostFocus(object sender, RoutedEventArgs e)
-    {
-        if (sender is TextBox textBox && textBox.DataContext is XmlNodeViewModel node)
-        {
-            node.IsEditing = false; // Exit edit mode
-        }
-    }
-
-    private void TextBox_KeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.Enter && sender is TextBox textBox && textBox.DataContext is XmlNodeViewModel node)
-        {
-            node.IsEditing = false; // Exit edit mode on Enter key
-        }
-    }
-}
-
+Severity	Code	Description	Project	File	Line	Suppression State
+Error	XDG0012	The member "ContextMenu" is not recognized or is not accessible.	deserializationnew	C:\Users\2021455\Desktop\deserializationnew - Copy (2)\deserializationnew\MainWindow.xaml	53	
