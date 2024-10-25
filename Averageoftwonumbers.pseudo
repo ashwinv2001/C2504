@@ -3,18 +3,23 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="XML Tree Viewer" Height="450" Width="800">
     <Grid>
-        <TextBox x:Name="FilePathTextBox" Width="400" Margin="10"/>
-        <Button Content="Browse" Width="100" Margin="10" Click="BrowseButton_Click"/>
-        <TreeView x:Name="XmlTreeView" Margin="10,50,10,10" ContextMenuOpening="XmlTreeView_ContextMenuOpening">
-            <TreeView.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="Rename" Click="RenameMenuItem_Click"/>
-                    <MenuItem Header="Delete" Click="DeleteMenuItem_Click"/>
-                </ContextMenu>
-            </TreeView.ContextMenu>
-        </TreeView>
+        <StackPanel Margin="10">
+            <TextBox x:Name="FilePathTextBox" Width="400" Margin="0,0,0,10" IsReadOnly="True"/>
+            <Button Content="Browse" Width="100" Click="BrowseButton_Click"/>
+            <TreeView x:Name="XmlTreeView" Margin="0,10,0,0" ContextMenuOpening="XmlTreeView_ContextMenuOpening">
+                <TreeView.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Rename" Click="RenameMenuItem_Click"/>
+                        <MenuItem Header="Delete" Click="DeleteMenuItem_Click"/>
+                    </ContextMenu>
+                </TreeView.ContextMenu>
+            </TreeView>
+        </StackPanel>
     </Grid>
 </Window>
+
+
+
 
 
 
@@ -22,9 +27,9 @@
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Xml.Linq;
 
 namespace YourNamespace
@@ -49,18 +54,25 @@ namespace YourNamespace
             };
             if (openFileDialog.ShowDialog() == true)
             {
-                FilePathTextBox.Text = openFileDialog.FileName;
+                FilePathTextBox.Text = openFileDialog.FileName; // Display the selected file path
                 LoadXml(openFileDialog.FileName);
             }
         }
 
         private void LoadXml(string filePath)
         {
-            _xmlNodes.Clear();
-            XElement xml = XElement.Load(filePath);
-            foreach (var element in xml.Elements())
+            try
             {
-                _xmlNodes.Add(new XmlNodeViewModel(element));
+                _xmlNodes.Clear(); // Clear existing nodes
+                XElement xml = XElement.Load(filePath); // Load XML
+                foreach (var element in xml.Elements())
+                {
+                    _xmlNodes.Add(new XmlNodeViewModel(element)); // Add elements to the collection
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading XML file: {ex.Message}");
             }
         }
 
@@ -76,6 +88,7 @@ namespace YourNamespace
         {
             if (_selectedNode != null)
             {
+                // Create a TextBox for renaming
                 TextBox textBox = new TextBox
                 {
                     Text = _selectedNode.Element.Name.LocalName,
@@ -119,8 +132,8 @@ namespace YourNamespace
         private void UpdateXmlFile()
         {
             // Save the updated XML back to the file
-            // Implement this method to save your XML structure back to the original file.
-            // You can serialize your ObservableCollection back to XML.
+            XElement root = new XElement("Root", _xmlNodes.Select(n => n.Element));
+            root.Save(FilePathTextBox.Text); // Save to the same file
         }
     }
 
@@ -137,23 +150,4 @@ namespace YourNamespace
 
         // Add any additional properties you need to display in the TreeView
     }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-private void UpdateXmlFile()
-{
-    // Serialize the observable collection back to XML
-    XElement root = new XElement("Repository", _xmlNodes.Select(n => n.Element));
-    root.Save(FilePathTextBox.Text); // Save to the same file
 }
