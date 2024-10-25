@@ -1,153 +1,26 @@
-<Window x:Class="YourNamespace.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="XML Tree Viewer" Height="450" Width="800">
-    <Grid>
-        <StackPanel Margin="10">
-            <TextBox x:Name="FilePathTextBox" Width="400" Margin="0,0,0,10" IsReadOnly="True"/>
-            <Button Content="Browse" Width="100" Click="BrowseButton_Click"/>
-            <TreeView x:Name="XmlTreeView" Margin="0,10,0,0" ContextMenuOpening="XmlTreeView_ContextMenuOpening">
-                <TreeView.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="Rename" Click="RenameMenuItem_Click"/>
-                        <MenuItem Header="Delete" Click="DeleteMenuItem_Click"/>
-                    </ContextMenu>
-                </TreeView.ContextMenu>
-            </TreeView>
-        </StackPanel>
-    </Grid>
-</Window>
+<TreeView x:Name="XmlTreeView" Margin="0,10,0,0">
+    <TreeView.ItemTemplate>
+        <HierarchicalDataTemplate ItemsSource="{Binding Path=Elements()}">
+            <TextBlock Text="{Binding Name}"/> <!-- Display the Name property -->
+        </HierarchicalDataTemplate>
+    </TreeView.ItemTemplate>
+</TreeView>
 
 
 
-
-
-
-
-using System;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
-using System.Xml.Linq;
-
-namespace YourNamespace
+public class XmlNodeViewModel
 {
-    public partial class MainWindow : Window
+    public XElement Element { get; set; }
+
+    public XmlNodeViewModel(XElement element)
     {
-        private ObservableCollection<XmlNodeViewModel> _xmlNodes;
-        private XmlNodeViewModel _selectedNode;
-
-        public MainWindow()
-        {
-            InitializeComponent();
-            _xmlNodes = new ObservableCollection<XmlNodeViewModel>();
-            XmlTreeView.ItemsSource = _xmlNodes;
-        }
-
-        private void BrowseButton_Click(object sender, RoutedEventArgs e)
-        {
-            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "XML Files (*.xml)|*.xml"
-            };
-            if (openFileDialog.ShowDialog() == true)
-            {
-                FilePathTextBox.Text = openFileDialog.FileName; // Display the selected file path
-                LoadXml(openFileDialog.FileName);
-            }
-        }
-
-        private void LoadXml(string filePath)
-        {
-            try
-            {
-                _xmlNodes.Clear(); // Clear existing nodes
-                XElement xml = XElement.Load(filePath); // Load XML
-                foreach (var element in xml.Elements())
-                {
-                    _xmlNodes.Add(new XmlNodeViewModel(element)); // Add elements to the collection
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error loading XML file: {ex.Message}");
-            }
-        }
-
-        private void XmlTreeView_ContextMenuOpening(object sender, ContextMenuEventArgs e)
-        {
-            _selectedNode = XmlTreeView.SelectedItem as XmlNodeViewModel;
-            // Enable/disable menu items based on selection
-            var menu = (ContextMenu)XmlTreeView.ContextMenu;
-            menu.IsOpen = _selectedNode != null; // Only show if a node is selected
-        }
-
-        private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedNode != null)
-            {
-                // Create a TextBox for renaming
-                TextBox textBox = new TextBox
-                {
-                    Text = _selectedNode.Element.Name.LocalName,
-                    Width = 150
-                };
-
-                textBox.KeyDown += (s, args) =>
-                {
-                    if (args.Key == Key.Enter)
-                    {
-                        var newName = textBox.Text;
-                        if (!string.IsNullOrWhiteSpace(newName))
-                        {
-                            RenameNode(_selectedNode, newName);
-                        }
-                    }
-                };
-
-                XmlTreeView.Items.Remove(_selectedNode);
-                XmlTreeView.Items.Add(textBox);
-                textBox.Focus();
-            }
-        }
-
-        private void RenameNode(XmlNodeViewModel node, string newName)
-        {
-            node.Element.Name = XName.Get(newName);
-            UpdateXmlFile();
-            XmlTreeView.Items.Refresh();
-        }
-
-        private void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedNode != null)
-            {
-                _xmlNodes.Remove(_selectedNode);
-                UpdateXmlFile();
-            }
-        }
-
-        private void UpdateXmlFile()
-        {
-            // Save the updated XML back to the file
-            XElement root = new XElement("Root", _xmlNodes.Select(n => n.Element));
-            root.Save(FilePathTextBox.Text); // Save to the same file
-        }
+        Element = element;
     }
 
-    public class XmlNodeViewModel
+    public string Name => Element.Name.LocalName;
+
+    public override string ToString()
     {
-        public XElement Element { get; set; }
-
-        public XmlNodeViewModel(XElement element)
-        {
-            Element = element;
-        }
-
-        public string Name => Element.Name.LocalName;
-
-        // Add any additional properties you need to display in the TreeView
+        return Name; // Display the name in the TreeView
     }
 }
