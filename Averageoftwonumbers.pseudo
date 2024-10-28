@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -44,6 +45,10 @@ namespace deserializationnew
             {
                 _selectedNode = selectedItem;
                 _selectedElement = selectedItem.DataContext as XElement;
+
+                // Debugging output
+                Console.WriteLine($"Selected Node: {_selectedNode.Header}");
+                Console.WriteLine($"Selected Element: {_selectedElement}");
             }
         }
 
@@ -94,6 +99,11 @@ namespace deserializationnew
 
                 // Inform the user
                 MessageBox.Show("Node renamed and XML updated.");
+            }
+            else
+            {
+                // Debugging output
+                Console.WriteLine("Rename operation failed: null reference.");
             }
         }
 
