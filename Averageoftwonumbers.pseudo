@@ -80,13 +80,20 @@ namespace deserializationnew
         {
             if (textBox != null && _selectedNode != null && _selectedElement != null)
             {
-                // Update the TreeViewItem's header and the XML element
+                // Get new name from TextBox
                 string newName = textBox.Text;
+
+                // Update TreeViewItem header
                 _selectedNode.Header = newName;
+
+                // Update XML element's attribute or name
                 _selectedElement.SetAttributeValue("Name", newName);
 
-                // Save changes to the XML file
+                // Save changes to XML file
                 _xmlDocument.Save(_filePath);
+
+                // Inform the user
+                MessageBox.Show("Node renamed and XML updated.");
             }
         }
 
