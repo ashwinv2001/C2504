@@ -1,12 +1,22 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using System.IO;
 using Microsoft.Win32;
-using System.Xml.Linq;
 using System.Xml.Serialization;
+using System.Xml.Linq;
+
 
 namespace deserializationnew
 {
@@ -46,9 +56,9 @@ namespace deserializationnew
                 _selectedNode = selectedItem;
                 _selectedElement = selectedItem.DataContext as XElement;
 
-                // Debugging output
-                Console.WriteLine($"Selected Node: {_selectedNode.Header}");
-                Console.WriteLine($"Selected Element: {_selectedElement}");
+               
+              //  MessageBox.Show($"Selected Node: {_selectedNode.Header}");
+              //  MessageBox.Show($"Selected Element: {_selectedElement}");
             }
         }
 
@@ -60,11 +70,13 @@ namespace deserializationnew
                 {
                     Text = _selectedNode.Header.ToString()
                 };
+
                 textBox.LostFocus += TextBox_LostFocus;
                 textBox.KeyDown += TextBox_KeyDown;
 
                 _selectedNode.Header = textBox;
                 textBox.Focus();
+
             }
         }
 
@@ -83,8 +95,10 @@ namespace deserializationnew
 
         private void FinalizeRename(TextBox textBox)
         {
+            MessageBox.Show("Inside finalizerenameoutsideif");
             if (textBox != null && _selectedNode != null && _selectedElement != null)
             {
+                MessageBox.Show("Inside finalizerenameinsideif");
                 // Get new name from TextBox
                 string newName = textBox.Text;
 
@@ -166,4 +180,4 @@ namespace deserializationnew
             return root.Descendants().FirstOrDefault(e => e.Attribute("Name")?.Value == name);
         }
     }
-}
+}  in the above code finalizeoutsideif messagebox is displayed while messagebox finalizeinsideif is not displayed
