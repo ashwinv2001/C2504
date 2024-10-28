@@ -6,61 +6,19 @@
         xmlns:local="clr-namespace:deserializationnew"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-
     <Canvas>
-        <TextBox x:Name="FilePathTextBox" Canvas.Left="50" Canvas.Top="10" IsReadOnly="True" 
-             HorizontalAlignment="Left" Height="34" VerticalAlignment="Center" Width="554" />
-        <Button Content="Browse" Canvas.Left="625" Canvas.Top="10" Click="BrowseButton_Click" 
-            Height="34" Width="62"/>
 
-        <TreeView x:Name="XmlTreeView" SelectedItemChanged="nodeclick" Canvas.Left="29" 
-              Canvas.Top="100" HorizontalAlignment="Left" VerticalAlignment="Center" 
-              Height="200" Width="306">
-            <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type local:XmlNodeViewModel}" ItemsSource="{Binding Children}">
-                    <ContentPresenter>
-                        <ContentPresenter.Style>
-                            <Style TargetType="ContentPresenter">
-                                <Style.Triggers>
-                                    <!-- Switch to TextBox when IsEditing is true -->
-                                    <DataTrigger Binding="{Binding IsEditing}" Value="True">
-                                        <Setter Property="ContentTemplate">
-                                            <Setter.Value>
-                                                <DataTemplate>
-                                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
-                                                         LostFocus="TextBox_LostFocus" 
-                                                         KeyDown="TextBox_KeyDown" 
-                                                         Width="120"/>
-                                                </DataTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                    <!-- Show TextBlock when IsEditing is false -->
-                                    <DataTrigger Binding="{Binding IsEditing}" Value="False">
-                                        <Setter Property="ContentTemplate">
-                                            <Setter.Value>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding Name}" />
-                                                </DataTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ContentPresenter.Style>
-                    </ContentPresenter>
-                    <!-- Context menu to trigger rename and delete -->
-                    <HierarchicalDataTemplate.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Rename" Click="Renameclick"/>
-                            <MenuItem Header="Delete" Click="Deleteclick"/>
-                        </ContextMenu>
-                    </HierarchicalDataTemplate.ContextMenu>
-                </HierarchicalDataTemplate>
-            </TreeView.Resources>
-        </TreeView>
+        <TextBox Name="FilePathTextBox" Width="510" IsReadOnly="True" Height="19" Canvas.Left="40" Canvas.Top="30" HorizontalAlignment="Left" VerticalAlignment="Center">
+            
+        </TextBox>
+        <Button Content="Browse" Width="100" Click="BrowseButton_Click" Canvas.Left="600" Canvas.Top="29"/>
+        <TreeView Name="XmlTreeView" Width="280" Height="205" Canvas.Left="40" Canvas.Top="84" HorizontalAlignment="Left" VerticalAlignment="Center" SelectedItemChanged="nodeclick">
+            <TreeView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Rename" Click="renameclick"/>
+                    <MenuItem Header="Delete" Click="deleteclick"/>
+                </ContextMenu>
+            </TreeView.ContextMenu>
+            </TreeView>
     </Canvas>
 </Window>
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	XDG0012	The member "ContextMenu" is not recognized or is not accessible.	deserializationnew	C:\Users\2021455\Desktop\deserializationnew - Copy (2)\deserializationnew\MainWindow.xaml	53	
