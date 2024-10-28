@@ -1,36 +1,42 @@
-private void FinalizeRename(TextBox textBox)
+private void DisplayInTreeView(Repository repository, XElement rootElement)
 {
-    // Log the entry into the method
-    MessageBox.Show("Inside FinalizeRename");
+    XmlTreeView.Items.Clear();
 
-    // Check and log the state of important variables
-    string nodeHeader = _selectedNode != null ? _selectedNode.Header.ToString() : "null";
-    string elementValue = _selectedElement != null ? _selectedElement.ToString() : "null";
-    string textBoxValue = textBox != null ? textBox.Text : "null";
-
-    MessageBox.Show($"Node Header: {nodeHeader}, Selected Element: {elementValue}, TextBox Value: {textBoxValue}");
-
-    if (textBox != null && _selectedNode != null && _selectedElement != null)
+    foreach (var title in repository.Titles)
     {
-        MessageBox.Show("Inside FinalizeRename inside if");
-        // Get new name from TextBox
-        string newName = textBox.Text;
+        XElement titleElement = FindElementByName(rootElement, title.DisplayName ?? title.Value);
+        TreeViewItem titleItem = new TreeViewItem
+        {
+            Header = title.DisplayName ?? title.Value,
+            DataContext = titleElement // Set DataContext to the title element
+        };
 
-        // Update TreeViewItem header
-        _selectedNode.Header = newName;
+        foreach (var controlInfo in title.ControlInfos)
+        {
+            XElement controlElement = FindElementByName(rootElement, controlInfo.DisplayName);
+            TreeViewItem controlInfoItem = new TreeViewItem
+            {
+                Header = $"{controlInfo.DisplayName} ({controlInfo.Type})",
+                DataContext = controlElement // Set DataContext to the control element
+            };
 
-        // Update XML element's attribute or name
-        _selectedElement.SetAttributeValue("Name", newName);
+            titleItem.Items.Add(controlInfoItem);
+        }
 
-        // Save changes to XML file
-        _xmlDocument.Save(_filePath);
-
-        // Inform the user
-        MessageBox.Show("Node renamed and XML updated.");
+        XmlTreeView.Items.Add(titleItem);
     }
-    else
+}
+
+
+
+private void nodeclick(object sender, RoutedPropertyChangedEventArgs<object> e)
+{
+    if (XmlTreeView.SelectedItem is TreeViewItem selectedItem)
     {
+        _selectedNode = selectedItem;
+        _selectedElement = selectedItem.DataContext as XElement;
+
         // Debugging output
-        Console.WriteLine("Rename operation failed: null reference.");
+        MessageBox.Show($"Selected Node: {_selectedNode.Header}, Selected Element: {_selectedElement}");
     }
 }
