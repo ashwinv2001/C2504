@@ -9,9 +9,6 @@ using System.Xml.Serialization;
 
 namespace deserializationnew
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private TreeViewItem _selectedNode;
@@ -83,8 +80,12 @@ namespace deserializationnew
         {
             if (textBox != null && _selectedNode != null && _selectedElement != null)
             {
-                _selectedNode.Header = textBox.Text;
-                _selectedElement.SetAttributeValue("Name", textBox.Text);
+                // Update the TreeViewItem's header and the XML element
+                string newName = textBox.Text;
+                _selectedNode.Header = newName;
+                _selectedElement.SetAttributeValue("Name", newName);
+
+                // Save changes to the XML file
                 _xmlDocument.Save(_filePath);
             }
         }
@@ -120,18 +121,20 @@ namespace deserializationnew
 
             foreach (var title in repository.Titles)
             {
+                XElement titleElement = FindElementByName(rootElement, title.DisplayName ?? title.Value);
                 TreeViewItem titleItem = new TreeViewItem
                 {
                     Header = title.DisplayName ?? title.Value,
-                    DataContext = FindElementByName(rootElement, title.DisplayName ?? title.Value)
+                    DataContext = titleElement
                 };
 
                 foreach (var controlInfo in title.ControlInfos)
                 {
+                    XElement controlElement = FindElementByName(rootElement, controlInfo.DisplayName);
                     TreeViewItem controlInfoItem = new TreeViewItem
                     {
                         Header = $"{controlInfo.DisplayName} ({controlInfo.Type})",
-                        DataContext = FindElementByName(rootElement, controlInfo.DisplayName)
+                        DataContext = controlElement
                     };
 
                     titleItem.Items.Add(controlInfoItem);
