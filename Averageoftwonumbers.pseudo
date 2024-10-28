@@ -1,183 +1,36 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.IO;
-using Microsoft.Win32;
-using System.Xml.Serialization;
-using System.Xml.Linq;
-
-
-namespace deserializationnew
+private void FinalizeRename(TextBox textBox)
 {
-    public partial class MainWindow : Window
+    // Log the entry into the method
+    MessageBox.Show("Inside FinalizeRename");
+
+    // Check and log the state of important variables
+    string nodeHeader = _selectedNode != null ? _selectedNode.Header.ToString() : "null";
+    string elementValue = _selectedElement != null ? _selectedElement.ToString() : "null";
+    string textBoxValue = textBox != null ? textBox.Text : "null";
+
+    MessageBox.Show($"Node Header: {nodeHeader}, Selected Element: {elementValue}, TextBox Value: {textBoxValue}");
+
+    if (textBox != null && _selectedNode != null && _selectedElement != null)
     {
-        private TreeViewItem _selectedNode;
-        private XElement _selectedElement;
-        private XDocument _xmlDocument;
-        private string _filePath;
+        MessageBox.Show("Inside FinalizeRename inside if");
+        // Get new name from TextBox
+        string newName = textBox.Text;
 
-        public MainWindow()
-        {
-            InitializeComponent();
-        }
+        // Update TreeViewItem header
+        _selectedNode.Header = newName;
 
-        private void BrowseButton_Click(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog
-            {
-                Filter = "XML Files (*.xml)|*.xml",
-                Title = "Select an XML File"
-            };
+        // Update XML element's attribute or name
+        _selectedElement.SetAttributeValue("Name", newName);
 
-            if (openFileDialog.ShowDialog() == true)
-            {
-                FilePathTextBox.Text = openFileDialog.FileName;
-                _filePath = openFileDialog.FileName;
-                _xmlDocument = XDocument.Load(_filePath);
-                DeserializeXml(_filePath);
-            }
-        }
+        // Save changes to XML file
+        _xmlDocument.Save(_filePath);
 
-        private void nodeclick(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            if (XmlTreeView.SelectedItem is TreeViewItem selectedItem)
-            {
-                _selectedNode = selectedItem;
-                _selectedElement = selectedItem.DataContext as XElement;
-
-               
-              //  MessageBox.Show($"Selected Node: {_selectedNode.Header}");
-              //  MessageBox.Show($"Selected Element: {_selectedElement}");
-            }
-        }
-
-        private void renameclick(object sender, RoutedEventArgs e)
-        {
-            if (_selectedNode != null)
-            {
-                TextBox textBox = new TextBox
-                {
-                    Text = _selectedNode.Header.ToString()
-                };
-
-                textBox.LostFocus += TextBox_LostFocus;
-                textBox.KeyDown += TextBox_KeyDown;
-
-                _selectedNode.Header = textBox;
-                textBox.Focus();
-
-            }
-        }
-
-        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            FinalizeRename(sender as TextBox);
-        }
-
-        private void TextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                FinalizeRename(sender as TextBox);
-            }
-        }
-
-        private void FinalizeRename(TextBox textBox)
-        {
-            MessageBox.Show("Inside finalizerenameoutsideif");
-            if (textBox != null && _selectedNode != null && _selectedElement != null)
-            {
-                MessageBox.Show("Inside finalizerenameinsideif");
-                // Get new name from TextBox
-                string newName = textBox.Text;
-
-                // Update TreeViewItem header
-                _selectedNode.Header = newName;
-
-                // Update XML element's attribute or name
-                _selectedElement.SetAttributeValue("Name", newName);
-
-                // Save changes to XML file
-                _xmlDocument.Save(_filePath);
-
-                // Inform the user
-                MessageBox.Show("Node renamed and XML updated.");
-            }
-            else
-            {
-                // Debugging output
-                Console.WriteLine("Rename operation failed: null reference.");
-            }
-        }
-
-        private void deleteclick(object sender, RoutedEventArgs e)
-        {
-            if (_selectedNode != null && _selectedElement != null)
-            {
-                if (_selectedNode.Parent is ItemsControl parent)
-                {
-                    parent.Items.Remove(_selectedNode);
-                }
-
-                _selectedElement.Remove();
-                _xmlDocument.Save(_filePath);
-            }
-        }
-
-        private void DeserializeXml(string filePath)
-        {
-            XmlSerializer serializer = new XmlSerializer(typeof(Repository));
-
-            using (FileStream fileStream = new FileStream(filePath, FileMode.Open))
-            {
-                Repository repository = (Repository)serializer.Deserialize(fileStream);
-                DisplayInTreeView(repository, _xmlDocument.Root);
-            }
-        }
-
-        private void DisplayInTreeView(Repository repository, XElement rootElement)
-        {
-            XmlTreeView.Items.Clear();
-
-            foreach (var title in repository.Titles)
-            {
-                XElement titleElement = FindElementByName(rootElement, title.DisplayName ?? title.Value);
-                TreeViewItem titleItem = new TreeViewItem
-                {
-                    Header = title.DisplayName ?? title.Value,
-                    DataContext = titleElement
-                };
-
-                foreach (var controlInfo in title.ControlInfos)
-                {
-                    XElement controlElement = FindElementByName(rootElement, controlInfo.DisplayName);
-                    TreeViewItem controlInfoItem = new TreeViewItem
-                    {
-                        Header = $"{controlInfo.DisplayName} ({controlInfo.Type})",
-                        DataContext = controlElement
-                    };
-
-                    titleItem.Items.Add(controlInfoItem);
-                }
-
-                XmlTreeView.Items.Add(titleItem);
-            }
-        }
-
-        private XElement FindElementByName(XElement root, string name)
-        {
-            return root.Descendants().FirstOrDefault(e => e.Attribute("Name")?.Value == name);
-        }
+        // Inform the user
+        MessageBox.Show("Node renamed and XML updated.");
     }
-}  in the above code finalizeoutsideif messagebox is displayed while messagebox finalizeinsideif is not displayed
+    else
+    {
+        // Debugging output
+        Console.WriteLine("Rename operation failed: null reference.");
+    }
+}
