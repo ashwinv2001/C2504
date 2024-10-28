@@ -1,21 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.IO;
 using Microsoft.Win32;
-using System.Xml.Serialization;
 using System.Xml.Linq;
+using System.Xml.Serialization;
 
 namespace deserializationnew
 {
@@ -28,6 +18,7 @@ namespace deserializationnew
         private XElement _selectedElement;
         private XDocument _xmlDocument;
         private string _filePath;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -44,18 +35,24 @@ namespace deserializationnew
             if (openFileDialog.ShowDialog() == true)
             {
                 FilePathTextBox.Text = openFileDialog.FileName;
-                DeserializeXml(openFileDialog.FileName);
+                _filePath = openFileDialog.FileName;
+                _xmlDocument = XDocument.Load(_filePath);
+                DeserializeXml(_filePath);
             }
         }
 
-        private void nodeclick(object sender , RoutedPropertyChangedEventArgs<object> e)
+        private void nodeclick(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            _selectedNode = (TreeViewItem)e.NewValue;
+            if (XmlTreeView.SelectedItem is TreeViewItem selectedItem)
+            {
+                _selectedNode = selectedItem;
+                _selectedElement = selectedItem.DataContext as XElement;
+            }
         }
+
         private void renameclick(object sender, RoutedEventArgs e)
         {
-           // MessageBox.Show($"You selected: {_selectedNode.Header}");
-           if(_selectedNode!= null)
+            if (_selectedNode != null)
             {
                 TextBox textBox = new TextBox
                 {
@@ -66,40 +63,44 @@ namespace deserializationnew
 
                 _selectedNode.Header = textBox;
                 textBox.Focus();
-
             }
         }
 
         private void TextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             FinalizeRename(sender as TextBox);
-
         }
 
         private void TextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.Key == Key.Enter)
+            if (e.Key == Key.Enter)
             {
                 FinalizeRename(sender as TextBox);
-
             }
         }
 
         private void FinalizeRename(TextBox textBox)
         {
-            if (textBox != null && _selectedNode != null)
+            if (textBox != null && _selectedNode != null && _selectedElement != null)
             {
-                //replace the textbox with the new header text
                 _selectedNode.Header = textBox.Text;
-                _selectedElement.Name = textBox.Text;
+                _selectedElement.SetAttributeValue("Name", textBox.Text);
                 _xmlDocument.Save(_filePath);
             }
         }
 
-
         private void deleteclick(object sender, RoutedEventArgs e)
         {
-          
+            if (_selectedNode != null && _selectedElement != null)
+            {
+                if (_selectedNode.Parent is ItemsControl parent)
+                {
+                    parent.Items.Remove(_selectedNode);
+                }
+
+                _selectedElement.Remove();
+                _xmlDocument.Save(_filePath);
+            }
         }
 
         private void DeserializeXml(string filePath)
@@ -109,11 +110,11 @@ namespace deserializationnew
             using (FileStream fileStream = new FileStream(filePath, FileMode.Open))
             {
                 Repository repository = (Repository)serializer.Deserialize(fileStream);
-                DisplayInTreeView(repository);
+                DisplayInTreeView(repository, _xmlDocument.Root);
             }
         }
 
-        private void DisplayInTreeView(Repository repository)
+        private void DisplayInTreeView(Repository repository, XElement rootElement)
         {
             XmlTreeView.Items.Clear();
 
@@ -121,14 +122,16 @@ namespace deserializationnew
             {
                 TreeViewItem titleItem = new TreeViewItem
                 {
-                    Header = title.DisplayName ?? title.Value
+                    Header = title.DisplayName ?? title.Value,
+                    DataContext = FindElementByName(rootElement, title.DisplayName ?? title.Value)
                 };
 
                 foreach (var controlInfo in title.ControlInfos)
                 {
                     TreeViewItem controlInfoItem = new TreeViewItem
                     {
-                        Header = $"{controlInfo.DisplayName} ({controlInfo.Type})"
+                        Header = $"{controlInfo.DisplayName} ({controlInfo.Type})",
+                        DataContext = FindElementByName(rootElement, controlInfo.DisplayName)
                     };
 
                     titleItem.Items.Add(controlInfoItem);
@@ -137,6 +140,10 @@ namespace deserializationnew
                 XmlTreeView.Items.Add(titleItem);
             }
         }
+
+        private XElement FindElementByName(XElement root, string name)
+        {
+            return root.Descendants().FirstOrDefault(e => e.Attribute("Name")?.Value == name);
+        }
     }
 }
-this is my MainWindow.xaml.cs file , modify the code accordingly and give back full code
