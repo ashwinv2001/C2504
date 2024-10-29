@@ -29,7 +29,7 @@ namespace mvvm.ViewModel
         };
         }
 
-        public IList<User> Users
+        public IList<User> Users //
         {
             get { return _UsersList; }
             set { _UsersList = value; }
