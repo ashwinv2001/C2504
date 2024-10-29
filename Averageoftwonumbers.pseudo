@@ -3,109 +3,67 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using System.ComponentModel;
+using mvvm.Model;
 
-namespace mvvm.Model
+
+namespace mvvm.ViewModel
 {
-    public class User : INotifyPropertyChanged
+    class UserViewModel
     {
-        private int userId;
-        private string firstName;
-        private string lastName;
-        private string city;
-        private string state;
-        private string country;
+        private IList<User> _UsersList;
 
-        public int UserId
+        public UserViewModel()
+        {
+            _UsersList = new List<User>
+        {
+            new User { UserId = 1, FirstName = "Raj", LastName = "Beniwal", City = "Delhi", State = "DEL", Country = "INDIA" },
+            new User { UserId = 2, FirstName = "Mark", LastName = "henry", City = "New York", State = "NY", Country = "USA" },
+            new User { UserId = 3, FirstName = "Mahesh", LastName = "Chand", City = "Philadelphia", State = "PHL", Country = "USA" },
+            new User { UserId = 4, FirstName = "Vikash", LastName = "Nanda", City = "Noida", State = "UP", Country = "INDIA" },
+            new User { UserId = 5, FirstName = "Harsh", LastName = "Kumar", City = "Ghaziabad", State = "UP", Country = "INDIA" },
+            new User { UserId = 6, FirstName = "Reetesh", LastName = "Tomar", City = "Mumbai", State = "MP", Country = "INDIA" },
+            new User { UserId = 7, FirstName = "Deven", LastName = "Verma", City = "Palwal", State = "HP", Country = "INDIA" },
+            new User { UserId = 8, FirstName = "Ravi", LastName = "Taneja", City = "Delhi", State = "DEL", Country = "INDIA" }
+        };
+        }
+
+        public IList<User> Users
+        {
+            get { return _UsersList; }
+            set { _UsersList = value; }
+        }
+
+        private ICommand mUpdater;
+
+        public ICommand UpdateCommand
         {
             get
             {
-                return userId;
+                if (mUpdater == null)
+                    mUpdater = new Updater();
+                return mUpdater;
             }
             set
             {
-                userId = value;
-                OnPropertyChanged("UserId");
+                mUpdater = value;
             }
         }
 
-        public string FirstName
+        private class Updater : ICommand
         {
-            get
+            public bool CanExecute(object parameter)
             {
-                return firstName;
+                return true;
             }
-            set
+
+            public event EventHandler CanExecuteChanged;
+
+            public void Execute(object parameter)
             {
-                firstName = value;
-                OnPropertyChanged("FirstName");
+                // Code implementation for execution
             }
         }
-
-        public string LastName
-        {
-            get
-            {
-                return lastName;
-            }
-            set
-            {
-                lastName = value;
-                OnPropertyChanged("LastName");
-            }
-        }
-
-        public string City
-        {
-            get
-            {
-                return city;
-            }
-            set
-            {
-                city = value;
-                OnPropertyChanged("City");
-            }
-        }
-
-        public string State
-        {
-            get
-            {
-                return state;
-            }
-            set
-            {
-                state = value;
-                OnPropertyChanged("State");
-            }
-        }
-
-        public string Country
-        {
-            get
-            {
-                return country;
-            }
-            set
-            {
-                country = value;
-                OnPropertyChanged("Country");
-            }
-        }
-
-        #region INotifyPropertyChanged Members
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void OnPropertyChanged(string propertyName)
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-
-        #endregion
     }
 }
