@@ -3,193 +3,109 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.IO;
-using Microsoft.Win32;
-using System.Xml.Serialization;
-using System.Xml.Linq;
+using System.ComponentModel;
 
-
-namespace deserializationnew
+namespace mvvm.Model
 {
-    public partial class MainWindow : Window
+    public class User : INotifyPropertyChanged
     {
-        private TreeViewItem _selectedNode;
-        private XElement _selectedElement;
-        private XDocument _xmlDocument;
-        private string _filePath;
+        private int userId;
+        private string firstName;
+        private string lastName;
+        private string city;
+        private string state;
+        private string country;
 
-        public MainWindow()
+        public int UserId
         {
-            InitializeComponent();
-        }
-
-        private void BrowseButton_Click(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog
+            get
             {
-                Filter = "XML Files (*.xml)|*.xml",
-                Title = "Select an XML File"
-            };
-
-            if (openFileDialog.ShowDialog() == true)
+                return userId;
+            }
+            set
             {
-                FilePathTextBox.Text = openFileDialog.FileName;
-                _filePath = openFileDialog.FileName;
-                _xmlDocument = XDocument.Load(_filePath);
-                DeserializeXml(_filePath);
+                userId = value;
+                OnPropertyChanged("UserId");
             }
         }
 
-        private void nodeclick(object sender, RoutedPropertyChangedEventArgs<object> e)
+        public string FirstName
         {
-            if (XmlTreeView.SelectedItem is TreeViewItem selectedItem)
+            get
             {
-                _selectedNode = selectedItem;
-                _selectedElement = selectedItem.DataContext as XElement;
-
-                // Debugging output
-                MessageBox.Show($"Selected Node: {_selectedNode.Header}, Selected Element: {_selectedElement}");
+                return firstName;
+            }
+            set
+            {
+                firstName = value;
+                OnPropertyChanged("FirstName");
             }
         }
 
-        private void renameclick(object sender, RoutedEventArgs e)
+        public string LastName
         {
-            if (_selectedNode != null)
+            get
             {
-                TextBox textBox = new TextBox
-                {
-                    Text = _selectedNode.Header.ToString()
-                };
-
-                textBox.LostFocus += TextBox_LostFocus;
-                textBox.KeyDown += TextBox_KeyDown;
-
-                _selectedNode.Header = textBox;
-                textBox.Focus();
-
+                return lastName;
+            }
+            set
+            {
+                lastName = value;
+                OnPropertyChanged("LastName");
             }
         }
 
-        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        public string City
         {
-            FinalizeRename(sender as TextBox);
-        }
-
-        private void TextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
+            get
             {
-                FinalizeRename(sender as TextBox);
+                return city;
+            }
+            set
+            {
+                city = value;
+                OnPropertyChanged("City");
             }
         }
 
-        private void FinalizeRename(TextBox textBox)
+        public string State
         {
-            // Log the entry into the method
-          //  MessageBox.Show("Inside FinalizeRename");
-
-            // Check and log the state of important variables
-            string nodeHeader = _selectedNode != null ? _selectedNode.Header.ToString() : "null";
-            string elementValue = _selectedElement != null ? _selectedElement.ToString() : "null";
-            string textBoxValue = textBox != null ? textBox.Text : "null";
-
-          //  MessageBox.Show($"Node Header: {nodeHeader}, Selected Element: {elementValue}, TextBox Value: {textBoxValue}");
-
-            if (textBox != null && _selectedNode != null && _selectedElement != null)
+            get
             {
-               // MessageBox.Show("Inside FinalizeRename inside if");
-                // Get new name from TextBox
-                string newName = textBox.Text;
-
-                // Update TreeViewItem header
-                _selectedNode.Header = newName;
-
-                //// Update XML element's attribute or name
-                _selectedElement.SetAttributeValue("Name", newName);
-                //_selectedElement.SetAttributeValue("Name", newName);
-
-                // Save changes to XML file
-                _xmlDocument.Save(_filePath);
-
-                // Inform the user
-                MessageBox.Show("Node renamed and XML updated.");
+                return state;
             }
-            else
+            set
             {
-                // Debugging output
-                Console.WriteLine("Rename operation failed: null reference.");
+                state = value;
+                OnPropertyChanged("State");
             }
         }
 
-        private void deleteclick(object sender, RoutedEventArgs e)
+        public string Country
         {
-            if (_selectedNode != null && _selectedElement != null)
+            get
             {
-                if (_selectedNode.Parent is ItemsControl parent)
-                {
-                    parent.Items.Remove(_selectedNode);
-                }
-
-                _selectedElement.Remove();
-                _xmlDocument.Save(_filePath);
+                return country;
+            }
+            set
+            {
+                country = value;
+                OnPropertyChanged("Country");
             }
         }
 
-        private void DeserializeXml(string filePath)
-        {
-            XmlSerializer serializer = new XmlSerializer(typeof(Repository));
+        #region INotifyPropertyChanged Members
 
-            using (FileStream fileStream = new FileStream(filePath, FileMode.Open))
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void OnPropertyChanged(string propertyName)
+        {
+            if (PropertyChanged != null)
             {
-                Repository repository = (Repository)serializer.Deserialize(fileStream);
-                DisplayInTreeView(repository, _xmlDocument.Root);
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
         }
 
-        private void DisplayInTreeView(Repository repository, XElement rootElement)
-        {
-            XmlTreeView.Items.Clear();
-
-            foreach (var title in repository.Titles)
-            {
-                XElement titleElement = FindElementByName(rootElement, title.DisplayName ?? title.Value);
-                TreeViewItem titleItem = new TreeViewItem
-                {
-                    Header = title.DisplayName ?? title.Value,
-                    DataContext = titleElement // Set DataContext to the title element
-                };
-
-                foreach (var controlInfo in title.ControlInfos)
-                {
-                    XElement controlElement = FindElementByName(rootElement, controlInfo.DisplayName);
-                    TreeViewItem controlInfoItem = new TreeViewItem
-                    {
-                        Header = $"{controlInfo.DisplayName} ({controlInfo.Type})",
-                        DataContext = controlElement // Set DataContext to the control element
-                    };
-
-                    titleItem.Items.Add(controlInfoItem);
-                }
-
-                XmlTreeView.Items.Add(titleItem);
-            }
-        }
-
-
-
-        private XElement FindElementByName(XElement root, string name)
-        {
-            return root.Descendants().FirstOrDefault(e => e.Attribute("Name")?.Value == name);
-        }
+        #endregion
     }
 }
-in the above code the _selectedElement is not being assingned any value
