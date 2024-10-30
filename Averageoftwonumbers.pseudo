@@ -1,22 +1,93 @@
+<Window x:Class="WpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Data Binding Example" Height="200" Width="400">
+    <StackPanel Margin="10">
+        <TextBox Width="200" Margin="0,5" 
+                 Text="{Binding InputName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                 PlaceholderText="Enter Name" />
+
+        <TextBox Width="200" Margin="0,5" 
+                 Text="{Binding InputAge, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                 PlaceholderText="Enter Age" />
+
+        <Button Width="100" Margin="0,10" Content="Enter" Command="{Binding EnterCommand}"/>
+
+        <TextBox Width="200" Margin="0,5" 
+                 Text="{Binding OutputName, Mode=OneWay}" 
+                 IsReadOnly="True" PlaceholderText="Output Name" />
+
+        <TextBox Width="200" Margin="0,5" 
+                 Text="{Binding OutputAge, Mode=OneWay}" 
+                 IsReadOnly="True" PlaceholderText="Output Age" />
+    </StackPanel>
+</Window>
+
+
+
 using System.ComponentModel;
+using System.Windows.Input;
 
-namespace TwoWayBindingExample
+namespace WpfApp
 {
-    public class PersonViewModel : INotifyPropertyChanged
+    public class MainViewModel : INotifyPropertyChanged
     {
-        private int age;
+        private string _inputName;
+        private string _inputAge;
+        private string _outputName;
+        private string _outputAge;
 
-        public int Age
+        public string InputName
         {
-            get => age;
+            get { return _inputName; }
             set
             {
-                if (age != value)
-                {
-                    age = value;
-                    OnPropertyChanged(nameof(Age));
-                }
+                _inputName = value;
+                OnPropertyChanged(nameof(InputName));
             }
+        }
+
+        public string InputAge
+        {
+            get { return _inputAge; }
+            set
+            {
+                _inputAge = value;
+                OnPropertyChanged(nameof(InputAge));
+            }
+        }
+
+        public string OutputName
+        {
+            get { return _outputName; }
+            set
+            {
+                _outputName = value;
+                OnPropertyChanged(nameof(OutputName));
+            }
+        }
+
+        public string OutputAge
+        {
+            get { return _outputAge; }
+            set
+            {
+                _outputAge = value;
+                OnPropertyChanged(nameof(OutputAge));
+            }
+        }
+
+        public ICommand EnterCommand { get; }
+
+        public MainViewModel()
+        {
+            EnterCommand = new RelayCommand(UpdateOutputFields);
+        }
+
+        private void UpdateOutputFields(object parameter)
+        {
+            OutputName = InputName;
+            OutputAge = InputAge;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -30,37 +101,53 @@ namespace TwoWayBindingExample
 
 
 
-<Window x:Class="TwoWayBindingExample.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:TwoWayBindingExample"
-        Title="Two-Way Binding Example" Height="200" Width="300">
 
-    <Window.DataContext>
-        <local:PersonViewModel />
-    </Window.DataContext>
+using System;
+using System.Windows.Input;
 
-    <StackPanel Margin="20">
-        <!-- Slider bound to Age property in TwoWay mode -->
-        <Slider Minimum="0" Maximum="100" Value="{Binding Age, Mode=TwoWay}" Width="200" Margin="0,0,0,10"/>
+namespace WpfApp
+{
+    public class RelayCommand : ICommand
+    {
+        private readonly Action<object> _execute;
+        private readonly Func<object, bool> _canExecute;
 
-        <!-- TextBox bound to Age property in TwoWay mode -->
-        <TextBox Text="{Binding Age, Mode=TwoWay}" Width="50" HorizontalAlignment="Center"/>
-    </StackPanel>
-</Window>
+        public RelayCommand(Action<object> execute, Func<object, bool> canExecute = null)
+        {
+            _execute = execute;
+            _canExecute = canExecute;
+        }
 
+        public bool CanExecute(object parameter)
+        {
+            return _canExecute == null || _canExecute(parameter);
+        }
 
+        public void Execute(object parameter)
+        {
+            _execute(parameter);
+        }
+
+        public event EventHandler CanExecuteChanged
+        {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
+        }
+    }
+}
 
 
 using System.Windows;
 
-namespace TwoWayBindingExample
+namespace WpfApp
 {
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = new MainViewModel();
         }
     }
 }
+
