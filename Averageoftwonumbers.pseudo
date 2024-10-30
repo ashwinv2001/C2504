@@ -1,29 +1,18 @@
 using System.ComponentModel;
 
-namespace MVVMExample.Model
+namespace TwoWayBindingExample
 {
-    public class Person : INotifyPropertyChanged
+    public class PersonViewModel : INotifyPropertyChanged
     {
-        private string firstName;
-        private string lastName;
+        private string name;
 
-        public string FirstName
+        public string Name
         {
-            get { return firstName; }
+            get => name;
             set
             {
-                firstName = value;
-                OnPropertyChanged("FirstName");
-            }
-        }
-
-        public string LastName
-        {
-            get { return lastName; }
-            set
-            {
-                lastName = value;
-                OnPropertyChanged("LastName");
+                name = value;
+                OnPropertyChanged(nameof(Name));
             }
         }
 
@@ -41,71 +30,37 @@ namespace MVVMExample.Model
 
 
 
-using System.Windows.Input;
-using MVVMExample.Model;
-
-namespace MVVMExample.ViewModel
-{
-    public class PersonViewModel
-    {
-        public Person Person { get; set; }
-
-        public ICommand UpdateNameCommand { get; set; }
-
-        public PersonViewModel()
-        {
-            Person = new Person { FirstName = "John", LastName = "Doe" };
-            UpdateNameCommand = new RelayCommand(UpdateName);
-        }
-
-        private void UpdateName()
-        {
-            Person.FirstName = "Jane";
-            Person.LastName = "Smith";
-        }
-    }
-
-    public class RelayCommand : ICommand
-    {
-        private readonly Action execute;
-
-        public RelayCommand(Action execute)
-        {
-            this.execute = execute;
-        }
-
-        public event EventHandler CanExecuteChanged;
-
-        public bool CanExecute(object parameter) => true;
-
-        public void Execute(object parameter) => execute();
-    }
-}
-
-
-
-
-
-<Window x:Class="MVVMExample.MainWindow"
+<Window x:Class="TwoWayBindingExample.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MVVM Example" Height="200" Width="300">
+        Title="Two-Way Binding Example" Height="200" Width="300">
 
     <Window.DataContext>
         <local:PersonViewModel />
     </Window.DataContext>
 
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-        <TextBlock Text="First Name:" Margin="5" />
-        <TextBox Text="{Binding Person.FirstName}" Width="200" Margin="5" />
-
-        <TextBlock Text="Last Name:" Margin="5" />
-        <TextBox Text="{Binding Person.LastName}" Width="200" Margin="5" />
-
-        <Button Content="Update Name" Command="{Binding UpdateNameCommand}" Width="200" Margin="10" />
+    <StackPanel Margin="20">
+        <!-- TextBox for editing the name, bound in TwoWay mode -->
+        <TextBox Text="{Binding Name, Mode=TwoWay}" Width="200" Margin="0,0,0,10"/>
+        
+        <!-- Label to display the live updated name -->
+        <Label Content="{Binding Name}" FontSize="16"/>
     </StackPanel>
 </Window>
 
 
 
 
+
+using System.Windows;
+
+namespace TwoWayBindingExample
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+    }
+}
