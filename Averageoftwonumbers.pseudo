@@ -4,15 +4,18 @@ namespace TwoWayBindingExample
 {
     public class PersonViewModel : INotifyPropertyChanged
     {
-        private string name;
+        private int age;
 
-        public string Name
+        public int Age
         {
-            get => name;
+            get => age;
             set
             {
-                name = value;
-                OnPropertyChanged(nameof(Name));
+                if (age != value)
+                {
+                    age = value;
+                    OnPropertyChanged(nameof(Age));
+                }
             }
         }
 
@@ -27,12 +30,10 @@ namespace TwoWayBindingExample
 
 
 
-
-
-
 <Window x:Class="TwoWayBindingExample.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:TwoWayBindingExample"
         Title="Two-Way Binding Example" Height="200" Width="300">
 
     <Window.DataContext>
@@ -40,14 +41,13 @@ namespace TwoWayBindingExample
     </Window.DataContext>
 
     <StackPanel Margin="20">
-        <!-- TextBox for editing the name, bound in TwoWay mode -->
-        <TextBox Text="{Binding Name, Mode=TwoWay}" Width="200" Margin="0,0,0,10"/>
-        
-        <!-- Label to display the live updated name -->
-        <Label Content="{Binding Name}" FontSize="16"/>
+        <!-- Slider bound to Age property in TwoWay mode -->
+        <Slider Minimum="0" Maximum="100" Value="{Binding Age, Mode=TwoWay}" Width="200" Margin="0,0,0,10"/>
+
+        <!-- TextBox bound to Age property in TwoWay mode -->
+        <TextBox Text="{Binding Age, Mode=TwoWay}" Width="50" HorizontalAlignment="Center"/>
     </StackPanel>
 </Window>
-
 
 
 
