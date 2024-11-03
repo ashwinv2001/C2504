@@ -28,3 +28,55 @@ public class RelayCommand : ICommand
         remove { CommandManager.RequerySuggested -= value; }
     }
 }
+
+
+
+
+
+
+
+using System.Windows;
+using System.Windows.Input;
+
+public class MainViewModel
+{
+    public ICommand ButtonClickCommand { get; }
+
+    public MainViewModel()
+    {
+        // Initialize the command with the Execute and CanExecute methods
+        ButtonClickCommand = new RelayCommand(ExecuteButtonClick, CanExecuteButtonClick);
+    }
+
+    private void ExecuteButtonClick(object parameter)
+    {
+        // Show the message box when the button is clicked
+        MessageBox.Show("Button clicked");
+    }
+
+    private bool CanExecuteButtonClick(object parameter)
+    {
+        // Return true if the button should be enabled (you can add your own logic here)
+        return true;
+    }
+}
+
+
+
+<Window x:Class="WpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:WpfApp"
+        Title="MainWindow" Height="200" Width="300">
+
+    <Grid>
+        <Button Content="Click Me" Command="{Binding ButtonClickCommand}" 
+                HorizontalAlignment="Center" VerticalAlignment="Center" Width="100" Height="40" />
+    </Grid>
+</Window>
+
+
+
+
+
+
