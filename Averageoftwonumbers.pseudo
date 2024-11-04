@@ -75,3 +75,6 @@
         </TreeView>
     </Grid>
 </Window>
+
+Severity	Code	Description	Project	File	Line	Suppression State
+Error	XLS0503	A value of type 'EventSetter' cannot be added to a collection or dictionary of type 'TimelineCollection'.	deserilaizemvvm	C:\Users\2021455\source\repos\deserilaizemvvm\deserilaizemvvm\MainWindow.xaml	58	
