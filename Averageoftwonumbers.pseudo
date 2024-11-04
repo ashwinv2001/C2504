@@ -48,11 +48,17 @@
                                                 <Setter.Value>
                                                     <DataTemplate>
                                                         <TextBox Text="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                                                 LostFocus="{Binding DataContext.FinishRenameCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                 KeyDown="TextBox_KeyDown" />
+                                                                 LostFocus="{Binding DataContext.FinishRenameCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
                                                     </DataTemplate>
                                                 </Setter.Value>
                                             </Setter>
+                                            <DataTrigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <EventSetter Event="TextBox.KeyDown" Handler="TextBox_KeyDown" />
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </DataTrigger.EnterActions>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -69,6 +75,3 @@
         </TreeView>
     </Grid>
 </Window>
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error		The event 'KeyDown' cannot be specified on a Target tag in a Style. Use an EventSetter instead. Line 52 Position 66.	deserilaizemvvm	C:\Users\2021455\source\repos\deserilaizemvvm\deserilaizemvvm\MainWindow.xaml	52	
