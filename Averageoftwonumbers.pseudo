@@ -50,6 +50,7 @@
                                                         <TextBox Text="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                                                             <TextBox.Style>
                                                                 <Style TargetType="TextBox">
+                                                                    <!-- Move the EventSetter here, directly inside TextBox.Style -->
                                                                     <EventSetter Event="KeyDown" Handler="TextBox_KeyDown" />
                                                                 </Style>
                                                             </TextBox.Style>
@@ -73,6 +74,3 @@
         </TreeView>
     </Grid>
 </Window>
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error		The event 'KeyDown' cannot be specified on a Target tag in a Style. Use an EventSetter instead. Line 53 Position 98.	deserilaizemvvm	C:\Users\2021455\source\repos\deserilaizemvvm\deserilaizemvvm\MainWindow.xaml	53	
