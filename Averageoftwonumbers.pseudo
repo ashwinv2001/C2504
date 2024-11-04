@@ -47,18 +47,16 @@
                                             <Setter Property="ContentTemplate">
                                                 <Setter.Value>
                                                     <DataTemplate>
-                                                        <TextBox Text="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                                                 LostFocus="{Binding DataContext.FinishRenameCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                                        <TextBox Text="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                            <TextBox.Style>
+                                                                <Style TargetType="TextBox">
+                                                                    <EventSetter Event="KeyDown" Handler="TextBox_KeyDown" />
+                                                                </Style>
+                                                            </TextBox.Style>
+                                                        </TextBox>
                                                     </DataTemplate>
                                                 </Setter.Value>
                                             </Setter>
-                                            <DataTrigger.EnterActions>
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <EventSetter Event="TextBox.KeyDown" Handler="TextBox_KeyDown" />
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </DataTrigger.EnterActions>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -75,6 +73,3 @@
         </TreeView>
     </Grid>
 </Window>
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	XLS0503	A value of type 'EventSetter' cannot be added to a collection or dictionary of type 'TimelineCollection'.	deserilaizemvvm	C:\Users\2021455\source\repos\deserilaizemvvm\deserilaizemvvm\MainWindow.xaml	58	
