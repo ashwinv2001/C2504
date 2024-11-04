@@ -1,76 +1,144 @@
 using System;
-using System.Collections.Generic;
+using System.Windows.Input;
+
+public class RelayCommand : ICommand
+{
+    private readonly Action<object> _execute;
+    private readonly Predicate<object> _canExecute;
+
+    public RelayCommand(Action<object> execute, Predicate<object> canExecute = null)
+    {
+        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+        _canExecute = canExecute;
+    }
+
+    public bool CanExecute(object parameter) => _canExecute == null || _canExecute(parameter);
+    public void Execute(object parameter) => _execute(parameter);
+    public event EventHandler CanExecuteChanged
+    {
+        add => CommandManager.RequerySuggested += value;
+        remove => CommandManager.RequerySuggested -= value;
+    }
+}
+
+
+
+
+
+using System;
+using System.ComponentModel;
+using System.IO;
+using System.Windows.Input;
 using System.Xml.Serialization;
+using Microsoft.Win32;
+using System.Collections.ObjectModel;
 
-[XmlRoot("Repository")]
-public class Repository
+public class MainViewModel : INotifyPropertyChanged
 {
-    [XmlElement("Title")]
-    public List<Title> Titles { get; set; }
+    private string _filePath;
+    private Repository _repository;
+
+    public string FilePath
+    {
+        get => _filePath;
+        set
+        {
+            _filePath = value;
+            OnPropertyChanged(nameof(FilePath));
+        }
+    }
+
+    public Repository RepositoryData
+    {
+        get => _repository;
+        set
+        {
+            _repository = value;
+            OnPropertyChanged(nameof(RepositoryData));
+        }
+    }
+
+    public ICommand BrowseCommand { get; }
+
+    public MainViewModel()
+    {
+        BrowseCommand = new RelayCommand(ExecuteBrowse);
+    }
+
+    private void ExecuteBrowse(object obj)
+    {
+        OpenFileDialog openFileDialog = new OpenFileDialog
+        {
+            Filter = "XML files (*.xml)|*.xml",
+            Title = "Select an XML file"
+        };
+
+        if (openFileDialog.ShowDialog() == true)
+        {
+            FilePath = openFileDialog.FileName;
+            RepositoryData = LoadRepository(FilePath);
+        }
+    }
+
+    private Repository LoadRepository(string xmlFilePath)
+    {
+        try
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(Repository));
+            using (FileStream fileStream = new FileStream(xmlFilePath, FileMode.Open))
+            {
+                return (Repository)serializer.Deserialize(fileStream);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle errors (e.g., show a message to the user)
+            Console.WriteLine($"Error loading XML file: {ex.Message}");
+            return null;
+        }
+    }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+    protected virtual void OnPropertyChanged(string propertyName) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
 
-public class Title
-{
-    [XmlAttribute("Value")]
-    public string Value { get; set; }
-    
-    [XmlAttribute("ProjectName")]
-    public string ProjectName { get; set; }
-    
-    [XmlAttribute("ProcessName")]
-    public string ProcessName { get; set; }
 
-    [XmlElement("DisplayName")]
-    public string DisplayName { get; set; }
 
-    [XmlElement("ControlInfo")]
-    public List<ControlInfo> ControlInfos { get; set; }
-}
 
-public class ControlInfo
-{
-    [XmlAttribute("Value")]
-    public string Value { get; set; }
 
-    [XmlElement("UId")]
-    public string UId { get; set; }
+<Window x:Class="YourNamespace.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="XML Viewer" Height="450" Width="800">
+    <Window.DataContext>
+        <local:MainViewModel />
+    </Window.DataContext>
 
-    [XmlElement("DisplayName")]
-    public string DisplayName { get; set; }
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-    [XmlElement("ParImage")]
-    public string ParImage { get; set; }
+        <!-- File Path TextBox and Browse Button -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBox Width="400" Text="{Binding FilePath}" IsReadOnly="True" Margin="0,0,10,0"/>
+            <Button Content="Browse" Command="{Binding BrowseCommand}" Width="100"/>
+        </StackPanel>
 
-    [XmlElement("Image")]
-    public string Image { get; set; }
-
-    [XmlElement("XPath")]
-    public string XPath { get; set; }
-
-    [XmlElement("DefaultXPath")]
-    public string DefaultXPath { get; set; }
-
-    [XmlElement("CustomXPath")]
-    public string CustomXPath { get; set; }
-
-    [XmlElement("XPathUsed")]
-    public string XPathUsed { get; set; }
-
-    [XmlElement("DatasFromAI")]
-    public string DatasFromAI { get; set; }
-
-    [XmlElement("PropertyInfo")]
-    public string PropertyInfo { get; set; }
-
-    [XmlElement("Id")]
-    public string Id { get; set; }
-
-    [XmlElement("Type")]
-    public string Type { get; set; }
-
-    [XmlElement("Title")]
-    public string Title { get; set; }
-
-    [XmlElement("Value")]
-    public string ValueElement { get; set; }
-}
+        <!-- TreeView for displaying XML structure -->
+        <TreeView Grid.Row="1" ItemsSource="{Binding RepositoryData.Titles}">
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding ControlInfos}">
+                    <TextBlock Text="{Binding Value}" />
+                    <HierarchicalDataTemplate.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding DisplayName}" />
+                        </DataTemplate>
+                    </HierarchicalDataTemplate.ItemTemplate>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+    </Grid>
+</Window>
