@@ -1,83 +1,25 @@
-// Models/Employee.cs
-namespace EmployeeApp.Models
-{
-    public class Employee
-    {
-        public string Name { get; set; }
-        public int Age { get; set; }
-        public string Position { get; set; }
-    }
-}
-
-
-
-
-// Helpers/RelayCommand.cs
+// Converters/StockToColorConverter.cs
 using System;
-using System.Windows.Input;
+using System.Globalization;
+using System.Windows.Data;
+using System.Windows.Media;
 
-namespace EmployeeApp.Helpers
+namespace ProductApp.Converters
 {
-    public class RelayCommand : ICommand
+    public class StockToColorConverter : IValueConverter
     {
-        private readonly Action<object> execute;
-        private readonly Func<object, bool> canExecute;
-
-        public RelayCommand(Action<object> execute, Func<object, bool> canExecute = null)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            this.execute = execute;
-            this.canExecute = canExecute;
-        }
-
-        public event EventHandler CanExecuteChanged
-        {
-            add => CommandManager.RequerySuggested += value;
-            remove => CommandManager.RequerySuggested -= value;
-        }
-
-        public bool CanExecute(object parameter) => canExecute == null || canExecute(parameter);
-
-        public void Execute(object parameter) => execute(parameter);
-    }
-}
-
-
-
-// ViewModels/EmployeeViewModel.cs
-using EmployeeApp.Helpers;
-using EmployeeApp.Models;
-using System.Collections.ObjectModel;
-using System.Windows.Input;
-
-namespace EmployeeApp.ViewModels
-{
-    public class EmployeeViewModel
-    {
-        public ObservableCollection<Employee> Employees { get; set; }
-        public Employee NewEmployee { get; set; }
-        public ICommand AddEmployeeCommand { get; set; }
-
-        public EmployeeViewModel()
-        {
-            Employees = new ObservableCollection<Employee>();
-            NewEmployee = new Employee();
-            AddEmployeeCommand = new RelayCommand(AddEmployee);
-        }
-
-        private void AddEmployee(object obj)
-        {
-            // Add the new employee to the list
-            Employees.Add(new Employee
+            if (value is int stock)
             {
-                Name = NewEmployee.Name,
-                Age = NewEmployee.Age,
-                Position = NewEmployee.Position
-            });
+                return stock > 10 ? Brushes.LightGreen : Brushes.LightCoral;
+            }
+            return Brushes.Transparent;
+        }
 
-            // Clear the input fields
-            NewEmployee.Name = string.Empty;
-            NewEmployee.Age = 0;
-            NewEmployee.Position = string.Empty;
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 }
@@ -86,34 +28,39 @@ namespace EmployeeApp.ViewModels
 
 
 
-
-<Window x:Class="EmployeeApp.MainWindow"
+<Window x:Class="ProductApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:EmployeeApp"
-        xmlns:vm="clr-namespace:EmployeeApp.ViewModels"
-        Title="Employee App" Height="400" Width="600">
-    
+        xmlns:local="clr-namespace:ProductApp"
+        xmlns:vm="clr-namespace:ProductApp.ViewModels"
+        xmlns:conv="clr-namespace:ProductApp.Converters"
+        Title="Product App" Height="300" Width="400">
+
     <Window.DataContext>
-        <vm:EmployeeViewModel />
+        <vm:MainWindowViewModel />
     </Window.DataContext>
 
-    <StackPanel Margin="10">
-        <!-- Input Fields for Employee Details -->
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-            <TextBox Width="100" Margin="5" Text="{Binding NewEmployee.Name, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Name" />
-            <TextBox Width="50" Margin="5" Text="{Binding NewEmployee.Age, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Age" />
-            <TextBox Width="100" Margin="5" Text="{Binding NewEmployee.Position, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Position" />
-            <Button Content="Add Employee" Command="{Binding AddEmployeeCommand}" Width="100" Margin="5"/>
-        </StackPanel>
+    <Window.Resources>
+        <conv:StockToColorConverter x:Key="StockToColorConverter" />
+    </Window.Resources>
 
-        <!-- DataGrid for Displaying Employees -->
-        <DataGrid ItemsSource="{Binding Employees}" AutoGenerateColumns="False" HeadersVisibility="ColumnHeader">
+    <Grid Margin="10">
+        <DataGrid ItemsSource="{Binding Products}" AutoGenerateColumns="False">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                <DataGridTextColumn Header="Age" Binding="{Binding Age}" Width="*"/>
-                <DataGridTextColumn Header="Position" Binding="{Binding Position}" Width="*"/>
+                <DataGridTextColumn Header="Product Name" Binding="{Binding Name}" Width="*"/>
+                <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="*">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Background" Value="{Binding Stock, Converter={StaticResource StockToColorConverter}}" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat=C}" Width="*"/>
             </DataGrid.Columns>
         </DataGrid>
-    </StackPanel>
+    </Grid>
 </Window>
+
+
+
+
