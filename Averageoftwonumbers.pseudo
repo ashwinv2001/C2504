@@ -1,34 +1,119 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Globalization;
-using System.Windows.Data;
-using System.Windows.Media;
-
-namespace nov11
+// Models/Employee.cs
+namespace EmployeeApp.Models
 {
-    public class DepartmentToColorConverter : IValueConverter
+    public class Employee
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public string Name { get; set; }
+        public int Age { get; set; }
+        public string Position { get; set; }
+    }
+}
+
+
+
+
+// Helpers/RelayCommand.cs
+using System;
+using System.Windows.Input;
+
+namespace EmployeeApp.Helpers
+{
+    public class RelayCommand : ICommand
+    {
+        private readonly Action<object> execute;
+        private readonly Func<object, bool> canExecute;
+
+        public RelayCommand(Action<object> execute, Func<object, bool> canExecute = null)
         {
-            return value.ToString() switch
-            {
-                "HR" => Brushes.LightBlue,
-                "IT" => Brushes.LightGreen,
-                "Sales" => Brushes.LightCoral,
-                _ => Brushes.LightGray,
-            };
+            this.execute = execute;
+            this.canExecute = canExecute;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public event EventHandler CanExecuteChanged
         {
-            throw new NotImplementedException();
+            add => CommandManager.RequerySuggested += value;
+            remove => CommandManager.RequerySuggested -= value;
+        }
+
+        public bool CanExecute(object parameter) => canExecute == null || canExecute(parameter);
+
+        public void Execute(object parameter) => execute(parameter);
+    }
+}
+
+
+
+// ViewModels/EmployeeViewModel.cs
+using EmployeeApp.Helpers;
+using EmployeeApp.Models;
+using System.Collections.ObjectModel;
+using System.Windows.Input;
+
+namespace EmployeeApp.ViewModels
+{
+    public class EmployeeViewModel
+    {
+        public ObservableCollection<Employee> Employees { get; set; }
+        public Employee NewEmployee { get; set; }
+        public ICommand AddEmployeeCommand { get; set; }
+
+        public EmployeeViewModel()
+        {
+            Employees = new ObservableCollection<Employee>();
+            NewEmployee = new Employee();
+            AddEmployeeCommand = new RelayCommand(AddEmployee);
+        }
+
+        private void AddEmployee(object obj)
+        {
+            // Add the new employee to the list
+            Employees.Add(new Employee
+            {
+                Name = NewEmployee.Name,
+                Age = NewEmployee.Age,
+                Position = NewEmployee.Position
+            });
+
+            // Clear the input fields
+            NewEmployee.Name = string.Empty;
+            NewEmployee.Age = 0;
+            NewEmployee.Position = string.Empty;
         }
     }
 }
 
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS8370	Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.	nov11	C:\Users\2021455\source\repos\nov11\nov11\DepartmentToColorConverter.cs	16	
 
+
+
+
+
+<Window x:Class="EmployeeApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:EmployeeApp"
+        xmlns:vm="clr-namespace:EmployeeApp.ViewModels"
+        Title="Employee App" Height="400" Width="600">
+    
+    <Window.DataContext>
+        <vm:EmployeeViewModel />
+    </Window.DataContext>
+
+    <StackPanel Margin="10">
+        <!-- Input Fields for Employee Details -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBox Width="100" Margin="5" Text="{Binding NewEmployee.Name, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Name" />
+            <TextBox Width="50" Margin="5" Text="{Binding NewEmployee.Age, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Age" />
+            <TextBox Width="100" Margin="5" Text="{Binding NewEmployee.Position, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Position" />
+            <Button Content="Add Employee" Command="{Binding AddEmployeeCommand}" Width="100" Margin="5"/>
+        </StackPanel>
+
+        <!-- DataGrid for Displaying Employees -->
+        <DataGrid ItemsSource="{Binding Employees}" AutoGenerateColumns="False" HeadersVisibility="ColumnHeader">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                <DataGridTextColumn Header="Age" Binding="{Binding Age}" Width="*"/>
+                <DataGridTextColumn Header="Position" Binding="{Binding Position}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </StackPanel>
+</Window>
