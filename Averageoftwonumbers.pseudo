@@ -1,20 +1,21 @@
-// Converters/StockToColorConverter.cs
+// Converters/RoleToColorConverter.cs
 using System;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace ProductApp.Converters
+namespace EmployeeApp.Converters
 {
-    public class StockToColorConverter : IValueConverter
+    public class RoleToColorConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is int stock)
+            return value.ToString() switch
             {
-                return stock > 10 ? Brushes.LightGreen : Brushes.LightCoral;
-            }
-            return Brushes.Transparent;
+                "Manager" => Brushes.LightBlue,
+                "Trainee" => Brushes.LightGreen,
+                _ => Brushes.Transparent
+            };
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -23,44 +24,3 @@ namespace ProductApp.Converters
         }
     }
 }
-
-
-
-
-
-<Window x:Class="ProductApp.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:ProductApp"
-        xmlns:vm="clr-namespace:ProductApp.ViewModels"
-        xmlns:conv="clr-namespace:ProductApp.Converters"
-        Title="Product App" Height="300" Width="400">
-
-    <Window.DataContext>
-        <vm:MainWindowViewModel />
-    </Window.DataContext>
-
-    <Window.Resources>
-        <conv:StockToColorConverter x:Key="StockToColorConverter" />
-    </Window.Resources>
-
-    <Grid Margin="10">
-        <DataGrid ItemsSource="{Binding Products}" AutoGenerateColumns="False">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Product Name" Binding="{Binding Name}" Width="*"/>
-                <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="*">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Background" Value="{Binding Stock, Converter={StaticResource StockToColorConverter}}" />
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat=C}" Width="*"/>
-            </DataGrid.Columns>
-        </DataGrid>
-    </Grid>
-</Window>
-
-
-
-
