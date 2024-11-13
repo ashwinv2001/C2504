@@ -15,7 +15,6 @@ using System.Windows.Shapes;
 using Microsoft.Win32;
 using System.IO;
 
-
 namespace Java
 {
     /// <summary>
@@ -27,6 +26,7 @@ namespace Java
         {
             InitializeComponent();
         }
+
         private void CheckJavaAndAccessBridge_Click(object sender, RoutedEventArgs e)
         {
             bool isJreInstalled = CheckJreInstalled();
@@ -79,7 +79,7 @@ namespace Java
                         string javaHome = versionKey?.GetValue("JavaHome") as string;
                         if (!string.IsNullOrEmpty(javaHome))
                         {
-                            string accessBridgePath = Path.Combine(javaHome, "bin", "WindowsAccessBridge-64.dll");
+                            string accessBridgePath = System.IO.Path.Combine(javaHome, "bin", "WindowsAccessBridge-64.dll");
                             return File.Exists(accessBridgePath);
                         }
                     }
@@ -89,6 +89,3 @@ namespace Java
         }
     }
 }
-
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0104	'Path' is an ambiguous reference between 'System.Windows.Shapes.Path' and 'System.IO.Path'	Java	C:\Users\2021455\source\repos\Java\Java\MainWindow.xaml.cs	82	
