@@ -1,29 +1,32 @@
-<Window x:Class="YourNamespace.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Java Check" Height="200" Width="300">
-    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-        <Button Content="Check Java & Access Bridge" Click="CheckJavaAndAccessBridge_Click" Width="200" Height="40"/>
-        <TextBlock Name="ResultText" Margin="10,20,10,0" TextAlignment="Center"/>
-    </StackPanel>
-</Window>
-
-
-
-using Microsoft.Win32;
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using Microsoft.Win32;
+using System.IO;
 
-namespace YourNamespace
+
+namespace Java
 {
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
         }
-
         private void CheckJavaAndAccessBridge_Click(object sender, RoutedEventArgs e)
         {
             bool isJreInstalled = CheckJreInstalled();
@@ -86,3 +89,6 @@ namespace YourNamespace
         }
     }
 }
+
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0104	'Path' is an ambiguous reference between 'System.Windows.Shapes.Path' and 'System.IO.Path'	Java	C:\Users\2021455\source\repos\Java\Java\MainWindow.xaml.cs	82	
