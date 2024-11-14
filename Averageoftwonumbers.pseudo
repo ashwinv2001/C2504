@@ -1,24 +1,36 @@
+using System;
 using System.IO;
 
-public bool IsAccessibilityEnabled()
+public class AccessibilityChecker
 {
-    string filePath = @"C:\users\2021455\.accessibility.properties";
-
-    if (!File.Exists(filePath))
+    public static bool IsAccessibilityEnabled()
     {
-        // File does not exist; return false or handle as needed
-        return false;
-    }
-
-    using (StreamReader reader = new StreamReader(filePath))
-    {
-        string firstLine = reader.ReadLine();
-        // Check if the first line starts with '#'
-        if (firstLine != null && firstLine.TrimStart().StartsWith("#"))
+        try
         {
-            return false; // Content is commented out
+            // Get the path to the file
+            string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".accessibility.properties");
+
+            // Check if the file exists
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException("The .accessibility.properties file does not exist.");
+            }
+
+            // Read the first line of the file
+            string firstLine = File.ReadLines(filePath).FirstOrDefault();
+
+            // Check if the first line starts with '#'
+            if (firstLine != null && firstLine.TrimStart().StartsWith("#"))
+            {
+                return false;
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            return false;
         }
     }
-    return true; // Content does not start with '#'
 }
-
