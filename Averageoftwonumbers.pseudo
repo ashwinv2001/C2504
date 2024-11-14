@@ -1,1 +1,24 @@
-assistive_technologies=org.GNOME.Accessibility.JavaBridge
+using System.IO;
+
+public bool IsAccessibilityEnabled()
+{
+    string filePath = @"C:\users\2021455\.accessibility.properties";
+
+    if (!File.Exists(filePath))
+    {
+        // File does not exist; return false or handle as needed
+        return false;
+    }
+
+    using (StreamReader reader = new StreamReader(filePath))
+    {
+        string firstLine = reader.ReadLine();
+        // Check if the first line starts with '#'
+        if (firstLine != null && firstLine.TrimStart().StartsWith("#"))
+        {
+            return false; // Content is commented out
+        }
+    }
+    return true; // Content does not start with '#'
+}
+
