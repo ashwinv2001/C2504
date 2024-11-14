@@ -1,10 +1,26 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
 using Microsoft.Win32;
+using System.IO;
 
-namespace JavaAccessBridgeCheck
+
+namespace Java
 {
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
@@ -42,8 +58,11 @@ namespace JavaAccessBridgeCheck
             // Check if WindowsAccessBridge-64.dll exists in the JRE path
             string jreHomePath = @"C:\jdk-11.0.2";
             string accessBridgeDllPath = Path.Combine(jreHomePath, "bin", "WindowsAccessBridge-64.dll");
-            
+
             return File.Exists(accessBridgeDllPath);
         }
     }
 }
+
+Severity	Code	Description	Project	File	Line	Suppression State
+Error (active)	CS0104	'Path' is an ambiguous reference between 'System.Windows.Shapes.Path' and 'System.IO.Path'	Java	C:\Users\2021455\Desktop\Java\Java\MainWindow.xaml.cs	53	
