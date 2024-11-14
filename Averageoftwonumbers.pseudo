@@ -1,1 +1,73 @@
-C:\jdk-11.0.2
+<Window x:Class="JavaCheck.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Java Check" Height="200" Width="400">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Button Content="Check JRE and Java Access Bridge" Click="CheckJavaAndAccessBridge_Click" Width="250" Height="30" Margin="10"/>
+        <TextBlock Name="ResultText" Text="Result will be displayed here." TextWrapping="Wrap" Margin="10" />
+    </StackPanel>
+</Window>
+
+
+
+using System;
+using System.IO;
+using System.Windows;
+
+namespace JavaCheck
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        private void CheckJavaAndAccessBridge_Click(object sender, RoutedEventArgs e)
+        {
+            bool isJreInstalled = CheckJreInstalled();
+            bool isAccessBridgeEnabled = CheckJavaAccessBridgeEnabled();
+
+            if (isJreInstalled && isAccessBridgeEnabled)
+            {
+                ResultText.Text = "JRE is installed, and Java Access Bridge is enabled.";
+            }
+            else if (isJreInstalled)
+            {
+                ResultText.Text = "JRE is installed, but Java Access Bridge is not enabled.";
+            }
+            else
+            {
+                ResultText.Text = "JRE is not installed in the specified path.";
+            }
+        }
+
+        private bool CheckJreInstalled()
+        {
+            // Check if JRE is installed by looking for the JRE_HOME path
+            string jrePath = @"C:\jdk-11.0.2";
+            return Directory.Exists(jrePath);
+        }
+
+        private bool CheckJavaAccessBridgeEnabled()
+        {
+            // Path to the JRE accessibility.properties file
+            string accessPropertiesPath = @"C:\jdk-11.0.2\conf\accessibility.properties";
+
+            if (File.Exists(accessPropertiesPath))
+            {
+                // Read all lines in the file to check if the Java Access Bridge is enabled
+                string[] lines = File.ReadAllLines(accessPropertiesPath);
+                foreach (string line in lines)
+                {
+                    // Look for the line enabling Java Access Bridge
+                    if (line.Trim().Equals("assistive_technologies=org.Java.AccessBridge", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    }
+}
