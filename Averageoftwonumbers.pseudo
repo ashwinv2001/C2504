@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 
@@ -33,16 +34,37 @@ namespace Java
         private bool CheckJreInstalled()
         {
             string jreHomePath = @"C:\jdk-11.0.2";
-            return Directory.Exists(jreHomePath) && System.IO.File.Exists(System.IO.Path.Combine(jreHomePath, "bin", "java.exe"));
+            return Directory.Exists(jreHomePath) && File.Exists(System.IO.Path.Combine(jreHomePath, "bin", "java.exe"));
         }
 
         private bool CheckJavaAccessBridgeEnabled()
         {
-            // Check if WindowsAccessBridge-64.dll exists in the JRE path
-            string jreHomePath = @"C:\jdk-11.0.2";
-            string accessBridgeDllPath = System.IO.Path.Combine(jreHomePath, "bin", "WindowsAccessBridge-64.dll");
-
-            return System.IO.File.Exists(accessBridgeDllPath);
+            try
+            {
+                // Check Access Bridge state using command-line jabswitch
+                Process process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = "/c jabswitch -enable", // Checking if it can enable implies it's not already active
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    }
+                };
+                
+                process.Start();
+                string result = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+                
+                // Interpret output
+                return result.Contains("already enabled"); // Adjust based on observed output
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
