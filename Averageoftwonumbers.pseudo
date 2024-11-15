@@ -1,3 +1,51 @@
- string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".accessibility.properties");
-Severity	Code	Description	Project	File	Line	Suppression State
-Error (active)	CS0104	'Path' is an ambiguous reference between 'System.Windows.Shapes.Path' and 'System.IO.Path'	Java	C:\Users\2021455\Desktop\Java\Java\MainWindow.xaml.cs	60	
+using System;
+using System.IO;
+using System.Windows.Forms;
+
+public class MainForm : Form
+{
+    private CheckBox checkBox;
+
+    public MainForm()
+    {
+        // Initialize the checkbox
+        checkBox = new CheckBox
+        {
+            Text = "Check if hello.txt exists",
+            Location = new System.Drawing.Point(20, 20),
+            AutoSize = true
+        };
+
+        // Subscribe to the CheckedChanged event
+        checkBox.CheckedChanged += CheckBox_CheckedChanged;
+
+        // Add the checkbox to the form
+        Controls.Add(checkBox);
+    }
+
+    private void CheckBox_CheckedChanged(object sender, EventArgs e)
+    {
+        string filePath = @"C:\Program Files\hello.txt";
+
+        // Check if the file exists
+        if (File.Exists(filePath))
+        {
+            // Allow checking
+            checkBox.Checked = true;
+        }
+        else
+        {
+            // Uncheck and display a message
+            checkBox.Checked = false;
+            MessageBox.Show("File hello.txt does not exist in C:\\Program Files.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+    }
+    
+    [STAThread]
+    public static void Main()
+    {
+        Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
+        Application.Run(new MainForm());
+    }
+}
