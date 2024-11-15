@@ -1,51 +1,111 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
-public class MainForm : Form
+using System.IO;
+using System.Drawing.Text;
+
+
+namespace javainstallation
 {
-    private CheckBox checkBox;
-
-    public MainForm()
+    public partial class Form1 : Form
     {
-        // Initialize the checkbox
-        checkBox = new CheckBox
+        private bool p = false;
+        private CheckBox checkBox;
+        public Form1()
         {
-            Text = "Check if hello.txt exists",
-            Location = new System.Drawing.Point(20, 20),
-            AutoSize = true
-        };
+           
+            InitializeComponent();
+            checkBox = new CheckBox
+            {
+                Text = "Check if JRE is installed and JAVA ACCESS BRIDGE is enabled",
+                Location = new System.Drawing.Point(250,100),
+                AutoSize = true
+            };
 
-        // Subscribe to the CheckedChanged event
-        checkBox.CheckedChanged += CheckBox_CheckedChanged;
+            // Subscribe to the CheckedChanged event
+            checkBox.CheckedChanged += CheckBox_CheckedChanged;
 
-        // Add the checkbox to the form
-        Controls.Add(checkBox);
-    }
-
-    private void CheckBox_CheckedChanged(object sender, EventArgs e)
-    {
-        string filePath = @"C:\Program Files\hello.txt";
-
-        // Check if the file exists
-        if (File.Exists(filePath))
-        {
-            // Allow checking
-            checkBox.Checked = true;
+            // Add the checkbox to the form
+            Controls.Add(checkBox);
         }
-        else
+
+
+        private void CheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            // Uncheck and display a message
-            checkBox.Checked = false;
-            MessageBox.Show("File hello.txt does not exist in C:\\Program Files.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            if (p) return;
+            bool isJreInstalled = CheckJreInstalled();
+            bool isAccessBridgeEnabled = CheckJavaAccessBridgeEnabled();
+
+            if (isJreInstalled && isAccessBridgeEnabled)
+            {
+               
+                checkBox.Checked = true;
+                p = false;
+            }
+            else if(isJreInstalled)
+            {
+              
+                checkBox.Checked = false;
+                p = false;
+                MessageBox.Show("JRE is installed, but Java Access Bridge is disabled.");
+            }
+            else
+            {
+                checkBox.Checked = false;
+                p = false;
+                MessageBox.Show("JRE is not installed ");
+            }
         }
-    }
-    
-    [STAThread]
-    public static void Main()
-    {
-        Application.EnableVisualStyles();
-        Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(new MainForm());
+
+        private bool CheckJreInstalled()
+        {
+            string jreHomePath = Environment.GetEnvironmentVariable("JAVA_HOME");
+            // string jreHomePath = @"C:\jdk-11.0.2";
+            return Directory.Exists(jreHomePath) && File.Exists(System.IO.Path.Combine(jreHomePath, "bin", "java.exe"));
+        }
+
+        private bool CheckJavaAccessBridgeEnabled()
+        {
+            try
+            {
+
+                // Get the path to the file
+                string filePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".accessibility.properties");
+
+                // Check if the file exists
+                if (!File.Exists(filePath))
+                {
+                    throw new FileNotFoundException("The .accessibility.properties file does not exist.");
+                }
+
+                // Read the first line of the file
+                string firstLine = File.ReadLines(filePath).FirstOrDefault();
+
+                // Check if the first line starts with '#'
+                if (firstLine != null && firstLine.TrimStart().StartsWith("#"))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return false;
+            }
+        }
+
+
+
+
+
     }
 }
