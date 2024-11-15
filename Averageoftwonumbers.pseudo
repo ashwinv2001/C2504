@@ -1,31 +1,23 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
 using System.IO;
-using System.Drawing.Text;
-
+using System.Linq;
+using System.Windows.Forms;
 
 namespace javainstallation
 {
     public partial class Form1 : Form
     {
-        private bool p = false;
+        private bool p = false; // Flag to prevent re-triggering the event
         private CheckBox checkBox;
+
         public Form1()
         {
-           
             InitializeComponent();
+
             checkBox = new CheckBox
             {
                 Text = "Check if JRE is installed and JAVA ACCESS BRIDGE is enabled",
-                Location = new System.Drawing.Point(250,100),
+                Location = new System.Drawing.Point(250, 100),
                 AutoSize = true
             };
 
@@ -36,65 +28,52 @@ namespace javainstallation
             Controls.Add(checkBox);
         }
 
-
         private void CheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            if (p) return;
+            if (p) return; // Skip execution if the change is programmatic
+
+            p = true; // Set flag to true to avoid re-triggering the event
+
             bool isJreInstalled = CheckJreInstalled();
             bool isAccessBridgeEnabled = CheckJavaAccessBridgeEnabled();
 
             if (isJreInstalled && isAccessBridgeEnabled)
             {
-               
                 checkBox.Checked = true;
-                p = false;
             }
-            else if(isJreInstalled)
+            else if (isJreInstalled)
             {
-              
                 checkBox.Checked = false;
-                p = false;
                 MessageBox.Show("JRE is installed, but Java Access Bridge is disabled.");
             }
             else
             {
                 checkBox.Checked = false;
-                p = false;
-                MessageBox.Show("JRE is not installed ");
+                MessageBox.Show("JRE is not installed.");
             }
+
+            p = false; // Reset flag after the programmatic change
         }
 
         private bool CheckJreInstalled()
         {
             string jreHomePath = Environment.GetEnvironmentVariable("JAVA_HOME");
-            // string jreHomePath = @"C:\jdk-11.0.2";
-            return Directory.Exists(jreHomePath) && File.Exists(System.IO.Path.Combine(jreHomePath, "bin", "java.exe"));
+            return Directory.Exists(jreHomePath) && File.Exists(Path.Combine(jreHomePath, "bin", "java.exe"));
         }
 
         private bool CheckJavaAccessBridgeEnabled()
         {
             try
             {
+                string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".accessibility.properties");
 
-                // Get the path to the file
-                string filePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".accessibility.properties");
-
-                // Check if the file exists
                 if (!File.Exists(filePath))
                 {
                     throw new FileNotFoundException("The .accessibility.properties file does not exist.");
                 }
 
-                // Read the first line of the file
                 string firstLine = File.ReadLines(filePath).FirstOrDefault();
-
-                // Check if the first line starts with '#'
-                if (firstLine != null && firstLine.TrimStart().StartsWith("#"))
-                {
-                    return false;
-                }
-
-                return true;
+                return firstLine != null && !firstLine.TrimStart().StartsWith("#");
             }
             catch (Exception ex)
             {
@@ -102,10 +81,5 @@ namespace javainstallation
                 return false;
             }
         }
-
-
-
-
-
     }
 }
