@@ -1,85 +1,191 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Windows.Forms;
+using System.Collections.ObjectModel;
 
-namespace javainstallation
+namespace WpfXmlTreeViewer.MVVM.Model
 {
-    public partial class Form1 : Form
+    public class Node
     {
-        private bool p = false; // Flag to prevent re-triggering the event
-        private CheckBox checkBox;
+        public string Name { get; set; }
+        public ObservableCollection<Node> Children { get; set; } = new ObservableCollection<Node>();
+    }
+}
 
-        public Form1()
+
+
+
+
+
+
+
+using Microsoft.Win32;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Windows.Input;
+using System.Xml.Linq;
+using WpfXmlTreeViewer.MVVM.Model;
+
+namespace WpfXmlTreeViewer.MVVM.ViewModel
+{
+    public class MainViewModel : BaseViewModel
+    {
+        private string _filePath;
+        public string FilePath
         {
-            InitializeComponent();
-
-            checkBox = new CheckBox
+            get => _filePath;
+            set
             {
-                Text = "Check if JRE is installed and JAVA ACCESS BRIDGE is enabled",
-                Location = new System.Drawing.Point(250, 100),
-                AutoSize = true
+                _filePath = value;
+                OnPropertyChanged(nameof(FilePath));
+            }
+        }
+
+        public ObservableCollection<Node> XmlTree { get; set; } = new ObservableCollection<Node>();
+
+        public ICommand BrowseCommand { get; }
+
+        public MainViewModel()
+        {
+            BrowseCommand = new RelayCommand(BrowseFile);
+        }
+
+        private void BrowseFile()
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "XML Files (*.xml)|*.xml",
+                Title = "Select an XML File"
             };
 
-            // Subscribe to the CheckedChanged event
-            checkBox.CheckedChanged += CheckBox_CheckedChanged;
-
-            // Add the checkbox to the form
-            Controls.Add(checkBox);
-        }
-
-        private void CheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            if (p) return; // Skip execution if the change is programmatic
-
-            p = true; // Set flag to true to avoid re-triggering the event
-
-            bool isJreInstalled = CheckJreInstalled();
-            bool isAccessBridgeEnabled = CheckJavaAccessBridgeEnabled();
-
-            if (isJreInstalled && isAccessBridgeEnabled)
+            if (openFileDialog.ShowDialog() == true)
             {
-                checkBox.Checked = true;
-            }
-            else if (isJreInstalled)
-            {
-                checkBox.Checked = false;
-                MessageBox.Show("JRE is installed, but Java Access Bridge is disabled.");
-            }
-            else
-            {
-                checkBox.Checked = false;
-                MessageBox.Show("JRE is not installed.");
-            }
+                FilePath = openFileDialog.FileName;
 
-            p = false; // Reset flag after the programmatic change
-        }
-
-        private bool CheckJreInstalled()
-        {
-            string jreHomePath = Environment.GetEnvironmentVariable("JAVA_HOME");
-            return Directory.Exists(jreHomePath) && File.Exists(Path.Combine(jreHomePath, "bin", "java.exe"));
-        }
-
-        private bool CheckJavaAccessBridgeEnabled()
-        {
-            try
-            {
-                string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".accessibility.properties");
-
-                if (!File.Exists(filePath))
+                if (File.Exists(FilePath))
                 {
-                    throw new FileNotFoundException("The .accessibility.properties file does not exist.");
+                    DeserializeXml(FilePath);
                 }
+            }
+        }
 
-                string firstLine = File.ReadLines(filePath).FirstOrDefault();
-                return firstLine != null && !firstLine.TrimStart().StartsWith("#");
-            }
-            catch (Exception ex)
+        private void DeserializeXml(string filePath)
+        {
+            XmlTree.Clear();
+
+            // Load XML and convert it to a tree structure
+            XDocument xDocument = XDocument.Load(filePath);
+            Node root = ConvertToNode(xDocument.Root);
+            XmlTree.Add(root);
+        }
+
+        private Node ConvertToNode(XElement element)
+        {
+            Node node = new Node { Name = element.Name.LocalName };
+
+            foreach (XElement child in element.Elements())
             {
-                Console.WriteLine($"Error: {ex.Message}");
-                return false;
+                node.Children.Add(ConvertToNode(child));
             }
+
+            return node;
+        }
+    }
+}
+
+
+
+
+
+using System;
+using System.Windows.Input;
+
+namespace WpfXmlTreeViewer
+{
+    public class RelayCommand : ICommand
+    {
+        private readonly Action _execute;
+        private readonly Func<bool> _canExecute;
+
+        public event EventHandler CanExecuteChanged;
+
+        public RelayCommand(Action execute, Func<bool> canExecute = null)
+        {
+            _execute = execute;
+            _canExecute = canExecute;
+        }
+
+        public bool CanExecute(object parameter) => _canExecute == null || _canExecute();
+
+        public void Execute(object parameter) => _execute();
+
+        public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+    }
+}
+
+
+
+
+
+using System.ComponentModel;
+
+namespace WpfXmlTreeViewer
+{
+    public class BaseViewModel : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+}
+
+
+
+
+<Window x:Class="WpfXmlTreeViewer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfXmlTreeViewer"
+        mc:Ignorable="d"
+        Title="XML Tree Viewer" Height="450" Width="800">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Browse Section -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBox Width="600" Text="{Binding FilePath}" IsReadOnly="True" Margin="0,0,10,0"/>
+            <Button Content="Browse" Command="{Binding BrowseCommand}" Width="100"/>
+        </StackPanel>
+
+        <!-- TreeView -->
+        <TreeView Grid.Row="1" ItemsSource="{Binding XmlTree}">
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                    <TextBlock Text="{Binding Name}"/>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+    </Grid>
+</Window>
+
+
+
+
+using System.Windows;
+
+namespace WpfXmlTreeViewer
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+            DataContext = new MVVM.ViewModel.MainViewModel();
         }
     }
 }
