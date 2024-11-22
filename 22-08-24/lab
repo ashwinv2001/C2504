@@ -1,0 +1,68 @@
+LAB 
+
+1.out keyword
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp40
+{
+    internal class Program
+    {
+        static bool Div(int x, int y, out int res)
+        {
+            try
+            {
+                res = x / y;
+                return true;
+            }
+            catch
+            {
+                res = 0;
+                return false;
+            }
+        }
+
+            static void Main()
+            {
+                int a = 10;
+                int b = 5;
+                //int result = 0;
+                if (Div(a, b, out int  result))
+                {
+                    Console.WriteLine(result);
+                }
+                else
+                {
+                    Console.WriteLine("division failed");
+                }
+            }
+        }
+    }
+
+2.using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp40
+{
+    internal class Program
+    {
+        static void AddAndSub(int a,int b,out int additionRes,out int subResult)
+        {
+            additionRes = a + b;
+            subResult = a - b;
+        }
+        public static void Main()
+        {
+            AddAndSub(10, 5, out int additionRes, out int subResullt);
+            Console.WriteLine($"after addition:{additionRes}");
+            Console.WriteLine($"after subtraction:{subResullt}");
+        }
+    }
+}

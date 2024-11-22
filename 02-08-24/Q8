@@ -1,0 +1,43 @@
+using System;
+
+
+namespace Psrograms
+{
+    internal class Program
+    {
+        static void PrintNumTriangleMirroredRightAngle(int N)
+        {
+            int I = 1; 
+            while ( I <= N)
+            {
+                int J = 1; 
+                while (J <= N - I)
+                {
+                    Console.Write("  ");
+                    J++;
+                }
+                int k = 1; 
+                while (k <= I)
+                {
+                    Console.Write($"{k} ");
+                    k++;
+                }
+                Console.WriteLine();
+                I++;
+            }
+        }
+        static void TestPrintNumTriangleMirroredRightAngle()
+        {
+            Console.Write("Enter number of lines:");
+            int N = int.Parse(Console.ReadLine());
+            PrintNumTriangleMirroredRightAngle(N);
+        }
+        static void Main(string[] args) 
+        {
+            Console.WriteLine("-----TestPrintNumTriangleMirroredRightAngle-----");
+            TestPrintNumTriangleMirroredRightAngle();
+            Console.WriteLine("-----End TestPrintNumTriangleMirroredRightAngle-----");
+            Console.ReadKey();
+        }
+    }
+}

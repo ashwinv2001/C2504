@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        h1{
+            color: white;
+        }
+        body{
+            background-color:tan;
+        }
+    </style>
+</head>
+<body>
+    <h1>hi</h1>
+    <h2>hi</h2>
+    <h3>hi</h3>
+    <h4>hi</h4>
+    <h5>hi</h5>
+    <h6>hi</h6>
+    <pre><!---------preserves formatting---------------------->
+        jfelfkl
+        dncdj
+     sjnsjnjs   sjcjcbjcbj
+    </pre>
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Optio libero dolorem praesentium sunt, possimus aspernatur, numquam ratione voluptates laborum quia quidem maiores, assumenda maxime aut est! Rerum officiis illo vero!</p>
+
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Optio libero dolorem praesentium sunt, possimus aspernatur, numquam ratione voluptates laborum quia quidem maiores, assumenda maxime aut est! Rerum officiis illo vero!</p>
+    
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.<wbr> Optio libero dolorem praesentium sunt, possimus aspernatur, numquam ratione voluptates laborum quia quidem maiores, assumenda maxime aut est! Rerum officiis illo vero!</p>
+    <h1>main heading</h1>
+    <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Eligendi esse voluptate animi totam sint maiores. Provident est architecto minus odio mollitia, laborum error consectetur cupiditate! Eligendi laboriosam tenetur recusandae beatae!</p>
+    <h2>main heading</h2>
+    <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Eligendi esse voluptate animi totam sint maiores. Provident est architecto minus odio mollitia, laborum error consectetur cupiditate! Eligendi laboriosam tenetur recusandae beatae!</p>
+    <span>hi</span>
+    <span>hello</span>
+    <hr>
+    <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Incidunt et debitis<br> mollitia! Molestias modi nihil error itaque repellat neque cupiditate, recusandae voluptatum in vel soluta, at iste officia quidem velit!</p>
+    <p>show inline code <code>Console.WriteLine()</code>to display the code</p>
+----------------------------------anchor tag---------------------------------------------------
+    <a href="https://www.google.co.in/">this is a link</a>
+    <a href="contact.html" target="_blank">this is contact</a>
+---------------------------------unordered list------------------------------------------------------------
+    <ul>
+        <li>apple</li>
+        <li>orange</li>
+        <li>banana</li>
+    </ul>
+--------------------------------ordered list-------------------------------------------------------------------
+    <ol type="a" start="25">
+        <li>apple</li>
+        <li>orange</li>
+        <li>banana</li>
+    </ol>
+    <p>Lorem ipsum dolor <b>sit amet, consectetur adipisicing elit. Maiores,</b> eum vero? Iusto nobis eos tempore <i>quos at deleniti, laudantium</i> ratione? Fugit adipisci <u>enim libero sit nihil quae! Dolorum,</u> quibusdam accusamus?</p>
+    <p>Lorem ipsum dolor <strong>sit amet, consectetur </strong>adipisicing elit. <em>Maiores,</em> eum vero? Iusto nobis eos tempore <strike>quos at deleniti, laudantium</strike> ratione? Fugit adipisci <del>enim libero sit nihil quae! Dolorum,</del> quibusdam accusamus?</p>
+------------------------------------superscript and subscript-------------------------------------------------------------
+    <p>H<sub>2O</sub></p>
+    <p>10<sup>th</sup></p>
+    <hr>
+--------------------------------------html entities------------------------------------------------------------------------
+    <p>&lt;b&gt; tag is used to make text bold</p>
+    &copy;
+    &reg;
+    &pound;
+    &trade;
+    &euro;
+----------------------------------------create a school time table using table tag--------------------------------------------------
+    <table border="1">
+        <thead>
+         <tr>
+            <th colspan="6">TIMETABLE</th>
+         </tr>
+         <tr>
+            <th>time</th>
+            <th>monday</th>
+            <th>tuesday</th>
+            <th>Wednesday</th>
+            <th>Thursday</th>
+            <th>Friday</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+         <td>9:00-10:00</td>
+         <td>English</td>
+         <td>Maths</td>
+         <td>Physics</td>
+         <td>Chemistry</td>
+         <td>PTE</td>
+         </tr>
+         <tr>
+            <td>10:00-11:00</td>
+            <td>Maths</td>
+            <td>Biology</td>
+            <td>PTE</td>
+            <td>Maths</td>
+            <td>English</td>
+            </tr>
+            <tr>
+                <td>11:00-12:00</td>
+                <td>Malayalam</td>
+                <td>Chemistry</td>
+                <td>Maths</td>
+                <td>Physics</td>
+                <td>EVS</td>
+                </tr>
+        </tbody>
+        
+    </table>
+----------------------------------------using iframe tag to embedd another website--------------------------------------------------------------
+<iframe src="https://www.flipkart.com/" frameborder="1" height="700" width="700"></iframe>
+</body>
+</html>
