@@ -1,66 +1,72 @@
-<Window x:Class="XmlToTreeViewExample.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Books TreeView" Height="350" Width="525">
-    <Grid>
-        <TreeView Name="BooksTreeView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-    </Grid>
-</Window>
-
-
-
-using System;
-using System.Collections.Generic;
-using System.Windows;
-using System.Xml.Serialization;
-using System.IO;
-using System.Windows.Controls;
-
-namespace XmlToTreeViewExample
-{
-    public partial class MainWindow : Window
-    {
-        public MainWindow()
-        {
-            InitializeComponent();
-            string filePath = @"C:\Users\2021455\Desktop\simpledeserialization\Books.xml";  // Path to your XML file
-            DeserializeXmlAndBindToTreeView(filePath);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Details</title>
+    <style>
+        #details {
+            margin-top: 20px;
+            font-family: Arial, sans-serif;
         }
+    </style>
+</head>
+<body>
+    <button id="myButton">Click Me</button>
+    <div id="details"></div>
 
-        // Method to deserialize XML and bind it to TreeView
-        private void DeserializeXmlAndBindToTreeView(string filePath)
-        {
-            // Load and deserialize the XML file
-            XmlSerializer serializer = new XmlSerializer(typeof(Books));
-            using (FileStream fs = new FileStream(filePath, FileMode.Open))
-            {
-                Books books = (Books)serializer.Deserialize(fs);
-
-                // Bind the book titles to the TreeView
-                foreach (var book in books.BookList)
-                {
-                    TreeViewItem item = new TreeViewItem
-                    {
-                        Header = book.Title
-                    };
-                    BooksTreeView.Items.Add(item);
-                }
+    <script>
+        function getXPath(element) {
+            if (element.id) {
+                return `//*[@id="${element.id}"]`;
             }
+            const path = [];
+            while (element && element.nodeType === Node.ELEMENT_NODE) {
+                let selector = element.nodeName.toLowerCase();
+                if (element.id) {
+                    selector += `[@id="${element.id}"]`;
+                    path.unshift(selector);
+                    break;
+                } else {
+                    let sibling = element;
+                    let siblingIndex = 1;
+                    while ((sibling = sibling.previousElementSibling)) {
+                        if (sibling.nodeName === element.nodeName) siblingIndex++;
+                    }
+                    selector += siblingIndex > 1 ? `[${siblingIndex}]` : '';
+                }
+                path.unshift(selector);
+                element = element.parentNode;
+            }
+            return `/${path.join('/')}`;
         }
-    }
 
-    // Class to represent the root Books element
-    [XmlRoot("Books")]
-    public class Books
-    {
-        [XmlElement("Book")]
-        public List<Book> BookList { get; set; }
-    }
+        function getButtonDetails(button) {
+            const rect = button.getBoundingClientRect();
+            const details = {
+                textContent: button.textContent,
+                xpath: getXPath(button),
+                location: {
+                    top: rect.top + window.scrollY,
+                    left: rect.left + window.scrollX
+                },
+                width: rect.width,
+                height: rect.height
+            };
+            return details;
+        }
 
-    // Class to represent each Book element
-    public class Book
-    {
-        public string Title { get; set; }
-        public string Author { get; set; }
-    }
-}
+        document.getElementById("myButton").addEventListener("click", function () {
+            const details = getButtonDetails(this);
+            const detailsDiv = document.getElementById("details");
+            detailsDiv.innerHTML = `
+                <h3>Button Details:</h3>
+                <p><strong>Text Content:</strong> ${details.textContent}</p>
+                <p><strong>XPath:</strong> ${details.xpath}</p>
+                <p><strong>Location:</strong> Top: ${details.location.top}px, Left: ${details.location.left}px</p>
+                <p><strong>Dimensions:</strong> Width: ${details.width}px, Height: ${details.height}px</p>
+            `;
+        });
+    </script>
+</body>
+</html>
