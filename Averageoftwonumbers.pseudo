@@ -1,72 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Button Details</title>
-    <style>
-        #details {
-            margin-top: 20px;
-            font-family: Arial, sans-serif;
-        }
-    </style>
-</head>
-<body>
-    <button id="myButton">Click Me</button>
-    <div id="details"></div>
-
-    <script>
-        function getXPath(element) {
-            if (element.id) {
-                return `//*[@id="${element.id}"]`;
-            }
-            const path = [];
-            while (element && element.nodeType === Node.ELEMENT_NODE) {
-                let selector = element.nodeName.toLowerCase();
-                if (element.id) {
-                    selector += `[@id="${element.id}"]`;
-                    path.unshift(selector);
-                    break;
-                } else {
-                    let sibling = element;
-                    let siblingIndex = 1;
-                    while ((sibling = sibling.previousElementSibling)) {
-                        if (sibling.nodeName === element.nodeName) siblingIndex++;
-                    }
-                    selector += siblingIndex > 1 ? `[${siblingIndex}]` : '';
-                }
-                path.unshift(selector);
-                element = element.parentNode;
-            }
-            return `/${path.join('/')}`;
-        }
-
-        function getButtonDetails(button) {
-            const rect = button.getBoundingClientRect();
-            const details = {
-                textContent: button.textContent,
-                xpath: getXPath(button),
-                location: {
-                    top: rect.top + window.scrollY,
-                    left: rect.left + window.scrollX
-                },
-                width: rect.width,
-                height: rect.height
-            };
-            return details;
-        }
-
-        document.getElementById("myButton").addEventListener("click", function () {
-            const details = getButtonDetails(this);
-            const detailsDiv = document.getElementById("details");
-            detailsDiv.innerHTML = `
-                <h3>Button Details:</h3>
-                <p><strong>Text Content:</strong> ${details.textContent}</p>
-                <p><strong>XPath:</strong> ${details.xpath}</p>
-                <p><strong>Location:</strong> Top: ${details.location.top}px, Left: ${details.location.left}px</p>
-                <p><strong>Dimensions:</strong> Width: ${details.width}px, Height: ${details.height}px</p>
-            `;
-        });
-    </script>
-</body>
-</html>
+<TextBox Name ="SearchTextbox" Width="85" Height="20">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="KeyUp">
+                        <ei:CallMethodAction MethodName="ExecuteSearchRepoCommand" TargetObject="{Binding}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </TextBox>
