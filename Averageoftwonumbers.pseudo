@@ -1,21 +1,19 @@
- <Button x:Name="MoveItemsDownButton"
-                    Cursor="Hand" ToolTip="Move items down" Margin="10,0,10,0" Command="{Binding MoveItemsDownCommand}" Height="15">
+<Button Cursor="Hand" ToolTip="Delete Repository" Margin="10,0,10,0" Command="{Binding DeleteRepoCommand}" Height="15" >
                 <Button.Template>
                     <ControlTemplate>
-                        <Image>
-                            <Image.Style>
-                                <Style TargetType="Image">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsEnabled, ElementName=MoveItemsDownButton}" Value="false">
-                                            <Setter Property="Source" Value="..\Resources\Icons\Icons.16x16.ArrowDown.disabled.png"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding IsEnabled, ElementName=MoveItemsDownButton}" Value="true">
-                                            <Setter Property="Source" Value="..\Resources\Icons\Icons.16x16.ArrowDown.png"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Image.Style>
-                        </Image>
+                        <Image Source="{StaticResource DeleteStep}" />
                     </ControlTemplate>
                 </Button.Template>
+                <Button.Style>
+                    <Style TargetType="{x:Type Button}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsLoaded}"  Value="true">
+                                <Setter Property="IsEnabled" Value="True" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsLoaded}" Value="true">
+                                <Setter Property="IsEnabled" Value="true" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
             </Button>
