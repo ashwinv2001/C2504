@@ -1,17 +1,29 @@
 private bool CheckJreInstalled()
+{
+    try
+    {
+        // Get the PATH environment variable
+        string pathEnvironment = Environment.GetEnvironmentVariable("PATH");
+        if (!string.IsNullOrEmpty(pathEnvironment))
         {
-            try
+            // Split the PATH into individual directories
+            string[] paths = pathEnvironment.Split(';');
+
+            foreach (string path in paths)
             {
-                string jreHomePath = Environment.GetEnvironmentVariable("JAVA_HOME");
-                if (!string.IsNullOrEmpty(jreHomePath))
+                // Combine the directory with "java.exe" to check for its existence
+                string javaPath = System.IO.Path.Combine(path.Trim(), "java.exe");
+                if (File.Exists(javaPath))
                 {
-                    jreHomePath = Regex.Replace(jreHomePath, @"\t|\n|\r", "");
-                    return Directory.Exists(jreHomePath) && File.Exists(System.IO.Path.Combine(jreHomePath, "bin", "java.exe"));
+                    return true; // JRE is installed
                 }
-                return false;
-            }
-            catch (Exception)
-            {
-                return false;
             }
         }
+
+        return false; // JRE is not found
+    }
+    catch (Exception)
+    {
+        return false; // Handle exceptions gracefully
+    }
+}
