@@ -1,19 +1,17 @@
-<Button Cursor="Hand" ToolTip="Delete Repository" Margin="10,0,10,0" Command="{Binding DeleteRepoCommand}" Height="15" >
-                <Button.Template>
-                    <ControlTemplate>
-                        <Image Source="{StaticResource DeleteStep}" />
-                    </ControlTemplate>
-                </Button.Template>
-                <Button.Style>
-                    <Style TargetType="{x:Type Button}">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsLoaded}"  Value="true">
-                                <Setter Property="IsEnabled" Value="True" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding IsLoaded}" Value="true">
-                                <Setter Property="IsEnabled" Value="true" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Button.Style>
-            </Button>
+private bool CheckJreInstalled()
+        {
+            try
+            {
+                string jreHomePath = Environment.GetEnvironmentVariable("JAVA_HOME");
+                if (!string.IsNullOrEmpty(jreHomePath))
+                {
+                    jreHomePath = Regex.Replace(jreHomePath, @"\t|\n|\r", "");
+                    return Directory.Exists(jreHomePath) && File.Exists(System.IO.Path.Combine(jreHomePath, "bin", "java.exe"));
+                }
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
