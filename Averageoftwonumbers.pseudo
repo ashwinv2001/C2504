@@ -1,48 +1,12 @@
-using Microsoft.Win32;
-
-private bool IsJreInstalled()
-{
-    try
-    {
-        // Registry paths where Java versions are registered
-        string[] javaRegistryKeys = new string[]
-        {
-            @"SOFTWARE\JavaSoft\Java Runtime Environment", // 64-bit and 32-bit
-            @"SOFTWARE\WOW6432Node\JavaSoft\Java Runtime Environment" // 32-bit on 64-bit systems
-        };
-
-        foreach (var key in javaRegistryKeys)
-        {
-            // Open the registry key
-            using (RegistryKey registryKey = Registry.LocalMachine.OpenSubKey(key))
+  try
             {
-                if (registryKey != null)
+               
+                if (!this.m_objWiniumApplication.Close(f_nWaitTime))
                 {
-                    // Get the current version of Java
-                    string currentVersion = registryKey.GetValue("CurrentVersion") as string;
-                    if (!string.IsNullOrEmpty(currentVersion))
-                    {
-                        // Check if the installation directory exists
-                        using (RegistryKey versionKey = registryKey.OpenSubKey(currentVersion))
-                        {
-                            if (versionKey != null)
-                            {
-                                string javaHome = versionKey.GetValue("JavaHome") as string;
-                                if (!string.IsNullOrEmpty(javaHome))
-                                {
-                                    return true; // JRE is installed
-                                }
-                            }
-                        }
-                    }
+                    throw new Exception(TAFSControlLib.ControlLibCommonDef.ERROR_CLOSEAPPLICATION + this.ApplicationMetaData.ApplicationPath);
                 }
             }
-        }
-
-        return false; // JRE not found
-    }
-    catch (Exception)
-    {
-        return false; // Handle exceptions gracefully
-    }
-}
+            catch (Exception l_objException)
+            {
+               
+            }
