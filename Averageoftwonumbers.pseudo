@@ -1,12 +1,10 @@
-  try
+   public bool Close(int f_WaitForExitTimeOut)
+        {
+            this.process.CloseMainWindow();
+            int l_WaitForExitTimeOut = f_WaitForExitTimeOut;
+            if (0 > l_WaitForExitTimeOut)
             {
-               
-                if (!this.m_objWiniumApplication.Close(f_nWaitTime))
-                {
-                    throw new Exception(TAFSControlLib.ControlLibCommonDef.ERROR_CLOSEAPPLICATION + this.ApplicationMetaData.ApplicationPath);
-                }
+                l_WaitForExitTimeOut = CruciatusFactory.Settings.WaitForExitTimeout;
             }
-            catch (Exception l_objException)
-            {
-               
-            }
+            return this.process.WaitForExit(l_WaitForExitTimeOut);
+        }
