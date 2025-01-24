@@ -1,8 +1,70 @@
-  try
+<Window x:Class="ExeLauncher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Exe Launcher" Height="250" Width="400">
+    <Grid>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Label Content="Select an EXE file path:"/>
+            <TextBox x:Name="ExePathTextBox" Width="300" Margin="5"/>
+            <Button Content="Browse" Click="BrowseButton_Click" Width="100" HorizontalAlignment="Center" Margin="5"/>
+            <Button Content="Launch and Close" Click="LaunchAndCloseButton_Click" Width="150" HorizontalAlignment="Center" Margin="5"/>
+            <Label x:Name="StatusLabel" Content="Status: Idle" HorizontalAlignment="Center" Margin="5" Foreground="Blue"/>
+        </StackPanel>
+    </Grid>
+</Window>
+
+
+
+
+
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
+using System.Windows;
+using Microsoft.Win32;
+
+namespace ExeLauncher
+{
+    public partial class MainWindow : Window
+    {
+        private Process _exeProcess;
+
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        private void BrowseButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Open a file dialog to select an EXE file
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "Executable Files (*.exe)|*.exe",
+                Title = "Select an EXE File"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                ExePathTextBox.Text = openFileDialog.FileName;
+            }
+        }
+
+        private async void LaunchAndCloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            string exePath = ExePathTextBox.Text;
+
+            if (string.IsNullOrWhiteSpace(exePath) || !File.Exists(exePath))
+            {
+                MessageBox.Show("Please provide a valid EXE file path.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            try
             {
                 if (IsUWPApp(exePath))
                 {
-                    string processName = Path.GetFileNameWithoutExtension(exePath); // Extract the process name
+                    string processName = System.IO.Path.GetFileNameWithoutExtension(exePath);
                     StatusLabel.Content = "Launching UWP app...";
 
                     // Start the UWP app
@@ -12,6 +74,84 @@
                     await Task.Delay(10000);
 
                     // Close the UWP app
-                    CloseUWPAppByProcessName(processName);
+                    bool closed = CloseUWPAppByProcessName(processName);
+                    if (closed)
+                    {
+                        StatusLabel.Content = $"{processName} closed successfully.";
+                    }
+                    else
+                    {
+                        StatusLabel.Content = $"Failed to close {processName}.";
+                    }
+                }
+                else
+                {
+                    // Handle normal EXE
+                    _exeProcess = new Process
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            FileName = exePath,
+                            UseShellExecute = true
+                        }
+                    };
+
+                    _exeProcess.Start();
+                    StatusLabel.Content = "Process started. Waiting for 10 seconds...";
+
+                    await Task.Delay(10000);
+
+                    if (!_exeProcess.HasExited)
+                    {
+                        _exeProcess.Kill();
+                        StatusLabel.Content = "Process closed successfully.";
+                    }
+                    else
+                    {
+                        StatusLabel.Content = "Process already exited.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private bool IsUWPApp(string exePath)
+        {
+            // Check if the path contains "WindowsApps" (common for UWP apps)
+            return exePath.Contains("WindowsApps", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool CloseUWPAppByProcessName(string processName)
+        {
+            try
+            {
+                // Use PowerShell to find and terminate the UWP app process
+                string command = $"Get-Process -Name {processName} -ErrorAction SilentlyContinue | Stop-Process -Force";
+
+                ProcessStartInfo psi = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-Command \"{command}\"",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using (Process ps = Process.Start(psi))
+                {
+                    ps.WaitForExit();
                 }
 
+                return true; // Process closed successfully
+            }
+            catch
+            {
+                return false; // Failed to close the process
+            }
+        }
+    }
+}
