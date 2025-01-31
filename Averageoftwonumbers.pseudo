@@ -1,96 +1,15 @@
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
-using System.Windows;
-using Microsoft.Win32;
-
-namespace ExeLauncher
-{
-    public partial class MainWindow : Window
-    {
-        private Process _runningProcess;
-
-        public MainWindow()
-        {
-            InitializeComponent();
-        }
-
-        private void BrowseButton_Click(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog
+  string processName = System.IO.Path.GetFileNameWithoutExtension(executableFilePath);
+            Process[] processes = Process.GetProcessesByName(processName);
+            foreach (var process in processes)
             {
-                Filter = "Executable Files (*.exe)|*.exe",
-                Title = "Select an EXE file"
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                ExePathTextBox.Text = openFileDialog.FileName;
+                process.Kill();
             }
-        }
-
-        private async void LaunchButton_Click(object sender, RoutedEventArgs e)
-        {
-            string exePath = ExePathTextBox.Text;
-
-            if (string.IsNullOrWhiteSpace(exePath) || !File.Exists(exePath))
+            Process[] uwpProcesses = Process.GetProcessesByName("ApplicationFrameHost");
+            foreach (var process in uwpProcesses)
             {
-                MessageBox.Show("Please select a valid EXE file.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
+                process.Kill();
             }
 
-            try
-            {
-                // Get the executable file name (process name)
-                string processName = System.IO.Path.GetFileNameWithoutExtension(exePath);
+            // #7561
 
-                // Launch the EXE
-                _runningProcess = Process.Start(exePath);
-
-                if (_runningProcess != null)
-                {
-                    MessageBox.Show($"{processName} launched! It will close in 10 seconds.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                    // Wait for 10 seconds
-                    await Task.Delay(10000);
-
-                    // Close the application
-                    KillProcessByName(processName);
-
-                    MessageBox.Show($"{processName} closed successfully.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void KillProcessByName(string processName)
-        {
-            try
-            {
-                Process[] processes = Process.GetProcessesByName(processName);
-                foreach (var process in processes)
-                {
-                    process.Kill();
-                }
-
-                // Special handling for UWP Calculator
-                if (processName.ToLower() == "calc" || processName.ToLower() == "calculator")
-                {
-                    Process[] uwpProcesses = Process.GetProcessesByName("ApplicationFrameHost");
-                    foreach (var process in uwpProcesses)
-                    {
-                        process.Kill();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to close process: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-    }
-}
+          //  this.process.CloseMainWindow();
