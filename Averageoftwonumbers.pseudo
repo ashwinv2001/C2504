@@ -1,31 +1,51 @@
- private void KillProcessByName(string processName , string exePath)
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Windows;
+
+private void KillProcessByName(string processName, string exePath)
+{
+    try
+    {
+        string windowsAppsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WindowsApps");
+
+        // Check if the process belongs to a UWP app
+        if (exePath.StartsWith(windowsAppsPath, StringComparison.OrdinalIgnoreCase))
         {
-            string windowsAppsPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WindowsApps");
-
-            //string processName = System.IO.Path.GetFileNameWithoutExtension(executableFilePath);
-            if (exePath.StartsWith(windowsAppsPath, StringComparison.OrdinalIgnoreCase))
+            Process[] uwpProcesses = Process.GetProcessesByName("ApplicationFrameHost");
+            foreach (var process in uwpProcesses)
             {
-
-                Process[] uwpProcesses = Process.GetProcessesByName("ApplicationFrameHost");
-                foreach (var process in uwpProcesses)
+                try
                 {
-                    try
+                    // Get the associated UWP process
+                    var childProcesses = Process.GetProcesses()
+                        .Where(p => p.MainWindowHandle != IntPtr.Zero)  // Ensure process has a UI window
+                        .Where(p => p.MainWindowTitle.Contains(processName, StringComparison.OrdinalIgnoreCase));
+
+                    foreach (var uwpProcess in childProcesses)
                     {
-                        // Get associated windows to find the exact UWP process
-                        string windowTitle = process.MainWindowTitle;
-                        if (!string.IsNullOrEmpty(windowTitle) && windowTitle.IndexOf(processName, StringComparison.OrdinalIgnoreCase) >= 0)
+                        if (!string.IsNullOrEmpty(uwpProcess.MainModule?.FileName) &&
+                            uwpProcess.MainModule.FileName.Equals(exePath, StringComparison.OrdinalIgnoreCase))
                         {
-                            process.Kill();
+                            uwpProcess.Kill();
+                            Debug.WriteLine($"Killed UWP Process: {uwpProcess.ProcessName}");
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"Failed to check/killed UWP process: {ex.Message}");
-                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error checking/killing UWP process: {ex.Message}");
                 }
             }
-            else
-            {
-                System.Windows.MessageBox.Show("NOT UWP APP");
-            }
         }
+        else
+        {
+            MessageBox.Show("NOT a UWP APP", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+}
