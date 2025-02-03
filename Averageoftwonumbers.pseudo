@@ -21,7 +21,8 @@ private void KillProcessByName(string processName, string exePath)
                     // Get the associated UWP process
                     var childProcesses = Process.GetProcesses()
                         .Where(p => p.MainWindowHandle != IntPtr.Zero)  // Ensure process has a UI window
-                        .Where(p => p.MainWindowTitle.Contains(processName, StringComparison.OrdinalIgnoreCase));
+                        .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle) &&
+                                    p.MainWindowTitle.IndexOf(processName, StringComparison.OrdinalIgnoreCase) >= 0);
 
                     foreach (var uwpProcess in childProcesses)
                     {
