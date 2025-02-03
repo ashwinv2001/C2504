@@ -1,22 +1,40 @@
- private void KillProcessByName(string processName)
+using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Windows;
+
+private void KillProcessByName(string processName)
+{
+    try
+    {
+        // Kill standard processes matching the name
+        Process[] processes = Process.GetProcessesByName(processName);
+        foreach (var process in processes)
+        {
+            process.Kill();
+        }
+
+        // Kill only the specific UWP process wrapped in ApplicationFrameHost
+        Process[] uwpProcesses = Process.GetProcessesByName("ApplicationFrameHost");
+        foreach (var process in uwpProcesses)
         {
             try
             {
-                Process[] processes = Process.GetProcessesByName(processName);
-                foreach (var process in processes)
+                // Get associated windows to find the exact UWP process
+                string windowTitle = process.MainWindowTitle;
+                if (!string.IsNullOrEmpty(windowTitle) && windowTitle.Contains(processName, StringComparison.OrdinalIgnoreCase))
                 {
                     process.Kill();
                 }
-
-                Process[] uwpProcesses = Process.GetProcessesByName("ApplicationFrameHost");
-                foreach (var process in uwpProcesses)
-                {
-                    process.Kill();
-                }
-          
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to close process: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine($"Failed to check/killed UWP process: {ex.Message}");
             }
         }
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show($"Failed to close process: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+}
