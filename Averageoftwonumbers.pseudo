@@ -1,57 +1,22 @@
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Windows;
-
-namespace UWPAppChecker
-{
-    public partial class MainWindow : Window
-    {
-        public MainWindow()
+ private void KillProcessByName(string processName)
         {
-            InitializeComponent();
-        }
-
-        private void CheckIfUWP_Click(object sender, RoutedEventArgs e)
-        {
-            string exePath = @"C:\Path\To\YourApp.exe"; // Change this path
-            bool isUWP = IsUWPApplication(exePath);
-
-            if (isUWP)
-                MessageBox.Show("The application is a UWP app.");
-            else
-                MessageBox.Show("The application is a traditional Win32 app.");
-        }
-
-        private bool IsUWPApplication(string exePath)
-        {
-            if (string.IsNullOrWhiteSpace(exePath) || !File.Exists(exePath))
-                return false;
-
             try
             {
-                string processName = Path.GetFileNameWithoutExtension(exePath);
                 Process[] processes = Process.GetProcessesByName(processName);
-
-                // Check if the process is running inside ApplicationFrameHost (UWP host process)
-                if (processes.Any(p => p.ProcessName.Equals("ApplicationFrameHost", StringComparison.OrdinalIgnoreCase)))
+                foreach (var process in processes)
                 {
-                    return true;
+                    process.Kill();
                 }
 
-                // Check if the exe path is inside WindowsApps folder (default UWP location)
-                if (exePath.StartsWith(@"C:\Program Files\WindowsApps", StringComparison.OrdinalIgnoreCase))
+                Process[] uwpProcesses = Process.GetProcessesByName("ApplicationFrameHost");
+                foreach (var process in uwpProcesses)
                 {
-                    return true;
+                    process.Kill();
                 }
+          
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error: {ex.Message}");
+                MessageBox.Show($"Failed to close process: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-            return false;
         }
-    }
-}
