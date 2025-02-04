@@ -2,81 +2,102 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Windows;
 
-public class Program
+namespace YourWpfApp
 {
-    public static bool CloseUwpApp(string executableFilePath)
+    public partial class MainWindow : Window
     {
-        string processName = Path.GetFileNameWithoutExtension(executableFilePath);
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
 
-        // First, check if the app runs under ApplicationFrameHost
-        Process[] uwpProcesses = Process.GetProcessesByName("ApplicationFrameHost");
-        foreach (var process in uwpProcesses)
+        private void CloseUwpApp_Click(object sender, RoutedEventArgs e)
+        {
+            string uwpAppPath = txtAppPath.Text; // Get input from a TextBox in WPF UI
+
+            if (File.Exists(uwpAppPath))
+            {
+                CloseUwpApp(uwpAppPath);
+            }
+            else
+            {
+                MessageBox.Show("Invalid path. Please enter a valid UWP app executable path.");
+            }
+        }
+
+        private static bool CloseUwpApp(string executableFilePath)
+        {
+            string processName = Path.GetFileNameWithoutExtension(executableFilePath);
+
+            // Close UWP apps running under ApplicationFrameHost
+            Process[] uwpProcesses = Process.GetProcessesByName("ApplicationFrameHost");
+            foreach (var process in uwpProcesses)
+            {
+                try
+                {
+                    if (!string.IsNullOrEmpty(process.MainWindowTitle) &&
+                        process.MainWindowTitle.IndexOf(processName, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        process.Kill();
+                        MessageBox.Show($"Closed UWP app: {process.MainWindowTitle}");
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to close UWP process: {ex.Message}");
+                }
+            }
+
+            // Close standalone UWP apps
+            Process[] allProcesses = Process.GetProcesses();
+            foreach (var process in allProcesses)
+            {
+                try
+                {
+                    if (string.Equals(process.ProcessName, processName, StringComparison.OrdinalIgnoreCase) ||
+                        IsUwpProcess(process))
+                    {
+                        process.Kill();
+                        MessageBox.Show($"Closed UWP app: {process.ProcessName}");
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to close process {process.ProcessName}: {ex.Message}");
+                }
+            }
+
+            MessageBox.Show($"No running UWP app found with name {processName}");
+            return false;
+        }
+
+        private static bool IsUwpProcess(Process process)
         {
             try
             {
-                if (!string.IsNullOrEmpty(process.MainWindowTitle) &&
-                    process.MainWindowTitle.IndexOf(processName, StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    process.Kill();
-                    Console.WriteLine($"Closed UWP app: {process.MainWindowTitle}");
-                    return true;
-                }
+                return process.MainModule.FileName.Contains(@"\WindowsApps\"); // UWP apps run from this directory
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"Failed to close UWP process: {ex.Message}");
+                return false; // Some system processes may throw exceptions when accessing MainModule
             }
-        }
-
-        // Check if the app runs as a standalone UWP process
-        Process[] allProcesses = Process.GetProcesses();
-        foreach (var process in allProcesses)
-        {
-            try
-            {
-                if (string.Equals(process.ProcessName, processName, StringComparison.OrdinalIgnoreCase) ||
-                    IsUwpProcess(process))
-                {
-                    process.Kill();
-                    Console.WriteLine($"Closed UWP app: {process.ProcessName}");
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to close process {process.ProcessName}: {ex.Message}");
-            }
-        }
-
-        Console.WriteLine($"No running UWP app found with name {processName}");
-        return false;
-    }
-
-    private static bool IsUwpProcess(Process process)
-    {
-        try
-        {
-            return process.MainModule.FileName.Contains(@"\WindowsApps\"); // UWP apps run from this directory
-        }
-        catch
-        {
-            return false; // Some system processes may throw exceptions when accessing MainModule
-        }
-    }
-
-    public static void Main()
-    {
-        Console.Write("Enter the full path of the UWP app executable (e.g., C:\\Path\\To\\App.exe): ");
-        string uwpAppPath = Console.ReadLine();
-
-        if (File.Exists(uwpAppPath))
-        {
-            CloseUwpApp(uwpAppPath);
-        }
-        else
-        {
-            Console.WriteLine("Invalid path. Please enter a valid UWP app executable path.");
         }
     }
 }
+
+
+
+<Window x:Class="YourWpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Close UWP App" Height="200" Width="400">
+    <Grid>
+        <TextBox Name="txtAppPath" Width="300" Height="30" HorizontalAlignment="Left" Margin="10"/>
+        <Button Content="Close UWP App" Width="150" Height="30" HorizontalAlignment="Left" Margin="10,50,0,0"
+                Click="CloseUwpApp_Click"/>
+    </Grid>
+</Window>
