@@ -1,71 +1,21 @@
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Management;
-using System.Windows;
+  string processName = System.IO.Path.GetFileNameWithoutExtension(executableFilePath);
+        
 
-private void KillUwpProcess(string processName)
-{
-    try
-    {
-        Process[] uwpProcesses = Process.GetProcessesByName("ApplicationFrameHost");
-        bool isUwpApp = false;
-
-        foreach (var hostProcess in uwpProcesses)
-        {
-            try
-            {
-                // Get child processes of ApplicationFrameHost
-                var childProcesses = GetChildProcesses(hostProcess.Id)
-                    .Where(p => p.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase));
-
-                foreach (var uwpProcess in childProcesses)
+                Process[] uwpProcesses = Process.GetProcessesByName("ApplicationFrameHost");
+                foreach (var process in uwpProcesses)
                 {
-                    uwpProcess.Kill();
-                    Debug.WriteLine($"Killed UWP Process: {uwpProcess.ProcessName}");
-                    isUwpApp = true;
+                    try
+                    {
+                        // Get associated windows to find the exact UWP process
+                        string windowTitle = process.MainWindowTitle;
+                        if (!string.IsNullOrEmpty(windowTitle) && windowTitle.IndexOf(processName, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            process.Kill();
+                            return true;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Failed to check/killed UWP process: {ex.Message}");
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error checking/killing UWP process: {ex.Message}");
-            }
-        }
-
-        if (!isUwpApp)
-        {
-            MessageBox.Show("NOT a UWP APP", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-    }
-    catch (Exception ex)
-    {
-        MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-    }
-}
-
-// Helper function to get child processes using WMI
-private static Process[] GetChildProcesses(int parentId)
-{
-    var childProcesses = new System.Collections.Generic.List<Process>();
-
-    try
-    {
-        string query = $"SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {parentId}";
-        using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
-        using (ManagementObjectCollection results = searcher.Get())
-        {
-            foreach (ManagementObject mo in results)
-            {
-                int childPid = Convert.ToInt32(mo["ProcessId"]);
-                var childProcess = Process.GetProcessById(childPid);
-                childProcesses.Add(childProcess);
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        Debug.WriteLine($"Error retrieving child processes: {ex.Message}");
-    }
-
-    return childProcesses.ToArray();
-}
