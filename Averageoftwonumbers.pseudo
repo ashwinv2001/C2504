@@ -15,8 +15,11 @@
 
 
 
+
+
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows;
 
 namespace ProcessWindowFinder
@@ -28,33 +31,48 @@ namespace ProcessWindowFinder
             InitializeComponent();
         }
 
+        [DllImport("user32.dll")]
+        private static extern bool EnumWindows(EnumWindowsProc enumProc, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
         private void GetWindowHandle_Click(object sender, RoutedEventArgs e)
         {
             if (int.TryParse(ProcessIdTextBox.Text, out int processId))
             {
-                try
+                IntPtr mainWindowHandle = FindMainWindow(processId);
+                if (mainWindowHandle != IntPtr.Zero)
                 {
-                    Process process = Process.GetProcessById(processId);
-                    IntPtr mainWindowHandle = process.MainWindowHandle;
-
-                    if (mainWindowHandle != IntPtr.Zero)
-                    {
-                        WindowHandleTextBox.Text = mainWindowHandle.ToString();
-                    }
-                    else
-                    {
-                        WindowHandleTextBox.Text = "No main window found.";
-                    }
+                    WindowHandleTextBox.Text = mainWindowHandle.ToString();
                 }
-                catch (Exception ex)
+                else
                 {
-                    MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    WindowHandleTextBox.Text = "No main window found.";
                 }
             }
             else
             {
                 MessageBox.Show("Please enter a valid Process ID.", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        private IntPtr FindMainWindow(int processId)
+        {
+            IntPtr foundWindow = IntPtr.Zero;
+            EnumWindows((hWnd, lParam) =>
+            {
+                GetWindowThreadProcessId(hWnd, out uint windowProcessId);
+                if (windowProcessId == processId)
+                {
+                    foundWindow = hWnd;
+                    return false; // Stop enumeration once found
+                }
+                return true; // Continue enumeration
+            }, IntPtr.Zero);
+            return foundWindow;
         }
     }
 }
