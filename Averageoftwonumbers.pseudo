@@ -14,6 +14,9 @@ namespace Wpftest2
             InitializeComponent();
         }
 
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
         [DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
@@ -26,9 +29,6 @@ namespace Wpftest2
         [DllImport("user32.dll")]
         private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetParent(IntPtr hWnd);
-
         private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
         private async void OnResizeClick(object sender, RoutedEventArgs e)
@@ -37,7 +37,8 @@ namespace Wpftest2
             {
                 try
                 {
-                    IntPtr hWnd = await Task.Run(() => FindUwpOrWin32Window(processId));
+                    // Run the process search in a background thread
+                    IntPtr hWnd = await Task.Run(() => FindWindowByProcessId(processId));
 
                     if (hWnd != IntPtr.Zero)
                     {
@@ -60,7 +61,7 @@ namespace Wpftest2
             }
         }
 
-        private IntPtr FindUwpOrWin32Window(int processId)
+        private IntPtr FindWindowByProcessId(int processId)
         {
             IntPtr foundWindow = IntPtr.Zero;
 
@@ -76,47 +77,19 @@ namespace Wpftest2
                 return true; // Continue enumeration
             }, IntPtr.Zero);
 
-            // If not found, try detecting a UWP window inside ApplicationFrameHost
+            // If not found, check for UWP application
             if (foundWindow == IntPtr.Zero)
             {
-                foundWindow = FindUwpWindow(processId);
+                foundWindow = FindUwpWindow();
             }
 
             return foundWindow;
         }
 
-        private IntPtr FindUwpWindow(int processId)
+        private IntPtr FindUwpWindow()
         {
-            IntPtr foundWindow = IntPtr.Zero;
-
-            // Find ApplicationFrameHost (UWP container process)
-            var frameHostProcesses = Process.GetProcessesByName("ApplicationFrameHost");
-            foreach (var frameHost in frameHostProcesses)
-            {
-                EnumWindows((hWnd, lParam) =>
-                {
-                    GetWindowThreadProcessId(hWnd, out uint windowProcessId);
-                    
-                    // Ensure the window belongs to ApplicationFrameHost
-                    if (windowProcessId == frameHost.Id)
-                    {
-                        IntPtr child = GetParent(hWnd); // Get the actual UWP window inside ApplicationFrameHost
-                        GetWindowThreadProcessId(child, out uint childProcessId);
-
-                        if (childProcessId == processId)
-                        {
-                            foundWindow = hWnd;
-                            return false; // Stop once found
-                        }
-                    }
-                    return true;
-                }, IntPtr.Zero);
-
-                if (foundWindow != IntPtr.Zero)
-                    break;
-            }
-
-            return foundWindow;
+            // Try to find UWP Calculator window (class name is "ApplicationFrameWindow")
+            return FindWindow("ApplicationFrameWindow", null);
         }
     }
 }
