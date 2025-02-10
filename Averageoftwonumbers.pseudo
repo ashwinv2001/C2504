@@ -1,2 +1,76 @@
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	CS0012	The type 'TreeScope' is defined in an assembly that is not referenced. You must add a reference to assembly 'UIAutomationTypes, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.	Wpftest2	C:\Users\2021455\source\repos\Wpftest2\Wpftest2\MainWindow.xaml.cs	68	Active
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Windows;
+
+namespace Wpftest2
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern bool EnumWindows(EnumWindowsProc enumProc, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+        private void OnResizeClick(object sender, RoutedEventArgs e)
+        {
+            if (int.TryParse(txtProcessId.Text, out int processId))
+            {
+                try
+                {
+                    IntPtr hWnd = FindWindowByProcessId(processId);
+
+                    if (hWnd != IntPtr.Zero)
+                    {
+                        SetForegroundWindow(hWnd);
+                        ShowWindow(hWnd, 3); // SW_MAXIMIZE
+                    }
+                    else
+                    {
+                        MessageBox.Show("Could not find a valid UWP window.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error: {ex.Message}", "Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid Process ID.", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private IntPtr FindWindowByProcessId(int processId)
+        {
+            IntPtr foundWindow = IntPtr.Zero;
+
+            EnumWindows((hWnd, lParam) =>
+            {
+                GetWindowThreadProcessId(hWnd, out uint windowProcessId);
+                if (windowProcessId == processId)
+                {
+                    foundWindow = hWnd;
+                    return false; // Stop enumeration once found
+                }
+                return true; // Continue enumeration
+            }, IntPtr.Zero);
+
+            return foundWindow;
+        }
+    }
+}
