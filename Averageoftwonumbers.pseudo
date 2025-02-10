@@ -3,33 +3,45 @@ using System.Runtime.InteropServices;
 
 namespace WpfUwpRestorer
 {
-    // This is the COM interface for activating a UWP app.
+    // The COM interface for activating UWP apps.
     [ComImport]
     [Guid("2e941141-7f97-4756-ba1d-9decde894a3d")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    interface IApplicationActivationManager
+    public interface IApplicationActivationManager
     {
-        // ActivateApplication brings the UWP app to the foreground.
-        // Note: The strings must be marshaled as LPWStr.
+        // Activates an application for normal activation.
         int ActivateApplication(
             [In, MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
             [In, MarshalAs(UnmanagedType.LPWStr)] string arguments,
             [In] ActivateOptions options,
             [Out] out uint processId);
+
+        // Activates an application for a file.
+        int ActivateForFile(
+            [In, MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
+            [In] IntPtr /*IShellItemArray*/ shellItemArray,
+            [In, MarshalAs(UnmanagedType.LPWStr)] string verb,
+            [Out] out uint processId);
+
+        // Activates an application for a protocol.
+        int ActivateForProtocol(
+            [In, MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
+            [In] IntPtr /*IShellItemArray*/ shellItemArray,
+            [Out] out uint processId);
     }
 
-    // This COM class implements IApplicationActivationManager.
+    // The COM class that implements IApplicationActivationManager.
     [ComImport]
     [Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C")]
     [ClassInterface(ClassInterfaceType.None)]
-    class ApplicationActivationManager : IApplicationActivationManager
+    public class ApplicationActivationManager : IApplicationActivationManager
     {
-        // No members need to be implemented here—the runtime provides the implementation.
+        // No implementation is needed—this COM class provides it.
     }
 
-    // Activation options (for now we only use None).
+    // Activation options. For our purposes, we just use None.
     [Flags]
-    enum ActivateOptions
+    public enum ActivateOptions
     {
         None = 0x00000000,
         DesignMode = 0x00000001,
