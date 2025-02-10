@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Automation; // UIAutomation for UWP apps
+using System.Windows.Automation;
 
 namespace Wpftest2
 {
@@ -21,17 +21,7 @@ namespace Wpftest2
         [DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
-        private async void OnMaximizeClick(object sender, RoutedEventArgs e)
-        {
-            await ResizeUwpWindow("Maximize");
-        }
-
-        private async void OnMinimizeClick(object sender, RoutedEventArgs e)
-        {
-            await ResizeUwpWindow("Minimize");
-        }
-
-        private async Task ResizeUwpWindow(string action)
+        private async void OnRestoreAndMaximizeClick(object sender, RoutedEventArgs e)
         {
             if (int.TryParse(txtProcessId.Text, out int processId))
             {
@@ -42,20 +32,15 @@ namespace Wpftest2
                     if (hWnd != IntPtr.Zero)
                     {
                         SetForegroundWindow(hWnd);
-                        await Task.Delay(500); // Small delay to ensure UI update
+                        await Task.Delay(500);
 
-                        if (action == "Maximize")
-                        {
-                            // 🔹 Restore first if minimized, then maximize
-                            ShowWindow(hWnd, 9); // SW_RESTORE (Restores from minimized state)
-                            await Task.Delay(500);
-                        }
-
-                        ControlUwpWindow(hWnd, action); // ✅ Maximize or Minimize
+                        RestoreFromTaskbar(hWnd);
+                        await Task.Delay(500); // Wait for restoration
+                        MaximizeWindow(hWnd);
                     }
                     else
                     {
-                        MessageBox.Show("Could not find a valid UWP/Win32 window for the given Process ID.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show("Could not find a valid UWP window.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
                 catch (Exception ex)
@@ -71,9 +56,6 @@ namespace Wpftest2
 
         private IntPtr FindWindowByProcessId(int processId)
         {
-            IntPtr foundWindow = IntPtr.Zero;
-
-            // 1️⃣ First, check if it's a normal Win32 application
             foreach (Process proc in Process.GetProcesses())
             {
                 if (proc.Id == processId && proc.MainWindowHandle != IntPtr.Zero)
@@ -81,56 +63,82 @@ namespace Wpftest2
                     return proc.MainWindowHandle;
                 }
             }
-
-            // 2️⃣ If not found, check if it's a UWP app inside ApplicationFrameHost
-            foundWindow = FindUwpWindow(processId);
-            return foundWindow;
-        }
-
-        private IntPtr FindUwpWindow(int processId)
-        {
-            var frameHosts = Process.GetProcessesByName("ApplicationFrameHost");
-            foreach (var frameHost in frameHosts)
-            {
-                IntPtr hwnd = IntPtr.Zero;
-
-                foreach (Process proc in Process.GetProcesses())
-                {
-                    if (proc.Id == frameHost.Id)
-                    {
-                        hwnd = proc.MainWindowHandle;
-                        if (hwnd != IntPtr.Zero) return hwnd;
-                    }
-                }
-            }
-
             return IntPtr.Zero;
         }
 
-        private void ControlUwpWindow(IntPtr hWnd, string action)
+        private void RestoreFromTaskbar(IntPtr hWnd)
         {
             try
             {
                 AutomationElement element = AutomationElement.FromHandle(hWnd);
                 if (element != null)
                 {
-                    string buttonName = action == "Maximize" ? "Maximize" : "Minimize";
-                    var controlButton = element.FindFirst(
+                    // 🔹 Find the Restore button in UWP app
+                    var restoreButton = element.FindFirst(
                         TreeScope.Subtree,
-                        new PropertyCondition(AutomationElement.NameProperty, buttonName)
+                        new PropertyCondition(AutomationElement.NameProperty, "Restore")
                     );
 
-                    if (controlButton != null)
+                    if (restoreButton != null)
                     {
-                        InvokePattern invokePattern = controlButton.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
-                        invokePattern?.Invoke(); // ✅ Click Maximize or Minimize Button
+                        InvokePattern invokePattern = restoreButton.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
+                        invokePattern?.Invoke();
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{action} Failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show($"Restore Failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private void MaximizeWindow(IntPtr hWnd)
+        {
+            try
+            {
+                AutomationElement element = AutomationElement.FromHandle(hWnd);
+                if (element != null)
+                {
+                    var maximizeButton = element.FindFirst(
+                        TreeScope.Subtree,
+                        new PropertyCondition(AutomationElement.NameProperty, "Maximize")
+                    );
+
+                    if (maximizeButton != null)
+                    {
+                        InvokePattern invokePattern = maximizeButton.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
+                        invokePattern?.Invoke();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Maximize Failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
     }
 }
+
+
+
+<Window x:Class="Wpftest2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="UWP Process Restorer" Height="200" Width="400"
+        WindowStartupLocation="CenterScreen">
+    
+    <Grid>
+        <TextBlock Text="Enter Process ID:" FontSize="14" 
+                   HorizontalAlignment="Left" VerticalAlignment="Top" 
+                   Margin="20,20,0,0"/>
+        
+        <TextBox x:Name="txtProcessId" Width="200" Height="25" 
+                 HorizontalAlignment="Left" VerticalAlignment="Top" 
+                 Margin="20,50,0,0"/>
+        
+        <Button Content="Restore & Maximize" Width="200" Height="30"
+                HorizontalAlignment="Left" VerticalAlignment="Top"
+                Margin="20,90,0,0"
+                Click="OnRestoreAndMaximizeClick"/>
+    </Grid>
+</Window>
