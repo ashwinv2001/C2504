@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation; // Add UIAutomation for UWP handling
 
 namespace Wpftest2
 {
@@ -13,9 +14,6 @@ namespace Wpftest2
         {
             InitializeComponent();
         }
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
         [DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
@@ -37,7 +35,7 @@ namespace Wpftest2
             {
                 try
                 {
-                    // Run the process search in a background thread
+                    // Run in background thread to prevent UI freezing
                     IntPtr hWnd = await Task.Run(() => FindWindowByProcessId(processId));
 
                     if (hWnd != IntPtr.Zero)
@@ -65,31 +63,53 @@ namespace Wpftest2
         {
             IntPtr foundWindow = IntPtr.Zero;
 
-            // First, check if the process has a standard main window (Win32 apps)
+            // Try to find a regular Win32 window
             EnumWindows((hWnd, lParam) =>
             {
                 GetWindowThreadProcessId(hWnd, out uint windowProcessId);
                 if (windowProcessId == processId)
                 {
                     foundWindow = hWnd;
-                    return false; // Stop enumeration once found
+                    return false; // Stop enumeration
                 }
-                return true; // Continue enumeration
+                return true;
             }, IntPtr.Zero);
 
-            // If not found, check for UWP application
+            // If not found, check for UWP app
             if (foundWindow == IntPtr.Zero)
             {
-                foundWindow = FindUwpWindow();
+                foundWindow = FindUwpWindow(processId);
             }
 
             return foundWindow;
         }
 
-        private IntPtr FindUwpWindow()
+        private IntPtr FindUwpWindow(int processId)
         {
-            // Try to find UWP Calculator window (class name is "ApplicationFrameWindow")
-            return FindWindow("ApplicationFrameWindow", null);
+            // Get ApplicationFrameHost process (UWP apps use this)
+            var frameHost = Process.GetProcessesByName("ApplicationFrameHost").FirstOrDefault();
+            if (frameHost == null) return IntPtr.Zero;
+
+            IntPtr foundWindow = IntPtr.Zero;
+
+            // Find the top-level UWP window
+            EnumWindows((hWnd, lParam) =>
+            {
+                GetWindowThreadProcessId(hWnd, out uint windowProcessId);
+                if (windowProcessId == frameHost.Id)
+                {
+                    // Use UIAutomation to get the real UWP window inside ApplicationFrameHost
+                    AutomationElement element = AutomationElement.FromHandle(hWnd);
+                    if (element != null && element.Current.ProcessId == processId)
+                    {
+                        foundWindow = hWnd;
+                        return false;
+                    }
+                }
+                return true;
+            }, IntPtr.Zero);
+
+            return foundWindow;
         }
     }
 }
