@@ -27,6 +27,7 @@
 
 
 
+
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -49,14 +50,14 @@ namespace WpfUwpRestorer
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
         
-        const int SW_MAXIMIZE = 3;  // Command to maximize a window
+        const int SW_MAXIMIZE = 3;  // Flag to maximize a window
 
         #endregion
 
         /// <summary>
         /// Click handler for the "Maximize" button.
-        /// For Calculator (a UWP app) we use the COM activation method;
-        /// otherwise, for Win32 apps we use SetForegroundWindow and ShowWindow.
+        /// If the process name contains "calculator" (case‑insensitive), assume it’s a UWP app and use COM activation;
+        /// otherwise, for Win32 apps, bring the window to the front and maximize it.
         /// </summary>
         private void OnMaximizeClick(object sender, RoutedEventArgs e)
         {
@@ -71,12 +72,14 @@ namespace WpfUwpRestorer
                         return;
                     }
                     
-                    // For demonstration, assume that if the process name contains "calculator",
-                    // it is a UWP app. (Adjust this check as needed for your scenario.)
+                    // Check if the process is Calculator (UWP). Adjust this check as needed.
                     if (proc.ProcessName.ToLower().Contains("calculator"))
                     {
-                        // Use the COM activation manager to activate the UWP Calculator.
-                        IApplicationActivationManager aam = new ApplicationActivationManager();
+                        // Use the COM activation manager for UWP apps.
+                        // Note: We do not declare ApplicationActivationManager as implementing the interface.
+                        // Instead, we import it and then cast it to IApplicationActivationManager.
+                        IApplicationActivationManager aam =
+                            (IApplicationActivationManager)new ApplicationActivationManager();
                         uint newPid;
                         int hr = aam.ActivateApplication("Microsoft.WindowsCalculator_8wekyb3d8bbwe!App",
                                                          null,
@@ -89,7 +92,7 @@ namespace WpfUwpRestorer
                     }
                     else
                     {
-                        // For Win32 apps, use their main window handle.
+                        // For Win32 apps, use the main window handle.
                         IntPtr hWnd = proc.MainWindowHandle;
                         if (hWnd == IntPtr.Zero)
                         {
@@ -114,43 +117,43 @@ namespace WpfUwpRestorer
 
     #region COM Interface and Class for UWP Activation
 
-    // Define the COM interface with all three members.
+    // Define the COM interface for activating UWP apps.
     [ComImport]
     [Guid("2e941141-7f97-4756-ba1d-9decde894a3d")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     public interface IApplicationActivationManager
     {
-        // Activates an application for normal activation.
+        // Activate an application for normal activation.
         int ActivateApplication(
             [In, MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
             [In, MarshalAs(UnmanagedType.LPWStr)] string arguments,
             [In] ActivateOptions options,
             [Out] out uint processId);
 
-        // Activates an application for a file.
+        // Activate an application for a file.
         int ActivateForFile(
             [In, MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
-            [In] IntPtr shellItemArray, // IShellItemArray pointer (not used here)
+            [In] IntPtr shellItemArray,  // IShellItemArray pointer (not used here)
             [In, MarshalAs(UnmanagedType.LPWStr)] string verb,
             [Out] out uint processId);
 
-        // Activates an application for a protocol.
+        // Activate an application for a protocol.
         int ActivateForProtocol(
             [In, MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
-            [In] IntPtr shellItemArray, // IShellItemArray pointer (not used here)
+            [In] IntPtr shellItemArray,  // IShellItemArray pointer (not used here)
             [Out] out uint processId);
     }
 
-    // The COM class that implements IApplicationActivationManager.
+    // Import the COM class. Do NOT declare that it implements IApplicationActivationManager here.
     [ComImport]
     [Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C")]
     [ClassInterface(ClassInterfaceType.None)]
-    public class ApplicationActivationManager : IApplicationActivationManager
+    public class ApplicationActivationManager
     {
-        // No implementation is needed—the COM runtime provides it.
+        // The COM runtime provides the implementation.
     }
 
-    // Activation options (only None is used here).
+    // Options for activation.
     [Flags]
     public enum ActivateOptions
     {
@@ -162,3 +165,4 @@ namespace WpfUwpRestorer
 
     #endregion
 }
+
