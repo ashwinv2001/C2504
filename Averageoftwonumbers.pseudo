@@ -35,7 +35,7 @@ namespace Wpftest2
             {
                 try
                 {
-                    // Run window search in background thread
+                    // Run window search in background thread to prevent UI freezing
                     IntPtr hWnd = await Task.Run(() => FindWindowByProcessId(processId));
 
                     if (hWnd != IntPtr.Zero)
@@ -97,18 +97,25 @@ namespace Wpftest2
                     if (windowProcessId == frameHost.Id)
                     {
                         // 🔍 Use UIAutomation to find the real UWP window inside ApplicationFrameHost
-                        AutomationElement element = AutomationElement.FromHandle(hWnd);
-                        if (element != null)
+                        try
                         {
-                            var children = element.FindAll(TreeScope.Children, Condition.TrueCondition);
-                            foreach (AutomationElement child in children)
+                            AutomationElement element = AutomationElement.FromHandle(hWnd);
+                            if (element != null)
                             {
-                                if (child.Current.ProcessId == processId)
+                                var children = element.FindAll(TreeScope.Children, System.Windows.Automation.Condition.TrueCondition);
+                                foreach (AutomationElement child in children)
                                 {
-                                    hwnd = new IntPtr(child.Current.NativeWindowHandle);
-                                    return false; // Found
+                                    if (child.Current.ProcessId == processId)
+                                    {
+                                        hwnd = new IntPtr(child.Current.NativeWindowHandle);
+                                        return false; // Found
+                                    }
                                 }
                             }
+                        }
+                        catch (Exception)
+                        {
+                            // Ignore errors if AutomationElement fails
                         }
                     }
                     return true;
