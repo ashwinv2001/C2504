@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Automation; // UIAutomation for UWP apps
+using System.Windows.Automation;
 
 namespace Wpftest2
 {
@@ -42,20 +42,20 @@ namespace Wpftest2
                     if (hWnd != IntPtr.Zero)
                     {
                         SetForegroundWindow(hWnd);
-                        await Task.Delay(500); // Small delay to ensure UI update
+                        await Task.Delay(500); // Allow UI to update
 
                         if (action == "Maximize")
                         {
-                            // 🔹 Restore first if minimized, then maximize
-                            ShowWindow(hWnd, 9); // SW_RESTORE (Restores from minimized state)
+                            // 🔹 Use UI Automation to restore first, then maximize
+                            RestoreUwpWindow(hWnd);
                             await Task.Delay(500);
                         }
 
-                        ControlUwpWindow(hWnd, action); // ✅ Maximize or Minimize
+                        ControlUwpWindow(hWnd, action);
                     }
                     else
                     {
-                        MessageBox.Show("Could not find a valid UWP/Win32 window for the given Process ID.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show("Could not find a valid UWP window.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
                 catch (Exception ex)
@@ -71,9 +71,6 @@ namespace Wpftest2
 
         private IntPtr FindWindowByProcessId(int processId)
         {
-            IntPtr foundWindow = IntPtr.Zero;
-
-            // 1️⃣ First, check if it's a normal Win32 application
             foreach (Process proc in Process.GetProcesses())
             {
                 if (proc.Id == processId && proc.MainWindowHandle != IntPtr.Zero)
@@ -81,30 +78,33 @@ namespace Wpftest2
                     return proc.MainWindowHandle;
                 }
             }
-
-            // 2️⃣ If not found, check if it's a UWP app inside ApplicationFrameHost
-            foundWindow = FindUwpWindow(processId);
-            return foundWindow;
+            return IntPtr.Zero;
         }
 
-        private IntPtr FindUwpWindow(int processId)
+        private void RestoreUwpWindow(IntPtr hWnd)
         {
-            var frameHosts = Process.GetProcessesByName("ApplicationFrameHost");
-            foreach (var frameHost in frameHosts)
+            try
             {
-                IntPtr hwnd = IntPtr.Zero;
-
-                foreach (Process proc in Process.GetProcesses())
+                AutomationElement element = AutomationElement.FromHandle(hWnd);
+                if (element != null)
                 {
-                    if (proc.Id == frameHost.Id)
+                    // 🔹 Find the Restore button in UWP app
+                    var restoreButton = element.FindFirst(
+                        TreeScope.Subtree,
+                        new PropertyCondition(AutomationElement.NameProperty, "Restore")
+                    );
+
+                    if (restoreButton != null)
                     {
-                        hwnd = proc.MainWindowHandle;
-                        if (hwnd != IntPtr.Zero) return hwnd;
+                        InvokePattern invokePattern = restoreButton.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
+                        invokePattern?.Invoke();
                     }
                 }
             }
-
-            return IntPtr.Zero;
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Restore Failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         private void ControlUwpWindow(IntPtr hWnd, string action)
@@ -123,7 +123,7 @@ namespace Wpftest2
                     if (controlButton != null)
                     {
                         InvokePattern invokePattern = controlButton.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
-                        invokePattern?.Invoke(); // ✅ Click Maximize or Minimize Button
+                        invokePattern?.Invoke();
                     }
                 }
             }
