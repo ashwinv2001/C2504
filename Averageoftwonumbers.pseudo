@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Automation; // Add UIAutomation for UWP handling
+using System.Windows.Automation; // UIAutomation for UWP apps
 
 namespace Wpftest2
 {
@@ -35,7 +35,7 @@ namespace Wpftest2
             {
                 try
                 {
-                    // Run in background thread to prevent UI freezing
+                    // Run window search in background thread
                     IntPtr hWnd = await Task.Run(() => FindWindowByProcessId(processId));
 
                     if (hWnd != IntPtr.Zero)
@@ -45,7 +45,7 @@ namespace Wpftest2
                     }
                     else
                     {
-                        MessageBox.Show("Could not find a valid window for the given Process ID.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show("Could not find a valid UWP/Win32 window for the given Process ID.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
                 catch (Exception ex)
@@ -63,19 +63,19 @@ namespace Wpftest2
         {
             IntPtr foundWindow = IntPtr.Zero;
 
-            // First, check if it's a normal Win32 window
+            // 1️⃣ First, check if it's a normal Win32 application
             EnumWindows((hWnd, lParam) =>
             {
                 GetWindowThreadProcessId(hWnd, out uint windowProcessId);
                 if (windowProcessId == processId)
                 {
                     foundWindow = hWnd;
-                    return false; // Stop enumeration
+                    return false; // Stop searching
                 }
                 return true;
             }, IntPtr.Zero);
 
-            // If not found, check if it's a UWP app
+            // 2️⃣ If not found, check if it's a UWP app inside ApplicationFrameHost
             if (foundWindow == IntPtr.Zero)
             {
                 foundWindow = FindUwpWindow(processId);
@@ -96,11 +96,19 @@ namespace Wpftest2
                     GetWindowThreadProcessId(hWnd, out uint windowProcessId);
                     if (windowProcessId == frameHost.Id)
                     {
+                        // 🔍 Use UIAutomation to find the real UWP window inside ApplicationFrameHost
                         AutomationElement element = AutomationElement.FromHandle(hWnd);
-                        if (element != null && element.Current.ProcessId == processId)
+                        if (element != null)
                         {
-                            hwnd = hWnd;
-                            return false; // Found
+                            var children = element.FindAll(TreeScope.Children, Condition.TrueCondition);
+                            foreach (AutomationElement child in children)
+                            {
+                                if (child.Current.ProcessId == processId)
+                                {
+                                    hwnd = new IntPtr(child.Current.NativeWindowHandle);
+                                    return false; // Found
+                                }
+                            }
                         }
                     }
                     return true;
