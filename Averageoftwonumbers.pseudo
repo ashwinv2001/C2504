@@ -63,7 +63,7 @@ namespace Wpftest2
         {
             IntPtr foundWindow = IntPtr.Zero;
 
-            // Try to find a regular Win32 window
+            // First, check if it's a normal Win32 window
             EnumWindows((hWnd, lParam) =>
             {
                 GetWindowThreadProcessId(hWnd, out uint windowProcessId);
@@ -75,7 +75,7 @@ namespace Wpftest2
                 return true;
             }, IntPtr.Zero);
 
-            // If not found, check for UWP app
+            // If not found, check if it's a UWP app
             if (foundWindow == IntPtr.Zero)
             {
                 foundWindow = FindUwpWindow(processId);
@@ -86,30 +86,31 @@ namespace Wpftest2
 
         private IntPtr FindUwpWindow(int processId)
         {
-            // Get ApplicationFrameHost process (UWP apps use this)
-            var frameHost = Process.GetProcessesByName("ApplicationFrameHost").FirstOrDefault();
-            if (frameHost == null) return IntPtr.Zero;
-
-            IntPtr foundWindow = IntPtr.Zero;
-
-            // Find the top-level UWP window
-            EnumWindows((hWnd, lParam) =>
+            var frameHosts = Process.GetProcessesByName("ApplicationFrameHost");
+            foreach (var frameHost in frameHosts)
             {
-                GetWindowThreadProcessId(hWnd, out uint windowProcessId);
-                if (windowProcessId == frameHost.Id)
-                {
-                    // Use UIAutomation to get the real UWP window inside ApplicationFrameHost
-                    AutomationElement element = AutomationElement.FromHandle(hWnd);
-                    if (element != null && element.Current.ProcessId == processId)
-                    {
-                        foundWindow = hWnd;
-                        return false;
-                    }
-                }
-                return true;
-            }, IntPtr.Zero);
+                IntPtr hwnd = IntPtr.Zero;
 
-            return foundWindow;
+                EnumWindows((hWnd, lParam) =>
+                {
+                    GetWindowThreadProcessId(hWnd, out uint windowProcessId);
+                    if (windowProcessId == frameHost.Id)
+                    {
+                        AutomationElement element = AutomationElement.FromHandle(hWnd);
+                        if (element != null && element.Current.ProcessId == processId)
+                        {
+                            hwnd = hWnd;
+                            return false; // Found
+                        }
+                    }
+                    return true;
+                }, IntPtr.Zero);
+
+                if (hwnd != IntPtr.Zero)
+                    return hwnd;
+            }
+
+            return IntPtr.Zero;
         }
     }
 }
