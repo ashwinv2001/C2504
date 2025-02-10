@@ -1,8 +1,11 @@
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Automation;
+
 namespace Wpftest2
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
@@ -16,34 +19,23 @@ namespace Wpftest2
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
-        [DllImport("user32.dll")]
-        private static extern bool EnumWindows(EnumWindowsProc enumProc, IntPtr lParam);
-
-        [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
-
-        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
-
         private void OnResizeClick(object sender, RoutedEventArgs e)
         {
             if (int.TryParse(txtProcessId.Text, out int processId))
             {
                 try
                 {
-                    IntPtr foundWindow = IntPtr.Zero;
-                    EnumWindows((hWnd, lParam) =>
+                    IntPtr hWnd = FindUwpWindow(processId);
+
+                    if (hWnd != IntPtr.Zero)
                     {
-                        GetWindowThreadProcessId(hWnd, out uint windowProcessId);
-                        if (windowProcessId == processId)
-                        {
-                            foundWindow = hWnd;
-                            return false; // Stop enumeration once found
-                        }
-                        return true; // Continue enumeration
-                    }, IntPtr.Zero);
-                    SetForegroundWindow(foundWindow);
-                      ShowWindow(foundWindow, 3); // SW_MAXIMIZE
-                   
+                        SetForegroundWindow(hWnd);
+                        ShowWindow(hWnd, 3); // SW_MAXIMIZE
+                    }
+                    else
+                    {
+                        MessageBox.Show("Could not find a valid UWP window.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -54,6 +46,26 @@ namespace Wpftest2
             {
                 MessageBox.Show("Please enter a valid Process ID.", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        private IntPtr FindUwpWindow(int processId)
+        {
+            AutomationElement desktop = AutomationElement.RootElement;
+            foreach (AutomationElement window in desktop.FindAll(TreeScope.Children, Condition.TrueCondition))
+            {
+                int windowPid = 0;
+                IntPtr hWnd = new IntPtr(window.Current.NativeWindowHandle);
+                
+                if (hWnd != IntPtr.Zero)
+                {
+                    Process process = Process.GetProcessById(processId);
+                    if (process.MainWindowHandle == hWnd)
+                    {
+                        return hWnd; // Found correct window
+                    }
+                }
+            }
+            return IntPtr.Zero;
         }
     }
 }
