@@ -16,18 +16,7 @@ namespace Wpftest2
         }
 
         [DllImport("user32.dll")]
-        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-        [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        private static extern bool EnumWindows(EnumWindowsProc enumProc, IntPtr lParam);
-
-        [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
-
-        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
         private async void OnResizeClick(object sender, RoutedEventArgs e)
         {
@@ -35,13 +24,13 @@ namespace Wpftest2
             {
                 try
                 {
-                    // Run window search in background thread to prevent UI freezing
                     IntPtr hWnd = await Task.Run(() => FindWindowByProcessId(processId));
 
                     if (hWnd != IntPtr.Zero)
                     {
                         SetForegroundWindow(hWnd);
-                        ShowWindow(hWnd, 3); // SW_MAXIMIZE
+                        await Task.Delay(500); // Small delay to ensure UI update
+                        MaximizeUwpWindow(hWnd); // ✅ Use UIAutomation to maximize
                     }
                     else
                     {
@@ -64,23 +53,16 @@ namespace Wpftest2
             IntPtr foundWindow = IntPtr.Zero;
 
             // 1️⃣ First, check if it's a normal Win32 application
-            EnumWindows((hWnd, lParam) =>
+            foreach (Process proc in Process.GetProcesses())
             {
-                GetWindowThreadProcessId(hWnd, out uint windowProcessId);
-                if (windowProcessId == processId)
+                if (proc.Id == processId && proc.MainWindowHandle != IntPtr.Zero)
                 {
-                    foundWindow = hWnd;
-                    return false; // Stop searching
+                    return proc.MainWindowHandle;
                 }
-                return true;
-            }, IntPtr.Zero);
-
-            // 2️⃣ If not found, check if it's a UWP app inside ApplicationFrameHost
-            if (foundWindow == IntPtr.Zero)
-            {
-                foundWindow = FindUwpWindow(processId);
             }
 
+            // 2️⃣ If not found, check if it's a UWP app inside ApplicationFrameHost
+            foundWindow = FindUwpWindow(processId);
             return foundWindow;
         }
 
@@ -91,41 +73,43 @@ namespace Wpftest2
             {
                 IntPtr hwnd = IntPtr.Zero;
 
-                EnumWindows((hWnd, lParam) =>
+                foreach (Process proc in Process.GetProcesses())
                 {
-                    GetWindowThreadProcessId(hWnd, out uint windowProcessId);
-                    if (windowProcessId == frameHost.Id)
+                    if (proc.Id == frameHost.Id)
                     {
-                        // 🔍 Use UIAutomation to find the real UWP window inside ApplicationFrameHost
-                        try
-                        {
-                            AutomationElement element = AutomationElement.FromHandle(hWnd);
-                            if (element != null)
-                            {
-                                var children = element.FindAll(TreeScope.Children, System.Windows.Automation.Condition.TrueCondition);
-                                foreach (AutomationElement child in children)
-                                {
-                                    if (child.Current.ProcessId == processId)
-                                    {
-                                        hwnd = new IntPtr(child.Current.NativeWindowHandle);
-                                        return false; // Found
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            // Ignore errors if AutomationElement fails
-                        }
+                        hwnd = proc.MainWindowHandle;
+                        if (hwnd != IntPtr.Zero) return hwnd;
                     }
-                    return true;
-                }, IntPtr.Zero);
-
-                if (hwnd != IntPtr.Zero)
-                    return hwnd;
+                }
             }
 
             return IntPtr.Zero;
+        }
+
+        private void MaximizeUwpWindow(IntPtr hWnd)
+        {
+            try
+            {
+                AutomationElement element = AutomationElement.FromHandle(hWnd);
+                if (element != null)
+                {
+                    // Find the maximize button in the window
+                    var maximizeButton = element.FindFirst(
+                        TreeScope.Subtree,
+                        new PropertyCondition(AutomationElement.NameProperty, "Maximize")
+                    );
+
+                    if (maximizeButton != null)
+                    {
+                        InvokePattern invokePattern = maximizeButton.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
+                        invokePattern?.Invoke(); // ✅ Click Maximize Button
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Maximize Failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
     }
 }
