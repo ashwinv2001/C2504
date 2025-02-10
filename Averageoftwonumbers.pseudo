@@ -18,6 +18,9 @@ namespace Wpftest2
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
         private async void OnMaximizeClick(object sender, RoutedEventArgs e)
         {
             await ResizeUwpWindow("Maximize");
@@ -40,6 +43,14 @@ namespace Wpftest2
                     {
                         SetForegroundWindow(hWnd);
                         await Task.Delay(500); // Small delay to ensure UI update
+
+                        if (action == "Maximize")
+                        {
+                            // 🔹 Restore first if minimized, then maximize
+                            ShowWindow(hWnd, 9); // SW_RESTORE (Restores from minimized state)
+                            await Task.Delay(500);
+                        }
+
                         ControlUwpWindow(hWnd, action); // ✅ Maximize or Minimize
                     }
                     else
@@ -103,7 +114,6 @@ namespace Wpftest2
                 AutomationElement element = AutomationElement.FromHandle(hWnd);
                 if (element != null)
                 {
-                    // Find the maximize or minimize button
                     string buttonName = action == "Maximize" ? "Maximize" : "Minimize";
                     var controlButton = element.FindFirst(
                         TreeScope.Subtree,
@@ -124,12 +134,3 @@ namespace Wpftest2
         }
     }
 }
-
-
-
-
-<StackPanel>
-    <TextBox x:Name="txtProcessId" Width="200" Height="30" Margin="10" PlaceholderText="Enter Process ID"/>
-    <Button Content="Maximize" Click="OnMaximizeClick" Width="200" Height="30" Margin="10"/>
-    <Button Content="Minimize" Click="OnMinimizeClick" Width="200" Height="30" Margin="10"/>
-</StackPanel>
