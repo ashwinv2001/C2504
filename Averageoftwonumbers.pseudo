@@ -28,10 +28,8 @@
 
 
 
-
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -46,44 +44,62 @@ namespace WpfUwpRestorer
             InitializeComponent();
         }
 
-        // P/Invoke declarations for basic window functions.
+        #region P/Invoke Declarations
+
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
+        
         [DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        
+        [DllImport("user32.dll")]
+        private static extern bool EnumChildWindows(IntPtr hWndParent, EnumWindowsProc lpEnumFunc, IntPtr lParam);
+        
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+        
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+        
+        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+        
+        const int SW_RESTORE = 9; // restores a minimized window
+        const uint WM_SYSCOMMAND = 0x0112;
+        const int SC_MAXIMIZE = 0xF030;
 
-        const int SW_MAXIMIZE = 3; // standard command
+        #endregion
 
-        /// <summary>
-        /// Click handler for the "Restore &amp; Maximize" button.
-        /// </summary>
         private async void OnRestoreAndMaximizeClick(object sender, RoutedEventArgs e)
         {
             if (int.TryParse(txtProcessId.Text, out int processId))
             {
                 try
                 {
-                    // Try to get the window handle.
+                    // Obtain the real window handle for the process.
                     IntPtr hWnd = await Task.Run(() => FindWindowByProcessId(processId));
+
                     if (hWnd != IntPtr.Zero)
                     {
                         // Bring the window to the foreground.
                         SetForegroundWindow(hWnd);
                         await Task.Delay(500);
 
-                        // First, attempt to restore it.
-                        RestoreWindow(hWnd, processId);
+                        // Restore the window (in case it’s minimized).
+                        ShowWindow(hWnd, SW_RESTORE);
                         await Task.Delay(500);
 
-                        // Then, maximize it.
-                        if (!MaximizeWindow(hWnd))
+                        // First try to maximize via UI Automation.
+                        bool uiMaximized = MaximizeWindowUsingUIAutomation(hWnd);
+
+                        // If UI Automation did not work, fall back to sending a maximize command.
+                        if (!uiMaximized)
                         {
-                            MessageBox.Show("Failed to maximize the window.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                            SendMessage(hWnd, WM_SYSCOMMAND, new IntPtr(SC_MAXIMIZE), IntPtr.Zero);
                         }
                     }
                     else
                     {
-                        MessageBox.Show("Could not find a valid window for the given Process ID.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show("Could not find a valid window for the given process ID.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
                 catch (Exception ex)
@@ -93,140 +109,75 @@ namespace WpfUwpRestorer
             }
             else
             {
-                MessageBox.Show("Please enter a valid Process ID.", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please enter a valid process ID.", "Invalid Input", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
         /// <summary>
-        /// Finds the main window handle for the given process ID.
-        /// For most Win32 apps (like Notepad) this is proc.MainWindowHandle;
-        /// for UWP apps the handle may be hosted in ApplicationFrameHost.
+        /// Finds the real window handle given a process ID.
+        /// For standard Win32 apps, proc.MainWindowHandle is used.
+        /// For UWP apps (like Calculator) which typically have MainWindowHandle==0,
+        /// we enumerate the child windows of ApplicationFrameHost.
         /// </summary>
         private IntPtr FindWindowByProcessId(int processId)
         {
-            Process proc = Process.GetProcessById(processId);
-            if (proc != null && proc.MainWindowHandle != IntPtr.Zero)
+            // First, try the process’s MainWindowHandle.
+            try
             {
-                return proc.MainWindowHandle;
+                Process proc = Process.GetProcessById(processId);
+                if (proc != null && proc.MainWindowHandle != IntPtr.Zero)
+                {
+                    return proc.MainWindowHandle;
+                }
             }
+            catch { }
 
-            // If not found (as can happen for UWP Calculator),
-            // try to locate a window from ApplicationFrameHost.
+            // For UWP apps, MainWindowHandle is often zero.
+            // Enumerate ApplicationFrameHost windows and then their children.
             Process[] frameHosts = Process.GetProcessesByName("ApplicationFrameHost");
-            foreach (Process frameHost in frameHosts)
+            foreach (Process host in frameHosts)
             {
-                if (frameHost.MainWindowHandle != IntPtr.Zero)
-                    return frameHost.MainWindowHandle;
+                if (host.MainWindowHandle != IntPtr.Zero)
+                {
+                    IntPtr found = IntPtr.Zero;
+                    EnumChildWindows(host.MainWindowHandle, (child, lParam) =>
+                    {
+                        GetWindowThreadProcessId(child, out uint childPid);
+                        if (childPid == processId)
+                        {
+                            found = child;
+                            return false; // stop enumeration
+                        }
+                        return true;
+                    }, IntPtr.Zero);
+                    if (found != IntPtr.Zero)
+                        return found;
+                }
             }
             return IntPtr.Zero;
         }
 
         /// <summary>
-        /// Attempts to restore a minimized UWP window.
-        /// First it looks for a "Restore" button in the UI Automation tree.
-        /// If not found, it tries clicking the app’s taskbar icon.
+        /// Attempts to find and invoke a "Maximize" button via UI Automation.
+        /// Returns true if successful.
         /// </summary>
-        private void RestoreWindow(IntPtr hWnd, int processId)
+        private bool MaximizeWindowUsingUIAutomation(IntPtr hWnd)
         {
             try
             {
                 AutomationElement element = AutomationElement.FromHandle(hWnd);
                 if (element != null)
                 {
-                    // Look for a button named "Restore" (common in standard window frames).
-                    AutomationElement restoreButton = element.FindFirst(
-                        TreeScope.Subtree,
-                        new PropertyCondition(AutomationElement.NameProperty, "Restore")
-                    );
-                    if (restoreButton != null)
-                    {
-                        InvokePattern ip = restoreButton.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
-                        ip?.Invoke();
-                        return;
-                    }
-                }
-            }
-            catch { /* ignore UI Automation exceptions */ }
-
-            // If no restore button was found, try clicking the taskbar icon.
-            ClickTaskbarIcon(processId);
-        }
-
-        /// <summary>
-        /// Attempts to maximize the window.
-        /// For Win32 apps, ShowWindow may work; for UWP we try to invoke the "Maximize" button.
-        /// </summary>
-        private bool MaximizeWindow(IntPtr hWnd)
-        {
-            try
-            {
-                AutomationElement element = AutomationElement.FromHandle(hWnd);
-                if (element != null)
-                {
-                    // Look for a button named "Maximize"
+                    // Look for a button named "Maximize" in the automation tree.
                     AutomationElement maxButton = element.FindFirst(
                         TreeScope.Subtree,
                         new PropertyCondition(AutomationElement.NameProperty, "Maximize")
                     );
-                    if (maxButton != null)
+                    if (maxButton != null && maxButton.TryGetCurrentPattern(InvokePattern.Pattern, out object pattern))
                     {
-                        InvokePattern ip = maxButton.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
-                        ip?.Invoke();
+                        ((InvokePattern)pattern).Invoke();
                         return true;
                     }
-                }
-                // Fallback for Win32 apps.
-                return ShowWindow(hWnd, SW_MAXIMIZE);
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Attempts to simulate a click on the app’s taskbar button.
-        /// This is used as a fallback to restore a minimized UWP app.
-        /// </summary>
-        private bool ClickTaskbarIcon(int processId)
-        {
-            try
-            {
-                Process proc = Process.GetProcessById(processId);
-                if (proc == null)
-                    return false;
-                // Use the process name as the expected taskbar button name.
-                string appName = proc.ProcessName;  // e.g. "Calculator"
-
-                // Get the taskbar AutomationElement.
-                AutomationElement taskbar = AutomationElement.RootElement.FindFirst(
-                    TreeScope.Children,
-                    new PropertyCondition(AutomationElement.ClassNameProperty, "Shell_TrayWnd")
-                );
-                if (taskbar == null)
-                    return false;
-
-                // Within the taskbar, the task list usually has a class "MSTaskListWClass".
-                AutomationElement taskList = taskbar.FindFirst(
-                    TreeScope.Descendants,
-                    new PropertyCondition(AutomationElement.ClassNameProperty, "MSTaskListWClass")
-                );
-                if (taskList == null)
-                    return false;
-
-                // Find a button whose Name property matches the app name.
-                AutomationElement taskbarButton = taskList.FindFirst(
-                    TreeScope.Descendants,
-                    new AndCondition(
-                        new PropertyCondition(AutomationElement.NameProperty, appName),
-                        new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Button)
-                    )
-                );
-                if (taskbarButton != null)
-                {
-                    InvokePattern ip = taskbarButton.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
-                    ip?.Invoke();
-                    return true;
                 }
             }
             catch { }
