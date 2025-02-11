@@ -27,17 +27,16 @@ namespace Wpftest3
                 try
                 {
                     Process process = Process.GetProcessById(processId);
-                    IntPtr hwnd = GetMainWindowHandle(process);
+                    string appUserModelId = GetAppUserModelId(process);
 
-                    if (hwnd != IntPtr.Zero)
+                    if (!string.IsNullOrEmpty(appUserModelId))
                     {
-                        ShowWindowAsync(hwnd, SW_RESTORE);
-                        SetForegroundWindow(hwnd);
-                        StatusText.Text = "App brought to foreground!";
+                        ActivateUWPApp(appUserModelId);
+                        StatusText.Text = "UWP app activated!";
                     }
                     else
                     {
-                        StatusText.Text = "Could not find a valid window handle.";
+                        StatusText.Text = "Could not find AppUserModelId.";
                     }
                 }
                 catch (Exception ex)
@@ -51,10 +50,56 @@ namespace Wpftest3
             }
         }
 
-        private IntPtr GetMainWindowHandle(Process process)
+        private string GetAppUserModelId(Process process)
         {
-            process.Refresh(); // Refresh to update the window handle
-            return process.MainWindowHandle;
+            try
+            {
+                using (var searcher = new System.Management.ManagementObjectSearcher(
+                    $"SELECT * FROM Win32_Process WHERE ProcessId = {process.Id}"))
+                {
+                    foreach (var obj in searcher.Get())
+                    {
+                        if (obj["CommandLine"] != null)
+                        {
+                            string commandLine = obj["CommandLine"].ToString();
+                            int startIndex = commandLine.IndexOf("-ServerName:") + 12;
+                            int endIndex = commandLine.IndexOf(" ", startIndex);
+
+                            if (startIndex > 12 && endIndex > startIndex)
+                            {
+                                return commandLine.Substring(startIndex, endIndex - startIndex);
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+            return null;
         }
+
+        private void ActivateUWPApp(string appUserModelId)
+        {
+            IApplicationActivationManager appActivationManager =
+                (IApplicationActivationManager)new ApplicationActivationManager();
+
+            appActivationManager.ActivateApplication(appUserModelId, null, ACTIVATEOPTIONS.None, out _);
+        }
+
+        [ComImport, Guid("2e941141-7f97-4756-ba1d-9decde894a3d")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        private interface IApplicationActivationManager
+        {
+            int ActivateApplication([MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
+                                    [MarshalAs(UnmanagedType.LPWStr)] string arguments,
+                                    ACTIVATEOPTIONS options, out uint processId);
+        }
+
+        private enum ACTIVATEOPTIONS
+        {
+            None = 0x00000000
+        }
+
+        [ComImport, Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C")]
+        private class ApplicationActivationManager { }
     }
 }
