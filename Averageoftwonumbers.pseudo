@@ -1,33 +1,13 @@
-<Window x:Class="WpfUwpRestorer.MainWindow"
+<Window x:Class="UWPProcessActivator.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Restore and Maximize App" Height="220" Width="400"
-        WindowStartupLocation="CenterScreen">
-  <Grid>
-    <TextBlock Text="Enter Process ID:" 
-               Margin="20,20,0,0" 
-               HorizontalAlignment="Left" 
-               VerticalAlignment="Top" 
-               FontSize="14"/>
-    <TextBox x:Name="txtProcessId" 
-             Width="200" 
-             Height="25" 
-             Margin="20,50,0,0" 
-             HorizontalAlignment="Left" 
-             VerticalAlignment="Top"/>
-    <Button Content="Maximize" 
-            Width="200" 
-            Height="30" 
-            Margin="20,90,0,0" 
-            HorizontalAlignment="Left" 
-            VerticalAlignment="Top" 
-            Click="OnMaximizeClick"/>
-  </Grid>
+        Title="UWP Process Activator" Height="200" Width="400">
+    <Grid>
+        <TextBox Name="ProcessIdTextBox" Width="200" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-30,0,0"/>
+        <Button Content="Activate UWP App" Width="150" Height="30" Click="ActivateUWPApp" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <TextBlock Name="StatusText" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,20" Foreground="Red"/>
+    </Grid>
 </Window>
-
-
-
-
 
 
 
@@ -36,246 +16,44 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 
-namespace WpfUwpRestorer
+namespace UWPProcessActivator
 {
     public partial class MainWindow : Window
     {
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
         public MainWindow()
         {
             InitializeComponent();
         }
 
-        #region Win32 API Declarations
-
-        [DllImport("user32.dll")]
-        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-        
-        [DllImport("user32.dll")]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
-        
-        // Maximizes a window.
-        const int SW_MAXIMIZE = 3;
-
-        #endregion
-
-        /// <summary>
-        /// Handler for the Maximize button.
-        /// Given a Process ID, it finds the corresponding window handle.
-        /// Then it tries to retrieve the AppUserModelID (AUMID) from that window.
-        /// If an AUMID is found, the app is assumed to be UWP and is activated via COM;
-        /// otherwise, the code falls back to standard Win32 activation.
-        /// </summary>
-        private void OnMaximizeClick(object sender, RoutedEventArgs e)
+        private void ActivateUWPApp(object sender, RoutedEventArgs e)
         {
-            if (!int.TryParse(txtProcessId.Text, out int processId))
+            if (int.TryParse(ProcessIdTextBox.Text, out int processId))
             {
-                MessageBox.Show("Invalid Process ID.");
-                return;
-            }
-
-            try
-            {
-                // Find the real window handle (hWnd) for this process.
-                IntPtr hWnd = FindWindowByProcessId(processId);
-                if (hWnd == IntPtr.Zero)
+                try
                 {
-                    MessageBox.Show("Could not find a valid window for the given Process ID.");
-                    return;
-                }
-
-                // Try to retrieve the AppUserModelID from the window.
-                string aumid = GetAppUserModelId(hWnd);
-                if (!string.IsNullOrEmpty(aumid))
-                {
-                    // If an AUMID exists, assume this is a UWP app.
-                    IApplicationActivationManager aam = (IApplicationActivationManager)new ApplicationActivationManager();
-                    uint newPid;
-                    int hr = aam.ActivateApplication(aumid, null, ActivateOptions.None, out newPid);
-                    if (hr < 0)
+                    Process process = Process.GetProcessById(processId);
+                    if (process != null && process.MainWindowHandle != IntPtr.Zero)
                     {
-                        MessageBox.Show("Failed to activate UWP app. Error code: " + hr);
+                        SetForegroundWindow(process.MainWindowHandle);
+                        StatusText.Text = "App activated!";
+                    }
+                    else
+                    {
+                        StatusText.Text = "Process found but no main window.";
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    // Otherwise, assume it’s a Win32 app.
-                    SetForegroundWindow(hWnd);
-                    ShowWindow(hWnd, SW_MAXIMIZE);
+                    StatusText.Text = "Error: " + ex.Message;
                 }
             }
-            catch (Exception ex)
+            else
             {
-                MessageBox.Show("Error: " + ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// Attempts to locate the window handle (hWnd) for the given process.
-        /// For UWP apps whose process.MainWindowHandle is often zero, this method enumerates
-        /// child windows of ApplicationFrameHost.
-        /// </summary>
-        private IntPtr FindWindowByProcessId(int processId)
-        {
-            Process proc = Process.GetProcessById(processId);
-            if (proc != null && proc.MainWindowHandle != IntPtr.Zero)
-            {
-                return proc.MainWindowHandle;
-            }
-            // If not found directly, search ApplicationFrameHost windows.
-            Process[] frameHosts = Process.GetProcessesByName("ApplicationFrameHost");
-            foreach (Process host in frameHosts)
-            {
-                if (host.MainWindowHandle != IntPtr.Zero)
-                {
-                    IntPtr found = IntPtr.Zero;
-                    EnumChildWindows(host.MainWindowHandle, (child, lParam) =>
-                    {
-                        GetWindowThreadProcessId(child, out uint childPid);
-                        if (childPid == processId)
-                        {
-                            found = child;
-                            return false; // Stop enumerating
-                        }
-                        return true;
-                    }, IntPtr.Zero);
-                    if (found != IntPtr.Zero)
-                        return found;
-                }
-            }
-            return IntPtr.Zero;
-        }
-
-        // P/Invoke: Enumerate child windows.
-        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
-        [DllImport("user32.dll")]
-        private static extern bool EnumChildWindows(IntPtr hWndParent, EnumWindowsProc lpEnumFunc, IntPtr lParam);
-        [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-        /// <summary>
-        /// Retrieves the AppUserModelID for the given window handle using the shell property store.
-        /// Returns null if not found.
-        /// </summary>
-        private string GetAppUserModelId(IntPtr hwnd)
-        {
-            Guid iid = new Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99"); // IID_IPropertyStore
-            IPropertyStore propStore;
-            int hr = SHGetPropertyStoreForWindow(hwnd, ref iid, out propStore);
-            if (hr != 0 || propStore == null)
-                return null;
-            
-            PROPERTYKEY key = new PROPERTYKEY()
-            {
-                fmtid = new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"),
-                pid = 5
-            };
-            PROPVARIANT prop;
-            hr = propStore.GetValue(ref key, out prop);
-            if (hr != 0)
-                return null;
-            string aumid = prop.Value as string;
-            PropVariantClear(ref prop);
-            return aumid;
-        }
-
-        [DllImport("shell32.dll", SetLastError = true)]
-        private static extern int SHGetPropertyStoreForWindow(IntPtr hwnd, ref Guid riid, out IPropertyStore propertyStore);
-
-        [DllImport("ole32.dll")]
-        private static extern int PropVariantClear(ref PROPVARIANT pvar);
-    }
-
-    #region COM Interfaces and Structures for the Property Store
-
-    [ComImport]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99")]
-    public interface IPropertyStore
-    {
-        int GetCount(out uint propertyCount);
-        int GetAt(uint propertyIndex, out PROPERTYKEY key);
-        int GetValue(ref PROPERTYKEY key, out PROPVARIANT pv);
-        int SetValue(ref PROPERTYKEY key, ref PROPVARIANT pv);
-        int Commit();
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public struct PROPERTYKEY
-    {
-        public Guid fmtid;
-        public uint pid;
-    }
-
-    // A minimal PROPVARIANT that supports VT_LPWSTR (type 31) for strings.
-    [StructLayout(LayoutKind.Explicit)]
-    public struct PROPVARIANT
-    {
-        [FieldOffset(0)]
-        public ushort vt;
-        // For VT_LPWSTR, the pointer is stored at offset 8.
-        [FieldOffset(8)]
-        public IntPtr pointerValue;
-
-        public object Value
-        {
-            get
-            {
-                // VT_LPWSTR = 31
-                if (vt == 31 && pointerValue != IntPtr.Zero)
-                {
-                    return Marshal.PtrToStringUni(pointerValue);
-                }
-                return null;
+                StatusText.Text = "Invalid Process ID.";
             }
         }
     }
-
-    #endregion
-
-    #region COM Interface and Class for UWP Activation
-
-    [ComImport]
-    [Guid("2e941141-7f97-4756-ba1d-9decde894a3d")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IApplicationActivationManager
-    {
-        // Activates an application for normal activation.
-        int ActivateApplication(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
-            [In, MarshalAs(UnmanagedType.LPWStr)] string arguments,
-            [In] ActivateOptions options,
-            [Out] out uint processId);
-
-        // Activates an application for a file.
-        int ActivateForFile(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
-            [In] IntPtr shellItemArray,
-            [In, MarshalAs(UnmanagedType.LPWStr)] string verb,
-            [Out] out uint processId);
-
-        // Activates an application for a protocol.
-        int ActivateForProtocol(
-            [In, MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
-            [In] IntPtr shellItemArray,
-            [Out] out uint processId);
-    }
-
-    // Do not declare that ApplicationActivationManager implements IApplicationActivationManager.
-    [ComImport]
-    [Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C")]
-    [ClassInterface(ClassInterfaceType.None)]
-    public class ApplicationActivationManager
-    {
-    }
-
-    [Flags]
-    public enum ActivateOptions
-    {
-        None = 0x00000000,
-        DesignMode = 0x00000001,
-        NoErrorUI = 0x00000002,
-        NoSplashScreen = 0x00000004,
-    }
-
-    #endregion
 }
