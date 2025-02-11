@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows;
 
 namespace Wpftest3
@@ -13,29 +12,32 @@ namespace Wpftest3
             InitializeComponent();
         }
 
-        private void ActivateUWPApp(object sender, RoutedEventArgs e)
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+
+        private const int SW_RESTORE = 9;  // Restore window if minimized
+
+        private void BringUWPToForeground(object sender, RoutedEventArgs e)
         {
             if (int.TryParse(ProcessIdTextBox.Text, out int processId))
             {
                 try
                 {
                     Process process = Process.GetProcessById(processId);
-                    if (process != null)
+                    IntPtr hwnd = GetMainWindowHandle(process);
+
+                    if (hwnd != IntPtr.Zero)
                     {
-                        string appUserModelId = GetAppUserModelId(process.MainWindowHandle);
-                        if (!string.IsNullOrEmpty(appUserModelId))
-                        {
-                            ActivateUWPApp(appUserModelId);
-                            StatusText.Text = "App activated!";
-                        }
-                        else
-                        {
-                            StatusText.Text = "Could not find AppUserModelId.";
-                        }
+                        ShowWindowAsync(hwnd, SW_RESTORE);
+                        SetForegroundWindow(hwnd);
+                        StatusText.Text = "App brought to foreground!";
                     }
                     else
                     {
-                        StatusText.Text = "Process not found.";
+                        StatusText.Text = "Could not find a valid window handle.";
                     }
                 }
                 catch (Exception ex)
@@ -49,92 +51,10 @@ namespace Wpftest3
             }
         }
 
-        private string GetAppUserModelId(IntPtr hwnd)
+        private IntPtr GetMainWindowHandle(Process process)
         {
-            if (hwnd == IntPtr.Zero)
-                return null;
-
-            Guid propertyStoreGuid = new Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99");
-            PropertyKey PKEY_AppUserModelID = new PropertyKey(new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"), 5);
-
-            if (SHGetPropertyStoreForWindow(hwnd, ref propertyStoreGuid, out IPropertyStore store) == 0)
-            {
-                PropVariant prop;
-                if (store.GetValue(ref PKEY_AppUserModelID, out prop) == 0)
-                {
-                    return prop.Value.ToString();
-                }
-            }
-            return null;
-        }
-
-        private void ActivateUWPApp(string appUserModelId)
-        {
-            IApplicationActivationManager appActivationManager =
-                (IApplicationActivationManager)new ApplicationActivationManager();
-
-            appActivationManager.ActivateApplication(appUserModelId, null, ACTIVATEOPTIONS.None, out _);
-        }
-
-        [ComImport, Guid("2e941141-7f97-4756-ba1d-9decde894a3d")]
-        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface IApplicationActivationManager
-        {
-            int ActivateApplication([MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
-                                    [MarshalAs(UnmanagedType.LPWStr)] string arguments,
-                                    ACTIVATEOPTIONS options, out uint processId);
-        }
-
-        private enum ACTIVATEOPTIONS
-        {
-            None = 0x00000000
-        }
-
-        [ComImport, Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C")]
-        private class ApplicationActivationManager { }
-
-        [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern int SHGetPropertyStoreForWindow(IntPtr hwnd, ref Guid iid, out IPropertyStore propertyStore);
-
-        [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        [Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99")]
-        private interface IPropertyStore
-        {
-            int GetCount(out uint propertyCount);
-            int GetAt(uint propertyIndex, out PropertyKey key);
-            int GetValue(ref PropertyKey key, out PropVariant value);
-            int SetValue(ref PropertyKey key, ref PropVariant value);
-            int Commit();
-        }
-
-        [StructLayout(LayoutKind.Sequential, Pack = 4)]
-        private struct PropertyKey
-        {
-            public Guid fmtid;
-            public uint pid;
-
-            public PropertyKey(Guid formatId, uint propertyId)
-            {
-                fmtid = formatId;
-                pid = propertyId;
-            }
-        }
-
-        [StructLayout(LayoutKind.Explicit)]
-        private struct PropVariant
-        {
-            [FieldOffset(0)]
-            public ushort valueType;
-            [FieldOffset(2)]
-            public ushort reserved1;
-            [FieldOffset(4)]
-            public ushort reserved2;
-            [FieldOffset(6)]
-            public ushort reserved3;
-            [FieldOffset(8)]
-            public IntPtr pointerValue;
-
-            public object Value => Marshal.PtrToStringUni(pointerValue);
+            process.Refresh(); // Refresh to update the window handle
+            return process.MainWindowHandle;
         }
     }
 }
