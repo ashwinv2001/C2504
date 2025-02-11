@@ -1,22 +1,152 @@
-private string GetAppUserModelId(Process process)
-{
-    uint processId = (uint)process.Id;
-    uint bufferSize = 512;
-    StringBuilder sb = new StringBuilder((int)bufferSize);
-    
-    Guid propertyStoreGuid = new Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99");
-    PropertyKey PKEY_AppUserModelID = new PropertyKey(new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"), 5);
 
-    int result = SHGetPropertyStoreForWindow(process.MainWindowHandle, ref propertyStoreGuid, out IPropertyStore store);
-    
-    if (result == 0 && store != null)
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Windows;
+
+
+namespace Wpftest3
+{
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
     {
-        PropVariant prop;
-        result = store.GetValue(ref PKEY_AppUserModelID, out prop);
-        if (result == 0)
+        public MainWindow()
         {
-            return prop.Value.ToString();
+            InitializeComponent();
         }
+
+        private void ActivateUWPApp(object sender, RoutedEventArgs e)
+        {
+            if (int.TryParse(ProcessIdTextBox.Text, out int processId))
+            {
+                try
+                {
+                    Process process = Process.GetProcessById(processId);
+                    if (process != null)
+                    {
+                        string appUserModelId = GetAppUserModelId(process);
+                        if (!string.IsNullOrEmpty(appUserModelId))
+                        {
+                            ActivateUWPApp(appUserModelId);
+                            StatusText.Text = "App activated!";
+                        }
+                        else
+                        {
+                            StatusText.Text = "Could not find AppUserModelId.";
+                        }
+                    }
+                    else
+                    {
+                        StatusText.Text = "Process not found.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusText.Text = "Error: " + ex.Message;
+                }
+            }
+            else
+            {
+                StatusText.Text = "Invalid Process ID.";
+            }
+        }
+
+        private string GetAppUserModelId(Process process)
+        {
+            uint processId = (uint)process.Id;
+            uint bufferSize = 512;
+            StringBuilder sb = new StringBuilder((int)bufferSize);
+
+            Guid propertyStoreGuid = new Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99");
+            PropertyKey PKEY_AppUserModelID = new PropertyKey(new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"), 5);
+
+            int result = SHGetPropertyStoreForWindow(process.MainWindowHandle, ref propertyStoreGuid, out IPropertyStore store);
+
+            if (result == 0 && store != null)
+            {
+                PropVariant prop;
+                result = store.GetValue(ref PKEY_AppUserModelID, out prop);
+                if (result == 0)
+                {
+                    return prop.Value.ToString();
+                }
+            }
+            return null;
+        }
+
+        private void ActivateUWPApp(string appUserModelId)
+        {
+            IApplicationActivationManager appActivationManager =
+                (IApplicationActivationManager)new ApplicationActivationManager();
+
+            appActivationManager.ActivateApplication(appUserModelId, null, ACTIVATEOPTIONS.None, out _);
+        }
+
+        [ComImport, Guid("2e941141-7f97-4756-ba1d-9decde894a3d")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        private interface IApplicationActivationManager
+        {
+            int ActivateApplication([MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
+                                    [MarshalAs(UnmanagedType.LPWStr)] string arguments,
+                                    ACTIVATEOPTIONS options, out uint processId);
+        }
+
+        private enum ACTIVATEOPTIONS
+        {
+            None = 0x00000000
+        }
+
+        [ComImport, Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C")]
+        private class ApplicationActivationManager { }
+
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern int SHGetPropertyStoreForWindow(IntPtr hwnd, ref Guid iid, out IPropertyStore propertyStore);
+
+        [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        [Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99")]
+        private interface IPropertyStore
+        {
+            int GetCount(out uint propertyCount);
+            int GetAt(uint propertyIndex, out PropertyKey key);
+            int GetValue(ref PropertyKey key, out PropVariant value);
+            int SetValue(ref PropertyKey key, ref PropVariant value);
+            int Commit();
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 4)]
+        private struct PropertyKey
+        {
+            public Guid fmtid;
+            public uint pid;
+
+            public PropertyKey(Guid formatId, uint propertyId)
+            {
+                fmtid = formatId;
+                pid = propertyId;
+            }
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        private struct PropVariant
+        {
+            [FieldOffset(0)]
+            public ushort valueType;
+            [FieldOffset(2)]
+            public ushort reserved1;
+            [FieldOffset(4)]
+            public ushort reserved2;
+            [FieldOffset(6)]
+            public ushort reserved3;
+            [FieldOffset(8)]
+            public IntPtr pointerValue;
+
+            public object Value => Marshal.PtrToStringUni(pointerValue);
+        }
+
+        private static readonly Guid IPropertyStoreGuid = new Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99");
+        private static readonly PropertyKey PKEY_AppUserModelID = new PropertyKey(new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"), 5);
     }
-    return null;
 }
