@@ -1,26 +1,97 @@
-private string GetAppUserModelIdFromShell(int processId)
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Windows;
+using Windows.Management.Deployment; // Add reference to Windows.Management.Deployment
+
+namespace Wpftest3
 {
-    try
+    public partial class MainWindow : Window
     {
-        Process process = Process.GetProcessById(processId);
-        if (process == null)
+        public MainWindow()
         {
-            StatusText.Text = "Process not found.";
+            InitializeComponent();
+        }
+
+        private void ActivateUWPApp(object sender, RoutedEventArgs e)
+        {
+            if (int.TryParse(ProcessIdTextBox.Text, out int processId))
+            {
+                try
+                {
+                    string appUserModelId = GetAppUserModelIdFromShell(processId);
+                    if (!string.IsNullOrEmpty(appUserModelId))
+                    {
+                        ActivateUWPApp(appUserModelId);
+                        StatusText.Text = "App activated!";
+                    }
+                    else
+                    {
+                        StatusText.Text = "Could not find AppUserModelId.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusText.Text = "Error: " + ex.Message;
+                }
+            }
+            else
+            {
+                StatusText.Text = "Invalid Process ID.";
+            }
+        }
+
+        private string GetAppUserModelIdFromShell(int processId)
+        {
+            try
+            {
+                PackageManager packageManager = new PackageManager();
+                foreach (var package in packageManager.FindPackagesForUser(""))
+                {
+                    foreach (var app in package.GetAppListEntries())
+                    {
+                        app.GetAppUserModelId(out string appUserModelId);
+                        Process[] processes = Process.GetProcessesByName(appUserModelId);
+                        foreach (Process p in processes)
+                        {
+                            if (p.Id == processId)
+                            {
+                                return appUserModelId;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Error: " + ex.Message;
+            }
             return null;
         }
 
-        // Use Windows shell API to get AppUserModelId
-        IApplicationActivationManager appActivationManager =
-            (IApplicationActivationManager)new ApplicationActivationManager();
-        
-        appActivationManager.ActivateApplication(null, null, ACTIVATEOPTIONS.None, out uint newProcessId);
+        private void ActivateUWPApp(string appUserModelId)
+        {
+            IApplicationActivationManager appActivationManager =
+                (IApplicationActivationManager)new ApplicationActivationManager();
+            appActivationManager.ActivateApplication(appUserModelId, null, ACTIVATEOPTIONS.None, out _);
+        }
 
-        Process newProcess = Process.GetProcessById((int)newProcessId);
-        return newProcess.ProcessName;
-    }
-    catch (Exception ex)
-    {
-        StatusText.Text = "Error: " + ex.Message;
-        return null;
+        [ComImport, Guid("2e941141-7f97-4756-ba1d-9decde894a3d")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        private interface IApplicationActivationManager
+        {
+            int ActivateApplication([MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
+                                    [MarshalAs(UnmanagedType.LPWStr)] string arguments,
+                                    ACTIVATEOPTIONS options, out uint processId);
+        }
+
+        private enum ACTIVATEOPTIONS
+        {
+            None = 0x00000000
+        }
+
+        [ComImport, Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C")]
+        private class ApplicationActivationManager { }
     }
 }
