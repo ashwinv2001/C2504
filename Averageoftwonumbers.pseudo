@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
-using Windows.Management.Deployment; // Add reference to Windows.Management.Deployment
 
 namespace Wpftest3
 {
@@ -20,15 +19,23 @@ namespace Wpftest3
             {
                 try
                 {
-                    string appUserModelId = GetAppUserModelIdFromShell(processId);
-                    if (!string.IsNullOrEmpty(appUserModelId))
+                    Process process = Process.GetProcessById(processId);
+                    if (process != null)
                     {
-                        ActivateUWPApp(appUserModelId);
-                        StatusText.Text = "App activated!";
+                        string appUserModelId = GetAppUserModelId(process.MainWindowHandle);
+                        if (!string.IsNullOrEmpty(appUserModelId))
+                        {
+                            ActivateUWPApp(appUserModelId);
+                            StatusText.Text = "App activated!";
+                        }
+                        else
+                        {
+                            StatusText.Text = "Could not find AppUserModelId.";
+                        }
                     }
                     else
                     {
-                        StatusText.Text = "Could not find AppUserModelId.";
+                        StatusText.Text = "Process not found.";
                     }
                 }
                 catch (Exception ex)
@@ -42,30 +49,21 @@ namespace Wpftest3
             }
         }
 
-        private string GetAppUserModelIdFromShell(int processId)
+        private string GetAppUserModelId(IntPtr hwnd)
         {
-            try
+            if (hwnd == IntPtr.Zero)
+                return null;
+
+            Guid propertyStoreGuid = new Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99");
+            PropertyKey PKEY_AppUserModelID = new PropertyKey(new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"), 5);
+
+            if (SHGetPropertyStoreForWindow(hwnd, ref propertyStoreGuid, out IPropertyStore store) == 0)
             {
-                PackageManager packageManager = new PackageManager();
-                foreach (var package in packageManager.FindPackagesForUser(""))
+                PropVariant prop;
+                if (store.GetValue(ref PKEY_AppUserModelID, out prop) == 0)
                 {
-                    foreach (var app in package.GetAppListEntries())
-                    {
-                        app.GetAppUserModelId(out string appUserModelId);
-                        Process[] processes = Process.GetProcessesByName(appUserModelId);
-                        foreach (Process p in processes)
-                        {
-                            if (p.Id == processId)
-                            {
-                                return appUserModelId;
-                            }
-                        }
-                    }
+                    return prop.Value.ToString();
                 }
-            }
-            catch (Exception ex)
-            {
-                StatusText.Text = "Error: " + ex.Message;
             }
             return null;
         }
@@ -74,6 +72,7 @@ namespace Wpftest3
         {
             IApplicationActivationManager appActivationManager =
                 (IApplicationActivationManager)new ApplicationActivationManager();
+
             appActivationManager.ActivateApplication(appUserModelId, null, ACTIVATEOPTIONS.None, out _);
         }
 
@@ -93,5 +92,49 @@ namespace Wpftest3
 
         [ComImport, Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C")]
         private class ApplicationActivationManager { }
+
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern int SHGetPropertyStoreForWindow(IntPtr hwnd, ref Guid iid, out IPropertyStore propertyStore);
+
+        [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        [Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99")]
+        private interface IPropertyStore
+        {
+            int GetCount(out uint propertyCount);
+            int GetAt(uint propertyIndex, out PropertyKey key);
+            int GetValue(ref PropertyKey key, out PropVariant value);
+            int SetValue(ref PropertyKey key, ref PropVariant value);
+            int Commit();
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 4)]
+        private struct PropertyKey
+        {
+            public Guid fmtid;
+            public uint pid;
+
+            public PropertyKey(Guid formatId, uint propertyId)
+            {
+                fmtid = formatId;
+                pid = propertyId;
+            }
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        private struct PropVariant
+        {
+            [FieldOffset(0)]
+            public ushort valueType;
+            [FieldOffset(2)]
+            public ushort reserved1;
+            [FieldOffset(4)]
+            public ushort reserved2;
+            [FieldOffset(6)]
+            public ushort reserved3;
+            [FieldOffset(8)]
+            public IntPtr pointerValue;
+
+            public object Value => Marshal.PtrToStringUni(pointerValue);
+        }
     }
 }
