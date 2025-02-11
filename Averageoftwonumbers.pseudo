@@ -1,37 +1,22 @@
-private string GetAppUserModelId(Process process)
+private string GetAppUserModelIdFromShell(int processId)
 {
     try
     {
-        // Get process handle
-        IntPtr hwnd = process.MainWindowHandle;
-        if (hwnd == IntPtr.Zero)
+        Process process = Process.GetProcessById(processId);
+        if (process == null)
         {
-            StatusText.Text = "Process has no main window.";
+            StatusText.Text = "Process not found.";
             return null;
         }
 
-        // Get property store
-        Guid propertyStoreGuid = new Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99");
-        int result = SHGetPropertyStoreForWindow(hwnd, ref propertyStoreGuid, out IPropertyStore store);
+        // Use Windows shell API to get AppUserModelId
+        IApplicationActivationManager appActivationManager =
+            (IApplicationActivationManager)new ApplicationActivationManager();
+        
+        appActivationManager.ActivateApplication(null, null, ACTIVATEOPTIONS.None, out uint newProcessId);
 
-        if (result != 0 || store == null)
-        {
-            StatusText.Text = "Failed to get property store.";
-            return null;
-        }
-
-        // Get the AppUserModelId
-        PropertyKey PKEY_AppUserModelID = new PropertyKey(new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"), 5);
-        PropVariant prop;
-        result = store.GetValue(ref PKEY_AppUserModelID, out prop);
-
-        if (result == 0)
-        {
-            return prop.Value.ToString();
-        }
-
-        StatusText.Text = "Failed to get AppUserModelId.";
-        return null;
+        Process newProcess = Process.GetProcessById((int)newProcessId);
+        return newProcess.ProcessName;
     }
     catch (Exception ex)
     {
