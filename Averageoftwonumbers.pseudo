@@ -3,9 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="UWP Process Activator" Height="200" Width="400">
     <Grid>
-        <TextBox Name="ProcessIdTextBox" Width="200" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-30,0,0"/>
-        <Button Content="Activate UWP App" Width="150" Height="30" Click="ActivateUWPApp" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        <TextBlock Name="StatusText" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,20" Foreground="Red"/>
+        <TextBox Name="ProcessIdTextBox" Width="200" Height="30" 
+                 HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-30,0,0"/>
+        <Button Content="Activate UWP App" Width="150" Height="30" 
+                Click="ActivateUWPApp" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <TextBlock Name="StatusText" HorizontalAlignment="Center" VerticalAlignment="Bottom" 
+                   Margin="0,0,0,20" Foreground="Red"/>
     </Grid>
 </Window>
 
@@ -15,14 +18,13 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
+using Windows.ApplicationModel.Core;
+using Windows.ApplicationModel;
 
 namespace UWPProcessActivator
 {
     public partial class MainWindow : Window
     {
-        [DllImport("user32.dll")]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
-
         public MainWindow()
         {
             InitializeComponent();
@@ -35,14 +37,22 @@ namespace UWPProcessActivator
                 try
                 {
                     Process process = Process.GetProcessById(processId);
-                    if (process != null && process.MainWindowHandle != IntPtr.Zero)
+                    if (process != null)
                     {
-                        SetForegroundWindow(process.MainWindowHandle);
-                        StatusText.Text = "App activated!";
+                        string appUserModelId = GetAppUserModelId(process);
+                        if (!string.IsNullOrEmpty(appUserModelId))
+                        {
+                            ActivateUWPApp(appUserModelId);
+                            StatusText.Text = "App activated!";
+                        }
+                        else
+                        {
+                            StatusText.Text = "Could not find AppUserModelId.";
+                        }
                     }
                     else
                     {
-                        StatusText.Text = "Process found but no main window.";
+                        StatusText.Text = "Process not found.";
                     }
                 }
                 catch (Exception ex)
@@ -55,5 +65,48 @@ namespace UWPProcessActivator
                 StatusText.Text = "Invalid Process ID.";
             }
         }
+
+        private string GetAppUserModelId(Process process)
+        {
+            try
+            {
+                string exePath = process.MainModule.FileName;
+                Package package = Package.Current;
+                if (package != null)
+                {
+                    return package.Id.FamilyName;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            return null;
+        }
+
+        private void ActivateUWPApp(string appUserModelId)
+        {
+            IApplicationActivationManager appActivationManager = 
+                (IApplicationActivationManager)new ApplicationActivationManager();
+
+            appActivationManager.ActivateApplication(appUserModelId, null, ACTIVATEOPTIONS.None, out _);
+        }
+
+        [ComImport, Guid("2e941141-7f97-4756-ba1d-9decde894a3d")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        private interface IApplicationActivationManager
+        {
+            int ActivateApplication([MarshalAs(UnmanagedType.LPWStr)] string appUserModelId, 
+                                    [MarshalAs(UnmanagedType.LPWStr)] string arguments, 
+                                    ACTIVATEOPTIONS options, out uint processId);
+        }
+
+        private enum ACTIVATEOPTIONS
+        {
+            None = 0x00000000
+        }
+
+        [ComImport, Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C")]
+        private class ApplicationActivationManager { }
     }
 }
