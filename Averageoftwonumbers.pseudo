@@ -1,7 +1,9 @@
+
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
+
 
 namespace Wpftest3
 {
@@ -27,16 +29,17 @@ namespace Wpftest3
                 try
                 {
                     Process process = Process.GetProcessById(processId);
-                    string appUserModelId = GetAppUserModelId(process);
+                    IntPtr hwnd = GetMainWindowHandle(process);
 
-                    if (!string.IsNullOrEmpty(appUserModelId))
+                    if (hwnd != IntPtr.Zero)
                     {
-                        ActivateUWPApp(appUserModelId);
-                        StatusText.Text = "UWP app activated!";
+                        ShowWindowAsync(hwnd, SW_RESTORE);
+                        SetForegroundWindow(hwnd);
+                        StatusText.Text = "App brought to foreground!";
                     }
                     else
                     {
-                        StatusText.Text = "Could not find AppUserModelId.";
+                        StatusText.Text = "Could not find a valid window handle.";
                     }
                 }
                 catch (Exception ex)
@@ -50,56 +53,10 @@ namespace Wpftest3
             }
         }
 
-        private string GetAppUserModelId(Process process)
+        private IntPtr GetMainWindowHandle(Process process)
         {
-            try
-            {
-                using (var searcher = new System.Management.ManagementObjectSearcher(
-                    $"SELECT * FROM Win32_Process WHERE ProcessId = {process.Id}"))
-                {
-                    foreach (var obj in searcher.Get())
-                    {
-                        if (obj["CommandLine"] != null)
-                        {
-                            string commandLine = obj["CommandLine"].ToString();
-                            int startIndex = commandLine.IndexOf("-ServerName:") + 12;
-                            int endIndex = commandLine.IndexOf(" ", startIndex);
-
-                            if (startIndex > 12 && endIndex > startIndex)
-                            {
-                                return commandLine.Substring(startIndex, endIndex - startIndex);
-                            }
-                        }
-                    }
-                }
-            }
-            catch { }
-            return null;
+            process.Refresh(); // Refresh to update the window handle
+            return process.MainWindowHandle;
         }
-
-        private void ActivateUWPApp(string appUserModelId)
-        {
-            IApplicationActivationManager appActivationManager =
-                (IApplicationActivationManager)new ApplicationActivationManager();
-
-            appActivationManager.ActivateApplication(appUserModelId, null, ACTIVATEOPTIONS.None, out _);
-        }
-
-        [ComImport, Guid("2e941141-7f97-4756-ba1d-9decde894a3d")]
-        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface IApplicationActivationManager
-        {
-            int ActivateApplication([MarshalAs(UnmanagedType.LPWStr)] string appUserModelId,
-                                    [MarshalAs(UnmanagedType.LPWStr)] string arguments,
-                                    ACTIVATEOPTIONS options, out uint processId);
-        }
-
-        private enum ACTIVATEOPTIONS
-        {
-            None = 0x00000000
-        }
-
-        [ComImport, Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C")]
-        private class ApplicationActivationManager { }
     }
 }
