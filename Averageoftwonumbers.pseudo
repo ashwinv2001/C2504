@@ -1,36 +1,12 @@
-<Window x:Class="TaskbarAppsListing.MainWindow"
+<Window x:Class="TaskbarClicker.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Taskbar Apps Listing" Height="500" Width="700">
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        
-        <!-- Top row: Controls for refreshing the list and entering a Process ID -->
-        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
-            <Button Content="Refresh List" Click="RefreshButton_Click" Width="120" Margin="0,0,10,0"/>
-            <TextBlock VerticalAlignment="Center" Text="Enter Process ID:"/>
-            <TextBox Name="ProcessIdTextBox" Width="80" Margin="5,0,10,0"/>
-            <Button Content="Bring to Foreground" Click="BringToForegroundButton_Click" Width="150"/>
-        </StackPanel>
-
-        <!-- Status Text -->
-        <TextBlock Name="StatusText" Grid.Row="1" Foreground="DarkBlue" FontWeight="Bold" Margin="0,0,0,10"/>
-
-        <!-- ListView showing taskbar apps with Order, Process ID, Process Name, and Window Title -->
-        <ListView Name="AppsListView" Grid.Row="2">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Order" DisplayMemberBinding="{Binding Order}" Width="60"/>
-                    <GridViewColumn Header="Process ID" DisplayMemberBinding="{Binding ProcessId}" Width="100"/>
-                    <GridViewColumn Header="Process Name" DisplayMemberBinding="{Binding ProcessName}" Width="150"/>
-                    <GridViewColumn Header="Window Title" DisplayMemberBinding="{Binding WindowTitle}" Width="300"/>
-                </GridView>
-            </ListView.View>
-        </ListView>
+        Title="Taskbar Process Clicker" Height="250" Width="400">
+    <Grid>
+        <TextBlock Text="Enter Process ID:" VerticalAlignment="Top" Margin="10"/>
+        <TextBox Name="ProcessIdTextBox" Width="200" Height="25" Margin="10,30,0,0" HorizontalAlignment="Left"/>
+        <Button Content="Activate App" Width="150" Height="30" Margin="10,70,0,0" Click="ActivateApp_Click"/>
+        <TextBlock Name="StatusTextBlock" Foreground="Red" Margin="10,110,0,0" TextWrapping="Wrap"/>
     </Grid>
 </Window>
 
@@ -38,320 +14,100 @@
 
 
 
-
-
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text;
+using System.Threading;
 using System.Windows;
+using System.Windows.Automation;
 
-namespace TaskbarAppsListing
+namespace TaskbarClicker
 {
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
-            RefreshAppsList();
         }
 
-        #region Win32 API Declarations
+        private void ActivateApp_Click(object sender, RoutedEventArgs e)
+        {
+            if (int.TryParse(ProcessIdTextBox.Text, out int processId))
+            {
+                try
+                {
+                    Process process = Process.GetProcessById(processId);
+                    if (process == null || process.HasExited)
+                    {
+                        StatusTextBlock.Text = "Process not found or already closed.";
+                        return;
+                    }
 
-        // Delegate for enumerating windows.
-        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+                    if (ClickTaskbarIcon(processId))
+                    {
+                        StatusTextBlock.Text = "App activated!";
+                        StatusTextBlock.Foreground = System.Windows.Media.Brushes.Green;
+                    }
+                    else
+                    {
+                        StatusTextBlock.Text = "Could not find taskbar icon.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusTextBlock.Text = "Error: " + ex.Message;
+                }
+            }
+            else
+            {
+                StatusTextBlock.Text = "Invalid Process ID.";
+            }
+        }
 
-        [DllImport("user32.dll")]
-        private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+        private bool ClickTaskbarIcon(int processId)
+        {
+            // Get Taskbar handle
+            IntPtr taskbarHandle = FindWindow("Shell_TrayWnd", null);
+            if (taskbarHandle == IntPtr.Zero)
+            {
+                StatusTextBlock.Text = "Taskbar not found.";
+                return false;
+            }
 
-        [DllImport("user32.dll")]
-        private static extern bool EnumChildWindows(IntPtr hwndParent, EnumWindowsProc lpEnumFunc, IntPtr lParam);
+            // Get taskbar AutomationElement
+            AutomationElement taskbar = AutomationElement.FromHandle(taskbarHandle);
+            if (taskbar == null)
+            {
+                StatusTextBlock.Text = "Taskbar UI element not found.";
+                return false;
+            }
 
-        [DllImport("user32.dll")]
-        private static extern bool IsWindowVisible(IntPtr hWnd);
+            // Find all taskbar buttons
+            var buttons = taskbar.FindAll(TreeScope.Descendants, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Button));
 
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern int GetWindowTextLength(IntPtr hWnd);
+            foreach (AutomationElement button in buttons)
+            {
+                // Get the process ID associated with the button
+                IntPtr hwnd = new IntPtr(button.Current.NativeWindowHandle);
+                uint buttonProcessId;
+                GetWindowThreadProcessId(hwnd, out buttonProcessId);
 
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+                if (buttonProcessId == processId)
+                {
+                    // Click the taskbar button
+                    var invokePattern = button.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
+                    invokePattern?.Invoke();
+                    return true;
+                }
+            }
 
-        // Retrieves the process ID for a window.
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+            return false;
+        }
 
-        // Retrieves extended window styles.
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-        private const int GWL_EXSTYLE = -20;
-        private const int WS_EX_TOOLWINDOW = 0x00000080;
-
-        // Brings a window to the foreground.
-        [DllImport("user32.dll")]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
-        [DllImport("user32.dll")]
-        private static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
-        private const int SW_RESTORE = 9; // Restore a minimized window
-
-        // Finds a window by class name.
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
-        // Finds a child window by class name.
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string lpszClass, string lpszWindow);
-
-        // Retrieves the window rectangle.
         [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
-        [StructLayout(LayoutKind.Sequential)]
-        public struct RECT
-        {
-            public int Left;
-            public int Top;
-            public int Right;
-            public int Bottom;
-        }
-
-        // Retrieves the class name of a window.
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
-
-        #endregion
-
-        #region Helper Methods
-
-        /// <summary>
-        /// Enumerates all top‑level windows and returns a list of unique TaskbarAppInfo objects.
-        /// </summary>
-        private List<TaskbarAppInfo> GetTaskbarApps()
-        {
-            var apps = new List<TaskbarAppInfo>();
-            var seenProcessIds = new HashSet<int>();
-
-            EnumWindows((hWnd, lParam) =>
-            {
-                // Skip non-visible windows.
-                if (!IsWindowVisible(hWnd))
-                    return true;
-
-                // Skip tool windows.
-                int exStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
-                if ((exStyle & WS_EX_TOOLWINDOW) != 0)
-                    return true;
-
-                // Get window title length and skip if zero.
-                int length = GetWindowTextLength(hWnd);
-                if (length == 0)
-                    return true;
-
-                // Get the window title.
-                StringBuilder sb = new StringBuilder(length + 1);
-                GetWindowText(hWnd, sb, sb.Capacity);
-                string windowTitle = sb.ToString();
-                if (string.IsNullOrWhiteSpace(windowTitle))
-                    return true;
-
-                // Get the process ID.
-                GetWindowThreadProcessId(hWnd, out uint pid);
-                int processId = (int)pid;
-
-                // Only add one entry per process.
-                if (!seenProcessIds.Contains(processId))
-                {
-                    string processName = "";
-                    try
-                    {
-                        Process proc = Process.GetProcessById(processId);
-                        processName = proc.ProcessName;
-                    }
-                    catch { }
-
-                    apps.Add(new TaskbarAppInfo
-                    {
-                        ProcessId = processId,
-                        ProcessName = processName,
-                        WindowTitle = windowTitle,
-                        WindowHandle = hWnd,
-                        Order = -1 // default value; will update below.
-                    });
-                    seenProcessIds.Add(processId);
-                }
-
-                return true;
-            }, IntPtr.Zero);
-
-            // Update each app with its taskbar order.
-            var orderDict = GetTaskbarOrderDictionary();
-            foreach (var app in apps)
-            {
-                if (orderDict.TryGetValue(app.ProcessId, out int order))
-                    app.Order = order;
-                else
-                    app.Order = -1;
-            }
-
-            return apps;
-        }
-
-        /// <summary>
-        /// Returns a dictionary mapping process IDs to their taskbar order.
-        /// Order is determined by enumerating child windows of the taskbar container.
-        /// The rightmost icon is assigned order 1.
-        /// </summary>
-        private Dictionary<int, int> GetTaskbarOrderDictionary()
-        {
-            var dict = new Dictionary<int, int>();
-
-            // Get the main taskbar window.
-            IntPtr shellTrayWnd = FindWindow("Shell_TrayWnd", null);
-            if (shellTrayWnd == IntPtr.Zero)
-            {
-                Debug.WriteLine("Shell_TrayWnd not found.");
-                return dict;
-            }
-
-            // First try known container class names.
-            IntPtr taskList = FindWindowEx(shellTrayWnd, IntPtr.Zero, "MSTaskListWClass", null);
-            if (taskList == IntPtr.Zero)
-                taskList = FindWindowEx(shellTrayWnd, IntPtr.Zero, "MSTaskSwWClass", null);
-
-            // If not found, enumerate all children of Shell_TrayWnd and pick one whose class name contains "MSTask".
-            if (taskList == IntPtr.Zero)
-            {
-                var potentialContainers = new List<IntPtr>();
-                EnumChildWindows(shellTrayWnd, (childHwnd, lParam) =>
-                {
-                    StringBuilder clsName = new StringBuilder(256);
-                    GetClassName(childHwnd, clsName, clsName.Capacity);
-                    if (clsName.ToString().Contains("MSTask"))
-                        potentialContainers.Add(childHwnd);
-                    return true;
-                }, IntPtr.Zero);
-                if (potentialContainers.Count > 0)
-                    taskList = potentialContainers[0];
-            }
-
-            if (taskList == IntPtr.Zero)
-            {
-                Debug.WriteLine("Task list container not found.");
-                return dict;
-            }
-
-            var children = new List<(IntPtr hwnd, int left, int processId)>();
-
-            // Enumerate child windows of the container.
-            EnumChildWindows(taskList, (childHwnd, lParam) =>
-            {
-                if (GetWindowRect(childHwnd, out RECT rect))
-                {
-                    int left = rect.Left;
-                    GetWindowThreadProcessId(childHwnd, out uint pid);
-                    children.Add((childHwnd, left, (int)pid));
-                }
-                return true;
-            }, IntPtr.Zero);
-
-            if (children.Count == 0)
-            {
-                Debug.WriteLine("No child windows found in task list container.");
-                return dict;
-            }
-
-            // Sort children by their left coordinate (ascending).
-            children.Sort((a, b) => a.left.CompareTo(b.left));
-            int count = children.Count;
-
-            // Assign order: the rightmost icon (largest left coordinate) gets order 1.
-            // Since the list is sorted ascending, we assign order = count - index.
-            for (int i = 0; i < count; i++)
-            {
-                int order = count - i; // Rightmost gets 1.
-                var child = children[i];
-                // If multiple buttons belong to the same process, choose the smallest order (i.e. the one furthest right).
-                if (dict.ContainsKey(child.processId))
-                    dict[child.processId] = Math.Min(dict[child.processId], order);
-                else
-                    dict.Add(child.processId, order);
-            }
-
-            // Debug output.
-            foreach (var kvp in dict)
-            {
-                Debug.WriteLine($"Process {kvp.Key}: Order {kvp.Value}");
-            }
-
-            return dict;
-        }
-
-        /// <summary>
-        /// Refresh the ListView with the current taskbar apps.
-        /// </summary>
-        private void RefreshAppsList()
-        {
-            var apps = GetTaskbarApps();
-            AppsListView.ItemsSource = apps;
-            StatusText.Text = $"Found {apps.Count} taskbar app(s).";
-        }
-
-        /// <summary>
-        /// Given a process ID, returns the window handle from our taskbar apps list.
-        /// </summary>
-        private IntPtr GetTaskbarWindowHandleForProcess(int processId)
-        {
-            var apps = GetTaskbarApps();
-            foreach (var app in apps)
-            {
-                if (app.ProcessId == processId)
-                    return app.WindowHandle;
-            }
-            return IntPtr.Zero;
-        }
-
-        #endregion
-
-        #region UI Event Handlers
-
-        private void RefreshButton_Click(object sender, RoutedEventArgs e)
-        {
-            RefreshAppsList();
-        }
-
-        /// <summary>
-        /// When the user clicks "Bring to Foreground", if the entered process ID is in the taskbar list,
-        /// restore and bring its window to the foreground.
-        /// </summary>
-        private void BringToForegroundButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (!int.TryParse(ProcessIdTextBox.Text, out int processId))
-            {
-                StatusText.Text = "Please enter a valid process ID.";
-                return;
-            }
-
-            IntPtr hwnd = GetTaskbarWindowHandleForProcess(processId);
-            if (hwnd == IntPtr.Zero)
-            {
-                StatusText.Text = $"No taskbar window found for process ID {processId}.";
-                return;
-            }
-
-            ShowWindowAsync(hwnd, SW_RESTORE);
-            SetForegroundWindow(hwnd);
-            StatusText.Text = $"Process ID {processId} window brought to foreground.";
-        }
-
-        #endregion
-    }
-
-    // Class to hold information about a taskbar app.
-    public class TaskbarAppInfo
-    {
-        public int Order { get; set; }         // Taskbar order (1 = rightmost)
-        public int ProcessId { get; set; }
-        public string ProcessName { get; set; }
-        public string WindowTitle { get; set; }
-        public IntPtr WindowHandle { get; set; }
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
     }
 }
