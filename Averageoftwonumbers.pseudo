@@ -9,7 +9,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         
-        <!-- Top row: Buttons and input for process ID -->
+        <!-- Top row: Controls for refreshing the list and entering a Process ID -->
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
             <Button Content="Refresh List" Click="RefreshButton_Click" Width="120" Margin="0,0,10,0"/>
             <TextBlock VerticalAlignment="Center" Text="Enter Process ID:"/>
@@ -17,10 +17,10 @@
             <Button Content="Bring to Foreground" Click="BringToForegroundButton_Click" Width="150"/>
         </StackPanel>
 
-        <!-- Status text -->
+        <!-- Status Text -->
         <TextBlock Name="StatusText" Grid.Row="1" Foreground="DarkBlue" FontWeight="Bold" Margin="0,0,0,10"/>
 
-        <!-- ListView showing taskbar apps -->
+        <!-- ListView showing taskbar apps with Order, Process ID, Process Name, and Window Title -->
         <ListView Name="AppsListView" Grid.Row="2">
             <ListView.View>
                 <GridView>
@@ -33,6 +33,8 @@
         </ListView>
     </Grid>
 </Window>
+
+
 
 
 
@@ -57,7 +59,7 @@ namespace TaskbarAppsListing
 
         #region Win32 API Declarations
 
-        // Delegate for window enumeration.
+        // Delegate for enumerating windows.
         private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
         [DllImport("user32.dll")]
@@ -79,36 +81,40 @@ namespace TaskbarAppsListing
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
-        // Retrieve extended window styles.
+        // Retrieves extended window styles.
         [DllImport("user32.dll", SetLastError = true)]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
         private const int GWL_EXSTYLE = -20;
         private const int WS_EX_TOOLWINDOW = 0x00000080;
 
-        // For bringing a window to the foreground.
+        // Brings a window to the foreground.
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
         [DllImport("user32.dll")]
         private static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
         private const int SW_RESTORE = 9; // Restore a minimized window
 
-        // To find a window by class name.
+        // Finds a window by class name.
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
-        // To get window rectangle.
+        // Finds a child window by class name.
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string lpszClass, string lpszWindow);
+
+        // Retrieves the window rectangle.
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
         [StructLayout(LayoutKind.Sequential)]
         public struct RECT
         {
-            public int Left; 
-            public int Top; 
-            public int Right; 
+            public int Left;
+            public int Top;
+            public int Right;
             public int Bottom;
         }
 
-        // To get the window's class name.
+        // Retrieves the class name of a window.
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
 
@@ -126,7 +132,7 @@ namespace TaskbarAppsListing
 
             EnumWindows((hWnd, lParam) =>
             {
-                // Skip if the window is not visible.
+                // Skip non-visible windows.
                 if (!IsWindowVisible(hWnd))
                     return true;
 
@@ -135,7 +141,7 @@ namespace TaskbarAppsListing
                 if ((exStyle & WS_EX_TOOLWINDOW) != 0)
                     return true;
 
-                // Get the window title length and skip if zero.
+                // Get window title length and skip if zero.
                 int length = GetWindowTextLength(hWnd);
                 if (length == 0)
                     return true;
@@ -151,7 +157,7 @@ namespace TaskbarAppsListing
                 GetWindowThreadProcessId(hWnd, out uint pid);
                 int processId = (int)pid;
 
-                // Only add one entry per process (first found window).
+                // Only add one entry per process.
                 if (!seenProcessIds.Contains(processId))
                 {
                     string processName = "";
@@ -168,15 +174,15 @@ namespace TaskbarAppsListing
                         ProcessName = processName,
                         WindowTitle = windowTitle,
                         WindowHandle = hWnd,
-                        Order = -1 // default value if no order found.
+                        Order = -1 // default value; will update below.
                     });
                     seenProcessIds.Add(processId);
                 }
 
-                return true; // Continue enumerating.
+                return true;
             }, IntPtr.Zero);
 
-            // Update apps with their taskbar order.
+            // Update each app with its taskbar order.
             var orderDict = GetTaskbarOrderDictionary();
             foreach (var app in apps)
             {
@@ -190,75 +196,97 @@ namespace TaskbarAppsListing
         }
 
         /// <summary>
-        /// Returns a dictionary mapping process ID to its taskbar order.
-        /// Order is determined from the taskbar container’s child windows (rightmost is order 1).
+        /// Returns a dictionary mapping process IDs to their taskbar order.
+        /// Order is determined by enumerating child windows of the taskbar container.
+        /// The rightmost icon is assigned order 1.
         /// </summary>
         private Dictionary<int, int> GetTaskbarOrderDictionary()
         {
             var dict = new Dictionary<int, int>();
 
-            // First, get the main taskbar window.
+            // Get the main taskbar window.
             IntPtr shellTrayWnd = FindWindow("Shell_TrayWnd", null);
             if (shellTrayWnd == IntPtr.Zero)
-                return dict;
-
-            // Now, find the taskbar list container by enumerating children of Shell_TrayWnd.
-            IntPtr taskList = IntPtr.Zero;
-            EnumChildWindows(shellTrayWnd, (childHwnd, lParam) =>
             {
-                StringBuilder className = new StringBuilder(256);
-                GetClassName(childHwnd, className, className.Capacity);
-                string cls = className.ToString();
-                // Look for a class name that contains "MSTask" (e.g., "MSTaskSwWClass" on Windows 10).
-                if (cls.Contains("MSTask") && !cls.Contains("Start"))
+                Debug.WriteLine("Shell_TrayWnd not found.");
+                return dict;
+            }
+
+            // First try known container class names.
+            IntPtr taskList = FindWindowEx(shellTrayWnd, IntPtr.Zero, "MSTaskListWClass", null);
+            if (taskList == IntPtr.Zero)
+                taskList = FindWindowEx(shellTrayWnd, IntPtr.Zero, "MSTaskSwWClass", null);
+
+            // If not found, enumerate all children of Shell_TrayWnd and pick one whose class name contains "MSTask".
+            if (taskList == IntPtr.Zero)
+            {
+                var potentialContainers = new List<IntPtr>();
+                EnumChildWindows(shellTrayWnd, (childHwnd, lParam) =>
                 {
-                    taskList = childHwnd;
-                    return false; // Found; stop enumerating.
-                }
-                return true;
-            }, IntPtr.Zero);
+                    StringBuilder clsName = new StringBuilder(256);
+                    GetClassName(childHwnd, clsName, clsName.Capacity);
+                    if (clsName.ToString().Contains("MSTask"))
+                        potentialContainers.Add(childHwnd);
+                    return true;
+                }, IntPtr.Zero);
+                if (potentialContainers.Count > 0)
+                    taskList = potentialContainers[0];
+            }
 
             if (taskList == IntPtr.Zero)
+            {
+                Debug.WriteLine("Task list container not found.");
                 return dict;
+            }
 
             var children = new List<(IntPtr hwnd, int left, int processId)>();
 
+            // Enumerate child windows of the container.
             EnumChildWindows(taskList, (childHwnd, lParam) =>
             {
                 if (GetWindowRect(childHwnd, out RECT rect))
                 {
                     int left = rect.Left;
                     GetWindowThreadProcessId(childHwnd, out uint pid);
-                    int procId = (int)pid;
-                    children.Add((childHwnd, left, procId));
+                    children.Add((childHwnd, left, (int)pid));
                 }
                 return true;
             }, IntPtr.Zero);
 
             if (children.Count == 0)
+            {
+                Debug.WriteLine("No child windows found in task list container.");
                 return dict;
+            }
 
-            // Sort children by their left coordinate in ascending order.
+            // Sort children by their left coordinate (ascending).
             children.Sort((a, b) => a.left.CompareTo(b.left));
             int count = children.Count;
 
-            // The rightmost icon is the one with the highest left coordinate,
-            // so assign order = count - index (rightmost gets order 1).
+            // Assign order: the rightmost icon (largest left coordinate) gets order 1.
+            // Since the list is sorted ascending, we assign order = count - index.
             for (int i = 0; i < count; i++)
             {
-                int order = count - i;
+                int order = count - i; // Rightmost gets 1.
                 var child = children[i];
-                // If multiple buttons belong to the same process, choose the smallest order.
+                // If multiple buttons belong to the same process, choose the smallest order (i.e. the one furthest right).
                 if (dict.ContainsKey(child.processId))
                     dict[child.processId] = Math.Min(dict[child.processId], order);
                 else
                     dict.Add(child.processId, order);
             }
+
+            // Debug output.
+            foreach (var kvp in dict)
+            {
+                Debug.WriteLine($"Process {kvp.Key}: Order {kvp.Value}");
+            }
+
             return dict;
         }
 
         /// <summary>
-        /// Refresh the ListView with current taskbar apps.
+        /// Refresh the ListView with the current taskbar apps.
         /// </summary>
         private void RefreshAppsList()
         {
@@ -268,7 +296,7 @@ namespace TaskbarAppsListing
         }
 
         /// <summary>
-        /// Given a process ID, looks for a corresponding taskbar window and returns its handle.
+        /// Given a process ID, returns the window handle from our taskbar apps list.
         /// </summary>
         private IntPtr GetTaskbarWindowHandleForProcess(int processId)
         {
@@ -291,8 +319,8 @@ namespace TaskbarAppsListing
         }
 
         /// <summary>
-        /// When the user clicks "Bring to Foreground", check if the entered process ID is in the taskbar list.
-        /// If found, restore and bring the window to the foreground.
+        /// When the user clicks "Bring to Foreground", if the entered process ID is in the taskbar list,
+        /// restore and bring its window to the foreground.
         /// </summary>
         private void BringToForegroundButton_Click(object sender, RoutedEventArgs e)
         {
@@ -317,7 +345,7 @@ namespace TaskbarAppsListing
         #endregion
     }
 
-    // Class to hold information about taskbar apps.
+    // Class to hold information about a taskbar app.
     public class TaskbarAppInfo
     {
         public int Order { get; set; }         // Taskbar order (1 = rightmost)
