@@ -1,6 +1,29 @@
 this.textBox1.Location = new System.Drawing.Point(8, 47);
-            this.textBox1.Margin = new System.Windows.Forms.Padding(4);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(316, 22);
-            this.textBox1.TabIndex = 4;
-            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+this.textBox1.Margin = new System.Windows.Forms.Padding(4);
+this.textBox1.Name = "textBox1";
+this.textBox1.Size = new System.Drawing.Size(316, 22);
+this.textBox1.TabIndex = 4;
+this.textBox1.Text = "Enter text here...";  // Placeholder text
+this.textBox1.ForeColor = Color.Gray;  // Set placeholder color
+
+this.textBox1.GotFocus += new System.EventHandler(this.TextBox1_GotFocus);
+this.textBox1.LostFocus += new System.EventHandler(this.TextBox1_LostFocus);
+this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+
+private void TextBox1_GotFocus(object sender, EventArgs e)
+{
+    if (textBox1.Text == "Enter text here...")
+    {
+        textBox1.Text = "";
+        textBox1.ForeColor = Color.Black; // Normal text color
+    }
+}
+
+private void TextBox1_LostFocus(object sender, EventArgs e)
+{
+    if (string.IsNullOrWhiteSpace(textBox1.Text))
+    {
+        textBox1.Text = "Enter text here...";
+        textBox1.ForeColor = Color.Gray; // Placeholder color
+    }
+}
