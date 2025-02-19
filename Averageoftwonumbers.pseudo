@@ -1,29 +1,68 @@
-this.textBox1.Location = new System.Drawing.Point(8, 47);
-this.textBox1.Margin = new System.Windows.Forms.Padding(4);
-this.textBox1.Name = "textBox1";
-this.textBox1.Size = new System.Drawing.Size(316, 22);
-this.textBox1.TabIndex = 4;
-this.textBox1.Text = "Enter text here...";  // Placeholder text
-this.textBox1.ForeColor = Color.Gray;  // Set placeholder color
+using System;
+using System.Drawing;
+using System.Windows.Forms;
 
-this.textBox1.GotFocus += new System.EventHandler(this.TextBox1_GotFocus);
-this.textBox1.LostFocus += new System.EventHandler(this.TextBox1_LostFocus);
-this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
-
-private void TextBox1_GotFocus(object sender, EventArgs e)
+namespace WinFormsApp
 {
-    if (textBox1.Text == "Enter text here...")
+    public class MainForm : Form
     {
-        textBox1.Text = "";
-        textBox1.ForeColor = Color.Black; // Normal text color
-    }
-}
+        private TextBox textBox1;
+        private Button button1;
 
-private void TextBox1_LostFocus(object sender, EventArgs e)
-{
-    if (string.IsNullOrWhiteSpace(textBox1.Text))
-    {
-        textBox1.Text = "Enter text here...";
-        textBox1.ForeColor = Color.Gray; // Placeholder color
+        public MainForm()
+        {
+            // Form settings
+            this.Text = "WinForms Example";
+            this.Size = new Size(400, 200);
+
+            // TextBox
+            textBox1 = new TextBox();
+            textBox1.Location = new Point(50, 50);
+            textBox1.Size = new Size(250, 25);
+            textBox1.ForeColor = Color.Gray;
+            textBox1.Text = "Enter text here...";
+            textBox1.GotFocus += TextBox1_GotFocus;
+            textBox1.LostFocus += TextBox1_LostFocus;
+
+            // Button
+            button1 = new Button();
+            button1.Text = "Submit";
+            button1.Location = new Point(50, 90);
+            button1.Click += Button1_Click;
+
+            // Add controls to the form
+            this.Controls.Add(textBox1);
+            this.Controls.Add(button1);
+        }
+
+        private void TextBox1_GotFocus(object sender, EventArgs e)
+        {
+            if (textBox1.Text == "Enter text here...")
+            {
+                textBox1.Text = "";
+                textBox1.ForeColor = Color.Black;
+            }
+        }
+
+        private void TextBox1_LostFocus(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(textBox1.Text))
+            {
+                textBox1.Text = "Enter text here...";
+                textBox1.ForeColor = Color.Gray;
+            }
+        }
+
+        private void Button1_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show($"You entered: {textBox1.Text}");
+        }
+
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.Run(new MainForm());
+        }
     }
 }
