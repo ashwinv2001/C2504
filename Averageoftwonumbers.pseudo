@@ -9,7 +9,7 @@ namespace WinFormsApp
         private TextBox textBox1;
         private Button button1;
 
-        public MainForm()
+        public MainForm()  // Constructor (no return type needed)
         {
             // Form settings
             this.Text = "WinForms Example";
@@ -59,7 +59,7 @@ namespace WinFormsApp
         }
 
         [STAThread]
-        static void Main()
+        public static void Main()  // Main method must have a return type (void)
         {
             Application.EnableVisualStyles();
             Application.Run(new MainForm());
