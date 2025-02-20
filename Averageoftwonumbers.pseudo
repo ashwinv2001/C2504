@@ -41,7 +41,8 @@ namespace WinFormsXMLUpdater
             try
             {
                 XDocument xmlDoc = XDocument.Load(xmlFilePath);
-                XElement javaExePathElement = xmlDoc.Root?.Element("JavaExePath");
+                XElement advancedElement = xmlDoc.Root?.Element("Advanced");
+                XElement javaExePathElement = advancedElement?.Element("JavaExePath");
 
                 if (javaExePathElement != null)
                 {
@@ -65,7 +66,8 @@ namespace WinFormsXMLUpdater
             try
             {
                 XDocument xmlDoc = XDocument.Load(xmlFilePath);
-                XElement javaExePathElement = xmlDoc.Root?.Element("JavaExePath");
+                XElement advancedElement = xmlDoc.Root?.Element("Advanced");
+                XElement javaExePathElement = advancedElement?.Element("JavaExePath");
 
                 if (javaExePathElement != null)
                 {
@@ -75,7 +77,7 @@ namespace WinFormsXMLUpdater
                 }
                 else
                 {
-                    MessageBox.Show("JavaExePath tag not found in XML.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("JavaExePath tag not found inside <Advanced>.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)
@@ -85,6 +87,9 @@ namespace WinFormsXMLUpdater
         }
     }
 }
+
+
+
 
 
 
@@ -132,6 +137,5 @@ namespace WinFormsXMLUpdater
         }
     }
 }
-
 
 
