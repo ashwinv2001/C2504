@@ -8,11 +8,14 @@ namespace WinFormsXMLUpdater
     public partial class Form1 : Form
     {
         private string xmlFilePath;
+        private const string PlaceholderText = "Enter the text";
 
         public Form1()
         {
             InitializeComponent();
             LoadXmlFilePath();
+            textBox1.GotFocus += RemovePlaceholder;
+            textBox1.LostFocus += SetPlaceholder;
         }
 
         private void LoadXmlFilePath()
@@ -44,9 +47,15 @@ namespace WinFormsXMLUpdater
                 XElement advancedElement = xmlDoc.Root?.Element("Advanced");
                 XElement javaExePathElement = advancedElement?.Element("JavaExePath");
 
-                if (javaExePathElement != null)
+                if (javaExePathElement != null && !string.IsNullOrWhiteSpace(javaExePathElement.Value))
                 {
                     textBox1.Text = javaExePathElement.Value;
+                    textBox1.ForeColor = System.Drawing.Color.Black;
+                }
+                else
+                {
+                    textBox1.Text = PlaceholderText;
+                    textBox1.ForeColor = System.Drawing.Color.Gray;
                 }
             }
             catch (Exception ex)
@@ -71,7 +80,7 @@ namespace WinFormsXMLUpdater
 
                 if (javaExePathElement != null)
                 {
-                    javaExePathElement.Value = textBox1.Text;
+                    javaExePathElement.Value = (textBox1.Text == PlaceholderText) ? "" : textBox1.Text;
                     xmlDoc.Save(xmlFilePath);
                     MessageBox.Show("JavaExePath updated successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -83,6 +92,24 @@ namespace WinFormsXMLUpdater
             catch (Exception ex)
             {
                 MessageBox.Show($"Error updating XML: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void RemovePlaceholder(object sender, EventArgs e)
+        {
+            if (textBox1.Text == PlaceholderText)
+            {
+                textBox1.Text = "";
+                textBox1.ForeColor = System.Drawing.Color.Black;
+            }
+        }
+
+        private void SetPlaceholder(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(textBox1.Text))
+            {
+                textBox1.Text = PlaceholderText;
+                textBox1.ForeColor = System.Drawing.Color.Gray;
             }
         }
     }
