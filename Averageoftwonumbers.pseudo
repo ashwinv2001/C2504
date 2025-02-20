@@ -7,12 +7,12 @@ namespace WinFormsApp
     public class MainForm : Form
     {
         private TextBox textBox1;
-        private Button button1;
+        private const string PlaceholderText = "Enter text here...";
 
-        public MainForm()  // Constructor (no return type needed)
+        public MainForm()
         {
             // Form settings
-            this.Text = "WinForms Example";
+            this.Text = "WinForms TextBox with Placeholder";
             this.Size = new Size(400, 200);
 
             // TextBox
@@ -20,24 +20,17 @@ namespace WinFormsApp
             textBox1.Location = new Point(50, 50);
             textBox1.Size = new Size(250, 25);
             textBox1.ForeColor = Color.Gray;
-            textBox1.Text = "Enter text here...";
+            textBox1.Text = PlaceholderText;
             textBox1.GotFocus += TextBox1_GotFocus;
             textBox1.LostFocus += TextBox1_LostFocus;
 
-            // Button
-            button1 = new Button();
-            button1.Text = "Submit";
-            button1.Location = new Point(50, 90);
-            button1.Click += Button1_Click;
-
-            // Add controls to the form
+            // Add TextBox to the form
             this.Controls.Add(textBox1);
-            this.Controls.Add(button1);
         }
 
         private void TextBox1_GotFocus(object sender, EventArgs e)
         {
-            if (textBox1.Text == "Enter text here...")
+            if (textBox1.Text == PlaceholderText)
             {
                 textBox1.Text = "";
                 textBox1.ForeColor = Color.Black;
@@ -48,18 +41,13 @@ namespace WinFormsApp
         {
             if (string.IsNullOrWhiteSpace(textBox1.Text))
             {
-                textBox1.Text = "Enter text here...";
+                textBox1.Text = PlaceholderText;
                 textBox1.ForeColor = Color.Gray;
             }
         }
 
-        private void Button1_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show($"You entered: {textBox1.Text}");
-        }
-
         [STAThread]
-        public static void Main()  // Main method must have a return type (void)
+        public static void Main()
         {
             Application.EnableVisualStyles();
             Application.Run(new MainForm());
