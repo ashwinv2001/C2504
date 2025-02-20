@@ -1,16 +1,42 @@
 using System;
 using System.Windows.Forms;
 
-namespace WinFormsApp
+namespace WinFormsFilePicker
 {
-    internal static class Program
+    public partial class Form1 : Form
     {
-        [STAThread]
-        static void Main()
+        public Form1()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            InitializeComponent();
+        }
+
+        private void btnBrowse_Click(object sender, EventArgs e)
+        {
+            // Open file selection dialog
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Title = "Select a file";
+                openFileDialog.Filter = "All Files|*.*";
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    textBox1.Text = openFileDialog.FileName;
+                }
+            }
+        }
+
+        private void btnBrowseFolder_Click(object sender, EventArgs e)
+        {
+            // Open folder selection dialog
+            using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
+            {
+                folderBrowserDialog.Description = "Select a folder";
+
+                if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+                {
+                    textBox1.Text = folderBrowserDialog.SelectedPath;
+                }
+            }
         }
     }
 }
@@ -19,13 +45,14 @@ namespace WinFormsApp
 
 
 
-
-namespace WinFormsApp
+namespace WinFormsFilePicker
 {
     partial class Form1
     {
         private System.ComponentModel.IContainer components = null;
         private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Button btnBrowse;
+        private System.Windows.Forms.Button btnBrowseFolder;
 
         protected override void Dispose(bool disposing)
         {
@@ -39,70 +66,39 @@ namespace WinFormsApp
         private void InitializeComponent()
         {
             this.textBox1 = new System.Windows.Forms.TextBox();
+            this.btnBrowse = new System.Windows.Forms.Button();
+            this.btnBrowseFolder = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(50, 50);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(250, 25);
-            this.textBox1.TabIndex = 0;
-            this.textBox1.ForeColor = System.Drawing.Color.Gray;
-            this.textBox1.Text = "Enter text here...";
-            this.textBox1.GotFocus += new System.EventHandler(this.TextBox1_GotFocus);
-            this.textBox1.LostFocus += new System.EventHandler(this.TextBox1_LostFocus);
+            this.textBox1.Location = new System.Drawing.Point(30, 30);
+            this.textBox1.Size = new System.Drawing.Size(300, 22);
+            this.textBox1.ReadOnly = true;
+            // 
+            // btnBrowse (File Selection)
+            // 
+            this.btnBrowse.Location = new System.Drawing.Point(350, 30);
+            this.btnBrowse.Size = new System.Drawing.Size(100, 25);
+            this.btnBrowse.Text = "Browse File";
+            this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
+            // 
+            // btnBrowseFolder (Folder Selection)
+            // 
+            this.btnBrowseFolder.Location = new System.Drawing.Point(350, 70);
+            this.btnBrowseFolder.Size = new System.Drawing.Size(100, 25);
+            this.btnBrowseFolder.Text = "Browse Folder";
+            this.btnBrowseFolder.Click += new System.EventHandler(this.btnBrowseFolder_Click);
             // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(400, 200);
+            this.ClientSize = new System.Drawing.Size(500, 150);
             this.Controls.Add(this.textBox1);
-            this.Name = "Form1";
-            this.Text = "WinForms TextBox with Placeholder";
+            this.Controls.Add(this.btnBrowse);
+            this.Controls.Add(this.btnBrowseFolder);
+            this.Text = "File/Folder Selector";
             this.ResumeLayout(false);
             this.PerformLayout();
         }
     }
 }
-
-
-
-
-
-using System;
-using System.Drawing;
-using System.Windows.Forms;
-
-namespace WinFormsApp
-{
-    public partial class Form1 : Form
-    {
-        private const string PlaceholderText = "Enter text here...";
-
-        public Form1()
-        {
-            InitializeComponent();
-        }
-
-        private void TextBox1_GotFocus(object sender, EventArgs e)
-        {
-            if (textBox1.Text == PlaceholderText)
-            {
-                textBox1.Text = "";
-                textBox1.ForeColor = Color.Black;
-            }
-        }
-
-        private void TextBox1_LostFocus(object sender, EventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(textBox1.Text))
-            {
-                textBox1.Text = PlaceholderText;
-                textBox1.ForeColor = Color.Gray;
-            }
-        }
-    }
-}
-
-
