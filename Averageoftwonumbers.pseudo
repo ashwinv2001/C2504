@@ -1,168 +1,17 @@
-using System;
-using System.IO;
-using System.Windows.Forms;
-using System.Xml.Linq;
-
-namespace WinFormsXMLUpdater
-{
-    public partial class Form1 : Form
-    {
-        private string xmlFilePath;
-        private const string PlaceholderText = "Enter the text";
-
-        public Form1()
+     private void UpdateJavaSupportDetails(string projectSettingFilePath)
         {
-            InitializeComponent();
-            LoadXmlFilePath();
-            textBox1.GotFocus += RemovePlaceholder;
-            textBox1.LostFocus += SetPlaceholder;
-        }
-
-        private void LoadXmlFilePath()
-        {
-            string concordHome = Environment.GetEnvironmentVariable("CONCORDHOME");
-            if (string.IsNullOrEmpty(concordHome))
+            XmlDocument doc = new XmlDocument();
+            doc.Load(projectSettingFilePath);
+            XmlNode xmlJava = doc.SelectSingleNode("//JavaSupport");
+            if (xmlJava == null)
             {
-                MessageBox.Show("Environment variable 'CONCORDHOME' is not set.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            xmlFilePath = Path.Combine(concordHome, "Config", "Modality", "ProjectSettings.xml");
-
-            if (!File.Exists(xmlFilePath))
-            {
-                MessageBox.Show($"XML file not found:\n{xmlFilePath}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            else
-            {
-                LoadJavaExePath();
-            }
-        }
-
-        private void LoadJavaExePath()
-        {
-            try
-            {
-                XDocument xmlDoc = XDocument.Load(xmlFilePath);
-                XElement advancedElement = xmlDoc.Root?.Element("Advanced");
-                XElement javaExePathElement = advancedElement?.Element("JavaExePath");
-
-                if (javaExePathElement != null && !string.IsNullOrWhiteSpace(javaExePathElement.Value))
+                XmlNode xmlAdvanced = doc.SelectSingleNode("//Advanced");
+                if (xmlAdvanced != null)
                 {
-                    textBox1.Text = javaExePathElement.Value;
-                    textBox1.ForeColor = System.Drawing.Color.Black;
-                }
-                else
-                {
-                    textBox1.Text = PlaceholderText;
-                    textBox1.ForeColor = System.Drawing.Color.Gray;
+                    xmlJava = doc.CreateNode(XmlNodeType.Element, "JavaSupport", null);
+                    xmlJava.InnerText = "False";
+                    xmlAdvanced.AppendChild(xmlJava);
+                    doc.Save(projectSettingFilePath);
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error loading XML: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
         }
-
-        private void btnSave_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(xmlFilePath) || !File.Exists(xmlFilePath))
-            {
-                MessageBox.Show("XML file path is invalid.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            try
-            {
-                XDocument xmlDoc = XDocument.Load(xmlFilePath);
-                XElement advancedElement = xmlDoc.Root?.Element("Advanced");
-                XElement javaExePathElement = advancedElement?.Element("JavaExePath");
-
-                if (javaExePathElement != null)
-                {
-                    javaExePathElement.Value = (textBox1.Text == PlaceholderText) ? "" : textBox1.Text;
-                    xmlDoc.Save(xmlFilePath);
-                    MessageBox.Show("JavaExePath updated successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
-                {
-                    MessageBox.Show("JavaExePath tag not found inside <Advanced>.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error updating XML: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void RemovePlaceholder(object sender, EventArgs e)
-        {
-            if (textBox1.Text == PlaceholderText)
-            {
-                textBox1.Text = "";
-                textBox1.ForeColor = System.Drawing.Color.Black;
-            }
-        }
-
-        private void SetPlaceholder(object sender, EventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(textBox1.Text))
-            {
-                textBox1.Text = PlaceholderText;
-                textBox1.ForeColor = System.Drawing.Color.Gray;
-            }
-        }
-    }
-}
-
-
-
-
-
-
-
-namespace WinFormsXMLUpdater
-{
-    partial class Form1
-    {
-        private System.ComponentModel.IContainer components = null;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.Button btnSave;
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
-        private void InitializeComponent()
-        {
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.btnSave = new System.Windows.Forms.Button();
-            this.SuspendLayout();
-            
-            // textBox1
-            this.textBox1.Location = new System.Drawing.Point(30, 30);
-            this.textBox1.Size = new System.Drawing.Size(300, 25);
-            
-            // btnSave
-            this.btnSave.Location = new System.Drawing.Point(350, 30);
-            this.btnSave.Size = new System.Drawing.Size(100, 25);
-            this.btnSave.Text = "Save";
-            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
-            
-            // Form1
-            this.ClientSize = new System.Drawing.Size(500, 100);
-            this.Controls.Add(this.textBox1);
-            this.Controls.Add(this.btnSave);
-            this.Text = "Update XML";
-            this.ResumeLayout(false);
-            this.PerformLayout();
-        }
-    }
-}
-
-
