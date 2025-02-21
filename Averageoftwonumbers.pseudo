@@ -1,17 +1,30 @@
-     private void UpdateJavaSupportDetails(string projectSettingFilePath)
+private void UpdateJavaSupportDetails(string projectSettingFilePath)
+{
+    XmlDocument doc = new XmlDocument();
+    doc.Load(projectSettingFilePath);
+
+    XmlNode xmlAdvanced = doc.SelectSingleNode("//Advanced");
+    if (xmlAdvanced != null)
+    {
+        // Ensure <JavaSupport> exists
+        XmlNode xmlJava = doc.SelectSingleNode("//Advanced/JavaSupport");
+        if (xmlJava == null)
         {
-            XmlDocument doc = new XmlDocument();
-            doc.Load(projectSettingFilePath);
-            XmlNode xmlJava = doc.SelectSingleNode("//JavaSupport");
-            if (xmlJava == null)
-            {
-                XmlNode xmlAdvanced = doc.SelectSingleNode("//Advanced");
-                if (xmlAdvanced != null)
-                {
-                    xmlJava = doc.CreateNode(XmlNodeType.Element, "JavaSupport", null);
-                    xmlJava.InnerText = "False";
-                    xmlAdvanced.AppendChild(xmlJava);
-                    doc.Save(projectSettingFilePath);
-                }
-            }
+            xmlJava = doc.CreateElement("JavaSupport");
+            xmlJava.InnerText = "False";
+            xmlAdvanced.AppendChild(xmlJava);
         }
+
+        // Ensure <JavaExePath> exists
+        XmlNode xmlJavaExePath = doc.SelectSingleNode("//Advanced/JavaExePath");
+        if (xmlJavaExePath == null)
+        {
+            xmlJavaExePath = doc.CreateElement("JavaExePath");
+            xmlJavaExePath.InnerText = "";  // Set to empty (null equivalent in XML)
+            xmlAdvanced.AppendChild(xmlJavaExePath);
+        }
+
+        // Save only if modifications were made
+        doc.Save(projectSettingFilePath);
+    }
+}
