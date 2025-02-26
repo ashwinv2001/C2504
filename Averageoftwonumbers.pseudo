@@ -1,20 +1,29 @@
- private bool CheckJavaExistsInPath()
-        {
-            string concordHome = Environment.GetEnvironmentVariable("CONCORDHOME");
-            if (string.IsNullOrEmpty(concordHome))
-                return false; // Return false if CONCORDHOME is not set
+private bool CheckJavaExistsInPath()
+{
+    string concordHome = Environment.GetEnvironmentVariable("CONCORDHOME");
+    if (string.IsNullOrEmpty(concordHome))
+        return false; // Return false if CONCORDHOME is not set
 
-            string xmlFilePath = Path.Combine(concordHome, "Config", "Modality", "ProjectSettings.xml");
-            if (!File.Exists(xmlFilePath))
-                return false; // Return false if the XML file does not exist
+    string xmlFilePath = Path.Combine(concordHome, "Config", "Modality", "ProjectSettings.xml");
+    if (!File.Exists(xmlFilePath))
+        return false; // Return false if the XML file does not exist
 
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(xmlFilePath);
+    XmlDocument xmlDoc = new XmlDocument();
+    xmlDoc.Load(xmlFilePath);
 
-            XmlNode javaExePathNode = xmlDoc.SelectSingleNode("//Advanced/JavaExePath");
+    XmlNode javaExePathNode = xmlDoc.SelectSingleNode("//Advanced/JavaExePath");
 
-            if (javaExePathNode == null || string.IsNullOrWhiteSpace(javaExePathNode.InnerText))
-                return false; // Return false if JavaExePath tag is missing or empty
+    if (javaExePathNode == null || string.IsNullOrWhiteSpace(javaExePathNode.InnerText))
+        return false; // Return false if JavaExePath tag is missing or empty
 
-            return File.Exists(javaExePathNode.InnerText); // Check if the Java executable file exists
-        }
+    string javaExePath = javaExePathNode.InnerText.Trim();
+
+    // Ensure the path is a directory and check for java.exe inside it
+    if (Directory.Exists(javaExePath))
+    {
+        string javaExeFullPath = Path.Combine(javaExePath, "java.exe");
+        return File.Exists(javaExeFullPath); // Return true if java.exe exists in the directory
+    }
+
+    return false; // Return false if the path is invalid or not a directory
+}
