@@ -1,30 +1,25 @@
-private void UpdateJavaSupportDetails(string projectSettingFilePath)
-{
-    XmlDocument doc = new XmlDocument();
-    doc.Load(projectSettingFilePath);
-
-    XmlNode xmlAdvanced = doc.SelectSingleNode("//Advanced");
-    if (xmlAdvanced != null)
-    {
-        // Ensure <JavaSupport> exists
-        XmlNode xmlJava = doc.SelectSingleNode("//Advanced/JavaSupport");
-        if (xmlJava == null)
+private bool CheckJavaExistsInPath()
         {
-            xmlJava = doc.CreateElement("JavaSupport");
-            xmlJava.InnerText = "False";
-            xmlAdvanced.AppendChild(xmlJava);
-        }
+            string concordHome = Environment.GetEnvironmentVariable("CONCORDHOME");
+         
+            xmlFilePath = Path.Combine(concordHome, "Config", "Modality", "ProjectSettings.xml");
+            XDocument xmlDoc = XDocument.Load(xmlFilePath);
+            XElement advancedElement = xmlDoc.Root?.Element("Advanced");
+            XElement javaExePathElement = advancedElement?.Element("JavaExePath");
 
-        // Ensure <JavaExePath> exists
-        XmlNode xmlJavaExePath = doc.SelectSingleNode("//Advanced/JavaExePath");
-        if (xmlJavaExePath == null)
-        {
-            xmlJavaExePath = doc.CreateElement("JavaExePath");
-            xmlJavaExePath.InnerText = "";  // Set to empty (null equivalent in XML)
-            xmlAdvanced.AppendChild(xmlJavaExePath);
-        }
+            if(javaExePathElement.Value==null)
+            {
+                return false;
+            }
+            //string javaPath = "C:\\jdk-11.0.2\\bin\\java.exe";
 
-        // Save only if modifications were made
-        doc.Save(projectSettingFilePath);
-    }
-}
+             if (System.IO.File.Exists(javaExePathElement.Value))
+             {
+                 return true;
+              }
+              else
+             {
+                  return false;
+             }
+
+        }
