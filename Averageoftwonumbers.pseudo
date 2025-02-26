@@ -1,25 +1,20 @@
 private bool CheckJavaExistsInPath()
-        {
-            string concordHome = Environment.GetEnvironmentVariable("CONCORDHOME");
-         
-            xmlFilePath = Path.Combine(concordHome, "Config", "Modality", "ProjectSettings.xml");
-            XDocument xmlDoc = XDocument.Load(xmlFilePath);
-            XElement advancedElement = xmlDoc.Root?.Element("Advanced");
-            XElement javaExePathElement = advancedElement?.Element("JavaExePath");
+{
+    string concordHome = Environment.GetEnvironmentVariable("CONCORDHOME");
+    if (string.IsNullOrEmpty(concordHome))
+        return false; // Return false if CONCORDHOME is not set
 
-            if(javaExePathElement.Value==null)
-            {
-                return false;
-            }
-            //string javaPath = "C:\\jdk-11.0.2\\bin\\java.exe";
+    string xmlFilePath = Path.Combine(concordHome, "Config", "Modality", "ProjectSettings.xml");
+    if (!File.Exists(xmlFilePath))
+        return false; // Return false if the XML file does not exist
 
-             if (System.IO.File.Exists(javaExePathElement.Value))
-             {
-                 return true;
-              }
-              else
-             {
-                  return false;
-             }
+    XmlDocument xmlDoc = new XmlDocument();
+    xmlDoc.Load(xmlFilePath);
 
-        }
+    XmlNode javaExePathNode = xmlDoc.SelectSingleNode("//Advanced/JavaExePath");
+
+    if (javaExePathNode == null || string.IsNullOrWhiteSpace(javaExePathNode.InnerText))
+        return false; // Return false if JavaExePath tag is missing or empty
+
+    return File.Exists(javaExePathNode.InnerText); // Check if the Java executable file exists
+}
