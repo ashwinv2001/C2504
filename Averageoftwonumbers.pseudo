@@ -1,24 +1,25 @@
- private void LoadJavaExePath()
-        {
-            try
-            {
-                XDocument xmlDoc = XDocument.Load(xmlFilePath);
-                XElement advancedElement = xmlDoc.Root?.Element("Advanced");
-                XElement javaExePathElement = advancedElement?.Element("JavaExePath");
+private void LoadJavaExePath()
+{
+    try
+    {
+        XmlDocument xmlDoc = new XmlDocument();
+        xmlDoc.Load(xmlFilePath);
 
-                if (javaExePathElement != null && !string.IsNullOrWhiteSpace(javaExePathElement.Value))
-                {
-                    javaexepathtextbox.Text = javaExePathElement.Value;
-                    javaexepathtextbox.ForeColor = System.Drawing.Color.Gray;
-                }
-                else
-                {
-                    javaexepathtextbox.Text = "Enter java exe path";
-                    javaexepathtextbox.ForeColor = System.Drawing.Color.Gray;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error loading XML: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+        XmlNode javaExePathNode = xmlDoc.SelectSingleNode("//Advanced/JavaExePath");
+
+        if (javaExePathNode != null && !string.IsNullOrWhiteSpace(javaExePathNode.InnerText))
+        {
+            javaexepathtextbox.Text = javaExePathNode.InnerText;
+            javaexepathtextbox.ForeColor = System.Drawing.Color.Gray;
         }
+        else
+        {
+            javaexepathtextbox.Text = "Enter java exe path";
+            javaexepathtextbox.ForeColor = System.Drawing.Color.Gray;
+        }
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show($"Error loading XML: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+    }
+}
