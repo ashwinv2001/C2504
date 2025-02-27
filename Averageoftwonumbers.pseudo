@@ -1,24 +1,40 @@
- private void javaexepathbutton_Click(object sender, EventArgs e)
+private void javaexepathbutton_Click(object sender, EventArgs e)
+{
+    string l_csCurrentDir = ICSharpCode.SharpDevelop.Project.ProjectBrowserPad.Instance.CurrentProject.Directory;
+    string l_ProjectSettingsFile = Path.Combine(string.Concat(l_csCurrentDir, CommonDef.CONFIG_FOLDER), CommonDef.PROJECTSTEEING_FILE);
+
+    browserOption.Title = "Browse";
+    browserOption.Filter = "Executable Files | *.exe";
+    DialogResult dial = browserOption.ShowDialog();
+
+    if (dial == DialogResult.OK) // Only proceed if the user selected a file
+    {
+        javaExePathTextBox.Text = browserOption.FileName;
+
+        XDocument xmlDoc = XDocument.Load(l_ProjectSettingsFile);
+        XElement root = xmlDoc.Root;
+        if (root == null) return; // Exit if the XML has no root
+
+        XElement advancedElement = root.Element("Advanced");
+        if (advancedElement == null)
         {
-            string l_csCurrentDir = ICSharpCode.SharpDevelop.Project.ProjectBrowserPad.Instance.CurrentProject.Directory;
-            string l_ProjectSettingsFile = Path.Combine(string.Concat(l_csCurrentDir, CommonDef.CONFIG_FOLDER), CommonDef.PROJECTSTEEING_FILE);
-
-            browserOption.Title = "Browse";
-            browserOption.Filter = "Executable Files | *.exe";
-            DialogResult dial = browserOption.ShowDialog();
-
-            javaExePathTextBox.Text = browserOption.FileName;
-
-            XDocument xmlDoc = XDocument.Load(l_ProjectSettingsFile);
-            XElement advancedElement = xmlDoc.Root?.Element("Advanced");
-            XElement javaExePathElement = advancedElement?.Element("JavaExePath");
-
-
-            if (javaExePathElement != null)
-            {
-                javaExePathElement.Value = (javaExePathTextBox.Text == "Enter java exe path") ? "" : javaExePathTextBox.Text;
-                xmlDoc.Save(l_ProjectSettingsFile);
-                // MessageBox.Show("JavaExePath updated successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-
+            // If <Advanced> tag does not exist, create it
+            advancedElement = new XElement("Advanced");
+            root.Add(advancedElement);
         }
+
+        XElement javaExePathElement = advancedElement.Element("JavaExePath");
+        if (javaExePathElement == null)
+        {
+            // If <JavaExePath> tag does not exist, create it
+            javaExePathElement = new XElement("JavaExePath");
+            advancedElement.Add(javaExePathElement);
+        }
+
+        // Set value, ensuring default text is not saved
+        javaExePathElement.Value = (javaExePathTextBox.Text == "Enter java exe path") ? "" : javaExePathTextBox.Text;
+        
+        xmlDoc.Save(l_ProjectSettingsFile);
+        // MessageBox.Show("JavaExePath updated successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+    }
+}
