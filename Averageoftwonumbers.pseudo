@@ -1,24 +1,23 @@
- private bool CheckJavaExistsInPath()
-        {
-            string concordHome = Environment.GetEnvironmentVariable("CONCORDHOME");
-            if (string.IsNullOrEmpty(concordHome))
-                return false; // Return false if CONCORDHOME is not set
+private bool CheckJavaExistsInPath()
+{
+    string concordHome = Environment.GetEnvironmentVariable("CONCORDHOME");
+    if (string.IsNullOrEmpty(concordHome))
+        return false; // Return false if CONCORDHOME is not set
 
-            string xmlFilePath = Path.Combine(concordHome, "Config", "Modality", "ProjectSettings.xml");
-            if (!File.Exists(xmlFilePath))
-                return false; // Return false if the XML file does not exist
+    string xmlFilePath = Path.Combine(concordHome, "Config", "Modality", "ProjectSettings.xml");
+    if (!File.Exists(xmlFilePath))
+        return false; // Return false if the XML file does not exist
 
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(xmlFilePath);
+    XmlDocument xmlDoc = new XmlDocument();
+    xmlDoc.Load(xmlFilePath);
 
-            XmlNode javaExePathNode = xmlDoc.SelectSingleNode("//Advanced/JavaExePath");
+    XmlNode javaExePathNode = xmlDoc.SelectSingleNode("//Advanced/JavaExePath");
 
-            if (javaExePathNode == null || string.IsNullOrWhiteSpace(javaExePathNode.InnerText))
-                return false; // Return false if JavaExePath tag is missing or empty
+    if (javaExePathNode == null || string.IsNullOrWhiteSpace(javaExePathNode.InnerText))
+        return false; // Return false if JavaExePath tag is missing or empty
 
-            string javaExePath = javaExePathNode.InnerText.Trim();
+    string javaExePath = javaExePathNode.InnerText.Trim();
 
-                return File.Exists(javaExePath); 
-            
-           
-        }
+    // Check if the path ends with "java.exe" and if the file actually exists
+    return javaExePath.EndsWith("java.exe", StringComparison.OrdinalIgnoreCase) && File.Exists(javaExePath);
+}
