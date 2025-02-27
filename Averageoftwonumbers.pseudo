@@ -1,29 +1,24 @@
- private bool CheckJavaExistsInPath()
+ private void javaexepathbutton_Click(object sender, EventArgs e)
         {
-            string concordHome = Environment.GetEnvironmentVariable("CONCORDHOME");
-            if (string.IsNullOrEmpty(concordHome))
-                return false; // Return false if CONCORDHOME is not set
-
             string l_csCurrentDir = ICSharpCode.SharpDevelop.Project.ProjectBrowserPad.Instance.CurrentProject.Directory;
             string l_ProjectSettingsFile = Path.Combine(string.Concat(l_csCurrentDir, CommonDef.CONFIG_FOLDER), CommonDef.PROJECTSTEEING_FILE);
 
-          
-            if (!File.Exists(l_ProjectSettingsFile))
-                return false; // Return false if the XML file does not exist
+            browserOption.Title = "Browse";
+            browserOption.Filter = "Executable Files | *.exe";
+            DialogResult dial = browserOption.ShowDialog();
 
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(l_ProjectSettingsFile);
+            javaExePathTextBox.Text = browserOption.FileName;
 
-            XmlNode javaExePathNode = xmlDoc.SelectSingleNode("//Advanced/JavaExePath");
-
-            if (javaExePathNode == null || string.IsNullOrWhiteSpace(javaExePathNode.InnerText))
-                return false; // Return false if JavaExePath tag is missing or empty
-
-            string javaExePath = javaExePathNode.InnerText.Trim();
-
-           
+            XDocument xmlDoc = XDocument.Load(l_ProjectSettingsFile);
+            XElement advancedElement = xmlDoc.Root?.Element("Advanced");
+            XElement javaExePathElement = advancedElement?.Element("JavaExePath");
 
 
-            // Check if the path ends with "java.exe" and if the file actually exists
-            return javaExePath.EndsWith("java.exe", StringComparison.OrdinalIgnoreCase) && File.Exists(javaExePath);
+            if (javaExePathElement != null)
+            {
+                javaExePathElement.Value = (javaExePathTextBox.Text == "Enter java exe path") ? "" : javaExePathTextBox.Text;
+                xmlDoc.Save(l_ProjectSettingsFile);
+                // MessageBox.Show("JavaExePath updated successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+
         }
