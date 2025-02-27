@@ -1,65 +1,26 @@
 using System;
-using System.Drawing;
-using System.IO;
 using System.Windows.Forms;
 
 public partial class MainForm : Form
 {
-    private string filePath;
-
     public MainForm()
     {
         InitializeComponent();
-
-        // Define file path on Desktop
-        string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-        filePath = Path.Combine(desktopPath, "data.txt");
-
-        // Load existing data from file if available
-        LoadDataFromFile();
     }
 
-    private void LoadDataFromFile()
+    private void ProcessPath(object sender, EventArgs e)
     {
-        if (File.Exists(filePath))
-        {
-            string content = File.ReadAllText(filePath);
-            if (!string.IsNullOrWhiteSpace(content))
-            {
-                dataTextBox.Text = content;
-                dataTextBox.ForeColor = Color.Black;
-            }
-        }
-    }
+        string inputPath = pathTextBox.Text.Trim();
 
-    private void SaveData(object sender, EventArgs e)
-    {
-        if (dataTextBox.Text != "Enter data")
+        // Check if the path starts with a quote and has a backslash after it
+        if (inputPath.StartsWith("\"") && inputPath.Length > 1 && inputPath[1] == '\\')
         {
-            File.WriteAllText(filePath, dataTextBox.Text);
-            MessageBox.Show("Data saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            inputPath = inputPath.Substring(2); // Remove the first quote and the backslash
         }
-    }
 
-    private void RemovePlaceholder(object sender, EventArgs e)
-    {
-        if (dataTextBox.Text == "Enter data")
-        {
-            dataTextBox.Text = "";
-            dataTextBox.ForeColor = Color.Black;
-        }
-    }
-
-    private void AddPlaceholder(object sender, EventArgs e)
-    {
-        if (string.IsNullOrWhiteSpace(dataTextBox.Text))
-        {
-            dataTextBox.Text = "Enter data";
-            dataTextBox.ForeColor = Color.Gray;
-        }
+        resultTextBox.Text = inputPath;
     }
 }
-
 
 
 
@@ -70,8 +31,9 @@ using System.Windows.Forms;
 partial class MainForm
 {
     private System.ComponentModel.IContainer components = null;
-    private TextBox dataTextBox;
-    private Button saveButton;
+    private TextBox pathTextBox;
+    private Button processButton;
+    private TextBox resultTextBox;
 
     protected override void Dispose(bool disposing)
     {
@@ -84,47 +46,32 @@ partial class MainForm
 
     private void InitializeComponent()
     {
-        this.dataTextBox = new TextBox();
-        this.saveButton = new Button();
+        this.pathTextBox = new TextBox();
+        this.processButton = new Button();
+        this.resultTextBox = new TextBox();
         this.SuspendLayout();
 
-        // TextBox
-        this.dataTextBox.Location = new Point(30, 30);
-        this.dataTextBox.Width = 300;
-        this.dataTextBox.ForeColor = Color.Gray;
-        this.dataTextBox.Text = "Enter data";
-        this.dataTextBox.GotFocus += new System.EventHandler(this.RemovePlaceholder);
-        this.dataTextBox.LostFocus += new System.EventHandler(this.AddPlaceholder);
+        // Input TextBox
+        this.pathTextBox.Location = new Point(30, 30);
+        this.pathTextBox.Width = 300;
 
-        // Save Button
-        this.saveButton.Location = new Point(30, 80);
-        this.saveButton.Width = 100;
-        this.saveButton.Text = "Save";
-        this.saveButton.Click += new System.EventHandler(this.SaveData);
+        // Process Button
+        this.processButton.Location = new Point(30, 70);
+        this.processButton.Text = "Process Path";
+        this.processButton.Click += new System.EventHandler(this.ProcessPath);
+
+        // Output TextBox
+        this.resultTextBox.Location = new Point(30, 110);
+        this.resultTextBox.Width = 300;
+        this.resultTextBox.ReadOnly = true;
 
         // Form Properties
         this.ClientSize = new Size(400, 200);
-        this.Controls.Add(this.dataTextBox);
-        this.Controls.Add(this.saveButton);
-        this.Text = "Data Input Form";
+        this.Controls.Add(this.pathTextBox);
+        this.Controls.Add(this.processButton);
+        this.Controls.Add(this.resultTextBox);
+        this.Text = "Path Processor";
         this.ResumeLayout(false);
         this.PerformLayout();
-    }
-}
-
-
-
-
-using System;
-using System.Windows.Forms;
-
-static class Program
-{
-    [STAThread]
-    static void Main()
-    {
-        Application.EnableVisualStyles();
-        Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(new MainForm());
     }
 }
