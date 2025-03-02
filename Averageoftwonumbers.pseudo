@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace ReplaceBackslashes
@@ -12,91 +13,12 @@ namespace ReplaceBackslashes
 
         private void btnReplace_Click(object sender, EventArgs e)
         {
-            // Get user input
             string input = txtInput.Text;
 
-            // Correct way to replace double backslashes (\\) with single backslash (\)
-            string output = input.Replace(@"\\\\", @"\\");
+            // Use Regex to replace \\ with \
+            string output = Regex.Unescape(input);
 
-            // Display the result
             txtOutput.Text = output;
         }
-    }
-}
-
-
-
-
-
-namespace ReplaceBackslashes
-{
-    partial class Form1
-    {
-        private System.ComponentModel.IContainer components = null;
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
-        #region Windows Form Designer generated code
-
-        private void InitializeComponent()
-        {
-            this.txtInput = new System.Windows.Forms.TextBox();
-            this.btnReplace = new System.Windows.Forms.Button();
-            this.txtOutput = new System.Windows.Forms.TextBox();
-            this.SuspendLayout();
-            // 
-            // txtInput
-            // 
-            this.txtInput.Location = new System.Drawing.Point(12, 12);
-            this.txtInput.Multiline = true;
-            this.txtInput.Name = "txtInput";
-            this.txtInput.Size = new System.Drawing.Size(360, 80);
-            this.txtInput.TabIndex = 0;
-            // 
-            // btnReplace
-            // 
-            this.btnReplace.Location = new System.Drawing.Point(12, 100);
-            this.btnReplace.Name = "btnReplace";
-            this.btnReplace.Size = new System.Drawing.Size(360, 30);
-            this.btnReplace.TabIndex = 1;
-            this.btnReplace.Text = "Replace \\ with \";
-            this.btnReplace.UseVisualStyleBackColor = true;
-            this.btnReplace.Click += new System.EventHandler(this.btnReplace_Click);
-            // 
-            // txtOutput
-            // 
-            this.txtOutput.Location = new System.Drawing.Point(12, 140);
-            this.txtOutput.Multiline = true;
-            this.txtOutput.Name = "txtOutput";
-            this.txtOutput.ReadOnly = true;
-            this.txtOutput.Size = new System.Drawing.Size(360, 80);
-            this.txtOutput.TabIndex = 2;
-            // 
-            // Form1
-            // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(384, 231);
-            this.Controls.Add(this.txtOutput);
-            this.Controls.Add(this.btnReplace);
-            this.Controls.Add(this.txtInput);
-            this.Name = "Form1";
-            this.Text = "Replace Backslashes";
-            this.ResumeLayout(false);
-            this.PerformLayout();
-        }
-
-        #endregion
-
-        private System.Windows.Forms.TextBox txtInput;
-        private System.Windows.Forms.Button btnReplace;
-        private System.Windows.Forms.TextBox txtOutput;
     }
 }
