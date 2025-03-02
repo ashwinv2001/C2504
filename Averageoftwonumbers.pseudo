@@ -1,77 +1,102 @@
 using System;
 using System.Windows.Forms;
 
-public partial class MainForm : Form
+namespace ReplaceBackslashes
 {
-    public MainForm()
+    public partial class Form1 : Form
     {
-        InitializeComponent();
-    }
-
-    private void ProcessPath(object sender, EventArgs e)
-    {
-        string inputPath = pathTextBox.Text.Trim();
-
-        // Check if the path starts with a quote and has a backslash after it
-        if (inputPath.StartsWith("\"") && inputPath.Length > 1 && inputPath[1] == '\\')
+        public Form1()
         {
-            inputPath = inputPath.Substring(2); // Remove the first quote and the backslash
+            InitializeComponent();
         }
 
-        resultTextBox.Text = inputPath;
+        private void btnReplace_Click(object sender, EventArgs e)
+        {
+            // Get user input
+            string input = txtInput.Text;
+
+            // Correct way to replace double backslashes (\\) with single backslash (\)
+            string output = input.Replace(@"\\\\", @"\\");
+
+            // Display the result
+            txtOutput.Text = output;
+        }
     }
 }
 
 
 
 
-using System.Drawing;
-using System.Windows.Forms;
 
-partial class MainForm
+namespace ReplaceBackslashes
 {
-    private System.ComponentModel.IContainer components = null;
-    private TextBox pathTextBox;
-    private Button processButton;
-    private TextBox resultTextBox;
-
-    protected override void Dispose(bool disposing)
+    partial class Form1
     {
-        if (disposing && (components != null))
+        private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
         {
-            components.Dispose();
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
         }
-        base.Dispose(disposing);
-    }
 
-    private void InitializeComponent()
-    {
-        this.pathTextBox = new TextBox();
-        this.processButton = new Button();
-        this.resultTextBox = new TextBox();
-        this.SuspendLayout();
+        #region Windows Form Designer generated code
 
-        // Input TextBox
-        this.pathTextBox.Location = new Point(30, 30);
-        this.pathTextBox.Width = 300;
+        private void InitializeComponent()
+        {
+            this.txtInput = new System.Windows.Forms.TextBox();
+            this.btnReplace = new System.Windows.Forms.Button();
+            this.txtOutput = new System.Windows.Forms.TextBox();
+            this.SuspendLayout();
+            // 
+            // txtInput
+            // 
+            this.txtInput.Location = new System.Drawing.Point(12, 12);
+            this.txtInput.Multiline = true;
+            this.txtInput.Name = "txtInput";
+            this.txtInput.Size = new System.Drawing.Size(360, 80);
+            this.txtInput.TabIndex = 0;
+            // 
+            // btnReplace
+            // 
+            this.btnReplace.Location = new System.Drawing.Point(12, 100);
+            this.btnReplace.Name = "btnReplace";
+            this.btnReplace.Size = new System.Drawing.Size(360, 30);
+            this.btnReplace.TabIndex = 1;
+            this.btnReplace.Text = "Replace \\ with \";
+            this.btnReplace.UseVisualStyleBackColor = true;
+            this.btnReplace.Click += new System.EventHandler(this.btnReplace_Click);
+            // 
+            // txtOutput
+            // 
+            this.txtOutput.Location = new System.Drawing.Point(12, 140);
+            this.txtOutput.Multiline = true;
+            this.txtOutput.Name = "txtOutput";
+            this.txtOutput.ReadOnly = true;
+            this.txtOutput.Size = new System.Drawing.Size(360, 80);
+            this.txtOutput.TabIndex = 2;
+            // 
+            // Form1
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(384, 231);
+            this.Controls.Add(this.txtOutput);
+            this.Controls.Add(this.btnReplace);
+            this.Controls.Add(this.txtInput);
+            this.Name = "Form1";
+            this.Text = "Replace Backslashes";
+            this.ResumeLayout(false);
+            this.PerformLayout();
+        }
 
-        // Process Button
-        this.processButton.Location = new Point(30, 70);
-        this.processButton.Text = "Process Path";
-        this.processButton.Click += new System.EventHandler(this.ProcessPath);
+        #endregion
 
-        // Output TextBox
-        this.resultTextBox.Location = new Point(30, 110);
-        this.resultTextBox.Width = 300;
-        this.resultTextBox.ReadOnly = true;
-
-        // Form Properties
-        this.ClientSize = new Size(400, 200);
-        this.Controls.Add(this.pathTextBox);
-        this.Controls.Add(this.processButton);
-        this.Controls.Add(this.resultTextBox);
-        this.Text = "Path Processor";
-        this.ResumeLayout(false);
-        this.PerformLayout();
+        private System.Windows.Forms.TextBox txtInput;
+        private System.Windows.Forms.Button btnReplace;
+        private System.Windows.Forms.TextBox txtOutput;
     }
 }
