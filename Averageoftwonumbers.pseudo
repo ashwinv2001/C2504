@@ -1,24 +1,362 @@
-using System;
-using System.Text.RegularExpressions;
-using System.Windows.Forms;
+//-----------------------------------------------------------------------
+// <copyright file="Converter.cs" company="CANON Medical Systems Corporation">
+//     Copyright(c) 2018 CANON Medical Systems Corporation, All Rights Reserved.
+//     @author    Vihal Patel
+//     @version   1.00
+// </copyright>
+//-----------------------------------------------------------------------
 
-namespace ReplaceBackslashes
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Windows.Forms;
+using SolutionUpgradeTool.IDE;
+using SolutionUpgradeLib;
+
+namespace SolutionUpgradeTool
 {
-    public partial class Form1 : Form
+    /// <summary>
+    /// Converter class
+    /// </summary>
+    public partial class Converter : Form
     {
-        public Form1()
+        /// <summary>
+        /// controller object
+        /// </summary>
+        Controller m_controllerObject;
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public Converter()
         {
             InitializeComponent();
         }
 
-        private void btnReplace_Click(object sender, EventArgs e)
+        #region Loading Part
+        /// <summary>
+        /// Load by folder event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void loadByFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string input = txtInput.Text;
-
-            // Use Regex to replace \\ with \
-            string output = Regex.Unescape(input);
-
-            txtOutput.Text = output;
+            CallLoadOperation(new FolderOption());
         }
+
+        /// <summary>
+        /// Load by xml event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void loadByConfigToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CallLoadOperation(new XMLOption());
+        }
+
+        /// <summary>
+        /// call load operation
+        /// </summary>
+        /// <param name="f_csLoadObject">Object of loading pattern</param>
+        private void CallLoadOperation(IOperation f_csLoadObject)
+        {
+            m_controllerObject = new Controller(f_csLoadObject);
+            m_controllerObject.LoadSolutions(this);
+            EnableControlState();
+        }
+
+        /// <summary>
+        /// Enable control state
+        /// </summary>
+        private void EnableControlState()
+        {
+            if (tvSolutions != null && tvSolutions.Nodes != null && tvSolutions.Nodes.Count > 0)
+            {
+                btnsaveFile.Enabled = true;
+                btnConvertsln.Enabled = true;
+                chkselectUnselectAll.Enabled = true;
+            }
+        }
+        #endregion
+
+        #region Conversion
+        /// <summary>
+        /// Convert button event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnConvertsln_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                ConvertClick();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Convert button click
+        /// </summary>
+        private void ConvertClick()
+        {
+            if (m_controllerObject == null)
+            {
+                m_controllerObject = new Controller();
+            }
+            //Get checked tree nodes.
+            List<string> l_checkedSolutions = GetCheckedNodes(tvSolutions.Nodes);
+            if (l_checkedSolutions != null && l_checkedSolutions.Count > 0)
+            {
+                string l_destinationBackupPath = string.Empty;
+                //Backup dialog
+                DialogResult l_dlgresult = MessageBox.Show(CommonDef.BackupMessage, CommonDef.ConfirmationTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (l_dlgresult == DialogResult.Yes)
+                {
+                    using (ConfigFileBrowserDlg l_objConfigFileBrowserDlg = new ConfigFileBrowserDlg(true))
+                    {
+                        if (l_objConfigFileBrowserDlg.ShowDialog() == DialogResult.OK)
+                        {
+                            l_destinationBackupPath = l_objConfigFileBrowserDlg.Filepath;
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
+                }
+
+                txReportBox.SelectAll();
+                txReportBox.Clear();
+                //event subscribe to update progress messages while conveting projects.
+                SubscribeProcessUpdateEvent();
+
+                //Process conversion start
+                Thread l_convertProcessThread = new Thread(ProcessConversion);
+                l_convertProcessThread.Start(l_destinationBackupPath);
+                l_convertProcessThread.IsBackground = true;
+            }
+            else
+            {
+                MessageBox.Show(CommonDef.TreeValidation, CommonDef.DialogWarning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        /// <summary>
+        /// Get checked tree nodes.
+        /// </summary>
+        /// <param name="f_nodes">Treenode collection</param>
+        /// <returns>checked nodes</returns>
+        private List<string> GetCheckedNodes(TreeNodeCollection f_nodes)
+        {
+            List<string> l_checkedTreeNodes = new List<string>();
+            foreach (System.Windows.Forms.TreeNode l_node in f_nodes)
+            {
+                if (l_node.Checked)
+                    l_checkedTreeNodes.Add(l_node.ToolTipText);
+            }
+            return l_checkedTreeNodes;
+        }
+
+        /// <summary>
+        /// Directories the copier progress updated.
+        /// </summary>
+        /// <param name="f_message"></param>
+        /// <param name="f_colorKey"></param>
+        private void ProgressUpdated(string f_message, int f_colorKey)
+        {
+            try
+            {
+                this.Invoke((MethodInvoker)delegate()
+                {
+                    txReportBox.AppendText(Environment.NewLine);
+                    txReportBox.SelectionStart = txReportBox.TextLength;
+                    txReportBox.SelectionColor = CommonDef.OperationsColorCode[f_colorKey];
+                    txReportBox.AppendText(f_message);
+
+                });
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Process conversion
+        /// </summary>
+        /// <param name="f_destinationBackupPath">Destination backup folder</param>
+        private void ProcessConversion(object f_destinationBackupPath)
+        {
+            WaitDialog l_wait = new WaitDialog();
+            try
+            {
+                //Get all checked nodes
+                List<string> l_checkedSolutions = GetCheckedNodes(tvSolutions.Nodes);
+                //set max progress bar value
+                l_wait.SetProgressMaxValue(l_checkedSolutions.Count);
+                //call wait dialog to display progress of conversion
+                this.Invoke((MethodInvoker)delegate()
+                {
+                    this.Enabled = false;
+                    l_wait.Show();
+
+                });
+
+                //call Controller to take backup and call backup module of concord 
+                m_controllerObject.TakeBackupAndConvert(l_checkedSolutions, Convert.ToString(f_destinationBackupPath));
+                //abort message
+                if (Logger.Instance.IsAbort)
+                {
+                    ProgressUpdated(CommonDef.AbortMessage, (int)CommonDef.ColorKey.Error);
+                }
+                //Show report of Concord backward module.
+                ProgressUpdated(Logger.Instance.ReportData.ToString(), (int)CommonDef.ColorKey.Normal);
+                //Save Report to log file
+                SaveToLogFile();
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(CommonDef.ExceptionMessage + ex.Message.ToString() + Environment.NewLine, (int)CommonDef.ColorKey.Error);
+            }
+            finally
+            {
+                //Hide wait dialog after conversion completes
+                this.Invoke((MethodInvoker)delegate()
+                {
+                    l_wait.Hide();
+                    l_wait.Dispose();
+                    this.Cursor = Cursors.Default;
+                    this.Enabled = true;
+                });
+                //event unsubscribe to update progress messages while conveting projects.
+                UnsubscribeProcessUpdateEvent();
+            }
+        }
+
+        /// <summary>
+        /// Subscribe process update event
+        /// </summary>
+        private void SubscribeProcessUpdateEvent()
+        {
+            Logger.Instance.ProgressUpdatedWinform += new Logger.ProgressUpdateWinform(ProgressUpdated);
+        }
+
+        /// <summary>
+        /// Unsubscribe process update event
+        /// </summary>
+        private void UnsubscribeProcessUpdateEvent()
+        {
+            Logger.Instance.ProgressUpdatedWinform -= new Logger.ProgressUpdateWinform(ProgressUpdated);
+        }
+
+        /// <summary>
+        /// Save report log into text file.
+        /// </summary>
+        private void SaveToLogFile()
+        {
+            string l_concordPath = Environment.GetEnvironmentVariable(CommonDef.CONCORDHOME);
+            if (!string.IsNullOrEmpty(l_concordPath) && Directory.Exists(l_concordPath))
+            {
+                string l_logFolderPath = Path.Combine(l_concordPath, CommonDef.LogFolder);
+                if (!Directory.Exists(l_logFolderPath))
+                {
+                    Directory.CreateDirectory(l_logFolderPath);
+                }
+
+                string l_backwardLogPath = Path.Combine(l_logFolderPath, CommonDef.BackwardLogFolder);
+                if (!Directory.Exists(l_backwardLogPath))
+                {
+                    Directory.CreateDirectory(l_backwardLogPath);
+                }
+
+                if (!string.IsNullOrEmpty(m_controllerObject.BaseVersion))
+                {
+                    string l_baseVersionPath = Path.Combine(l_backwardLogPath, m_controllerObject.BaseVersion);
+                    if (!Directory.Exists(l_baseVersionPath))
+                    {
+                        Directory.CreateDirectory(l_baseVersionPath);
+                    }
+                    string l_fileName = "Log_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                    string l_filePath = Path.Combine(l_baseVersionPath, l_fileName);
+                    if (!File.Exists(l_filePath))
+                    {
+                        File.Create(l_filePath).Close();
+                    }
+
+                    string l_reportData = string.Empty;
+                    this.Invoke((MethodInvoker)delegate()
+                    {
+                        l_reportData = txReportBox.Text;
+
+                    });
+
+                    using (StreamWriter l_sw = new StreamWriter(l_filePath,true))
+                    {
+                        l_sw.WriteLine(l_reportData);
+                    }
+
+                    ProgressUpdated(CommonDef.ReportLogSaveMessage + l_filePath, (int)CommonDef.ColorKey.Information);
+                }
+            }
+        }
+        #endregion
+
+        #region Events
+        /// <summary>
+        /// Save config file details
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnsaveFile_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using (SaveFileDialog l_objSaveFileDialog = new SaveFileDialog())
+                {
+                    l_objSaveFileDialog.InitialDirectory = @"C:\";
+                    l_objSaveFileDialog.RestoreDirectory = true;
+                    l_objSaveFileDialog.Title = CommonDef.SAVEFILES;
+                    l_objSaveFileDialog.Filter = "XML files (*.xml)|*.xml|Config Files|*.config";
+                    l_objSaveFileDialog.CheckPathExists = true;
+                    if (l_objSaveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        if (!string.IsNullOrEmpty(l_objSaveFileDialog.FileName) && !File.Exists(l_objSaveFileDialog.FileName))
+                        {
+                            File.Create(l_objSaveFileDialog.FileName).Close();
+                        }
+
+                        m_controllerObject.SaveXmlFile(l_objSaveFileDialog.FileName);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Check / uncheck all tree items
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void chkselectUnselectAll_CheckedChanged(object sender, EventArgs e)
+        {
+            foreach (TreeNode nodeitem in tvSolutions.Nodes)
+            {
+                if (chkselectUnselectAll.Checked)
+                {
+                    nodeitem.Checked = true;
+                }
+                else
+                {
+                    nodeitem.Checked = false;
+                }
+            }
+        }
+        #endregion
     }
 }
