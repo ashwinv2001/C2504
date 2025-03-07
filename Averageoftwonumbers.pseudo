@@ -1,15 +1,33 @@
-List<string> l_checkedSolutions = GetCheckedNodes(tvSolutions.Nodes)
-    .Select(path => Directory.Exists(path) ? Path.Combine(path, Path.GetFileName(path) + ".sln") : path)
-    .Where(File.Exists)
-    .ToList();
+using System.Windows.Forms; // Ensure this is included
 
-
-
-
-if (l_checkedSolutions.Count == 0)
+private void btnBrowse_Click(object sender, EventArgs e)
 {
-    MessageBox.Show("No valid solution files found!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-    return;
+    using (OpenFileDialog openFileDialog = new OpenFileDialog())
+    {
+        openFileDialog.Filter = "Solution Files (*.sln)|*.sln"; // Only show .sln files
+        openFileDialog.Title = "Select a Solution File";
+
+        if (openFileDialog.ShowDialog() == DialogResult.OK)
+        {
+            txtSolutionPath.Text = openFileDialog.FileName; // Display selected solution
+        }
+    }
 }
 
-File.AppendAllText("debug_log.txt", "Final Solutions: \n" + string.Join("\n", l_checkedSolutions) + "\n");
+
+
+
+
+private void ConvertClick(object sender, EventArgs e)
+{
+    string solutionPath = txtSolutionPath.Text; // Get selected .sln file
+
+    if (string.IsNullOrWhiteSpace(solutionPath) || !File.Exists(solutionPath))
+    {
+        MessageBox.Show("Please select a valid solution file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        return;
+    }
+
+    // Proceed with upgrade process
+    TakeBackupAndConvert(new List<string> { solutionPath });
+}
