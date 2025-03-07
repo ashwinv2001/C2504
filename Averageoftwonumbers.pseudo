@@ -1,1 +1,10 @@
-File.AppendAllText("debug_log.txt", "Selected Solution: " + solution + Environment.NewLine);
+List<string> l_checkedSolutions = GetCheckedNodes(tvSolutions.Nodes);
+
+if (l_checkedSolutions.Count == 0)
+{
+    MessageBox.Show("No solution selected!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+    return;
+}
+
+string debugMessage = "Selected Solutions:\n" + string.Join("\n", l_checkedSolutions);
+MessageBox.Show(debugMessage, "Debug Info");
