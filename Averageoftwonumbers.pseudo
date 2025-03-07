@@ -1,10 +1,15 @@
-List<string> l_checkedSolutions = GetCheckedNodes(tvSolutions.Nodes);
+List<string> l_checkedSolutions = GetCheckedNodes(tvSolutions.Nodes)
+    .Select(path => Directory.Exists(path) ? Path.Combine(path, Path.GetFileName(path) + ".sln") : path)
+    .Where(File.Exists)
+    .ToList();
+
+
+
 
 if (l_checkedSolutions.Count == 0)
 {
-    MessageBox.Show("No solution selected!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+    MessageBox.Show("No valid solution files found!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
     return;
 }
 
-string debugMessage = "Selected Solutions:\n" + string.Join("\n", l_checkedSolutions);
-MessageBox.Show(debugMessage, "Debug Info");
+File.AppendAllText("debug_log.txt", "Final Solutions: \n" + string.Join("\n", l_checkedSolutions) + "\n");
