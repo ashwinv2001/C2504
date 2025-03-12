@@ -1,40 +1,35 @@
 using System;
-using System.IO;
-using System.Windows.Forms;
+using System.Collections.Generic;
 
-namespace SolutionNameExtractor
+class Program
 {
-    public partial class MainForm : Form
+    static void Main()
     {
-        public MainForm()
+        List<string> l_csPackets = new List<string>
         {
-            InitializeComponent();
+            "Packet1 Data",
+            "Packet2 Data",
+            "Packet3 Data",
+            "Some info [Custom Trace] Trace details go here",
+            "Packet5 Data"
+        };
+
+        // Ensure index 3 exists before modifying it
+        if (l_csPackets.Count > 3)
+        {
+            string original = l_csPackets[3];
+            int index = original.IndexOf("[Custom Trace]");
+
+            if (index != -1)
+            {
+                l_csPackets[3] = original.Substring(0, index).Trim();
+            }
         }
 
-        private void btnExtract_Click(object sender, EventArgs e)
+        // Output the modified list
+        foreach (var packet in l_csPackets)
         {
-            // Get the input text (double backslashes are handled correctly in C#)
-            string slnFilePath = txtFilePath.Text.Trim();
-
-            if (string.IsNullOrEmpty(slnFilePath))
-            {
-                MessageBox.Show("Please enter a valid .sln file path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            try
-            {
-                // Normalize path by replacing double backslashes (if pasted from hardcoded string)
-                string normalizedPath = slnFilePath.Replace("\\\\", "\\");
-
-                // Extract solution name without extension
-                string solutionName = Path.GetFileNameWithoutExtension(normalizedPath);
-                txtSolutionName.Text = solutionName;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error processing the file path: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            Console.WriteLine(packet);
         }
     }
 }
