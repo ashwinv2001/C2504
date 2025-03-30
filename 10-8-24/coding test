@@ -1,0 +1,156 @@
+Question 1 of 5
+Week#2Coding
+Find Employees with the Most Orders
+Problem: Given an Employees table and an Orders table,
+find the employee who has processed the most orders.
+
+Table Structure:
+
+CREATE TABLE Employees (
+EmployeeID INT,
+Name VARCHAR(100)
+);
+
+CREATE TABLE Orders (
+OrderID INT,
+EmployeeID INT
+);
+
+SELECT 
+    TOP 1 E.EmployeeID, 
+    E.Name, 
+    COUNT(O.OrderID) AS OrderCount
+FROM 
+    Employees E
+JOIN 
+    Orders O 
+ON 
+    E.EmployeeID = O.EmployeeID
+GROUP BY 
+    E.EmployeeID, E.Name
+ORDER BY 
+    OrderCount DESC;
+output: 
+https://private-user-images.githubusercontent.com/126189896/356792652-1bc4a756-c3d8-4604-b9d9-ef65e8d0eb8e.jpg?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjMyNzA1MzMsIm5iZiI6MTcyMzI3MDIzMywicGF0aCI6Ii8xMjYxODk4OTYvMzU2NzkyNjUyLTFiYzRhNzU2LWMzZDgtNDYwNC1iOWQ5LWVmNjVlOGQwZWI4ZS5qcGc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjQwODEwJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI0MDgxMFQwNjEwMzNaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0zNmVhMjc0YzJhOWRlM2QzZDhhODU3ZGM5OWQxYjRkOWQxOWM5MmNmZTM4YzM3NzkwZjJmMWNiNThjMTA5NDhhJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZhY3Rvcl9pZD0wJmtleV9pZD0wJnJlcG9faWQ9MCJ9.Wf-LbBsUkrTHATRk2H3A8YA6BuOxMa6ghfqn37E4EGo
+
+
+
+Question 2 of 5
+Week#2Coding
+Find Employees with No Manager
+Problem:
+Given an Employees table
+with columns EmployeeID, Name, and ManagerID
+(which refers to EmployeeID of the manager),
+find all employees who do not have a manager.
+
+Table Structure:
+
+CREATE TABLE Employees (
+EmployeeID INT,
+Name VARCHAR(100),
+ManagerID INT
+);
+
+SELECT 
+    EmployeeID, 
+    Name
+FROM 
+    Employees
+WHERE 
+    ManagerID IS NULL;
+
+
+output:
+https://private-user-images.githubusercontent.com/126189896/356792681-48a1eaef-5a89-4adc-8153-f715323b22e2.jpg?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjMyNzA1MzMsIm5iZiI6MTcyMzI3MDIzMywicGF0aCI6Ii8xMjYxODk4OTYvMzU2NzkyNjgxLTQ4YTFlYWVmLTVhODktNGFkYy04MTUzLWY3MTUzMjNiMjJlMi5qcGc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjQwODEwJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI0MDgxMFQwNjEwMzNaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT02MWU4ZTlmYTZlOTkxYTMxMjUxZjA1OTViZmQwNzE0YTNlNmFkMGJkZjA2ZTMyZWNiZmE5YmZmOWZmZGJiZTM1JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZhY3Rvcl9pZD0wJmtleV9pZD0wJnJlcG9faWQ9MCJ9.aIMGyJnvefnoHbkdCkoZ70-1Bleke0W9C3C2AmXzan0
+
+
+
+Question 3 of 5
+Week#2Coding
+Find Average Salary and Number of Employees in Each Department
+Problem: Given an Employees table,
+find the average salary and number of employees
+in each department.
+Table:
+Employees {EmployeeID, DepartmentID, Salary}
+SELECT 
+    DepartmentID, 
+    AVG(Salary) AS AverageSalary, 
+    COUNT(EmployeeID) AS NumberOfEmployees
+FROM 
+    Employees
+GROUP BY 
+    DepartmentID;
+
+output:
+https://private-user-images.githubusercontent.com/126189896/356792690-9d765568-a984-4fe5-a9f8-4f98ee22fb86.jpg?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjMyNzA3MDgsIm5iZiI6MTcyMzI3MDQwOCwicGF0aCI6Ii8xMjYxODk4OTYvMzU2NzkyNjkwLTlkNzY1NTY4LWE5ODQtNGZlNS1hOWY4LTRmOThlZTIyZmI4Ni5qcGc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjQwODEwJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI0MDgxMFQwNjEzMjhaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT04Zjk1ZmNjZGI2ZDM3MTAyZjRlMWM2NGJhOGE4NzcxY2ZkZWVkY2IxOWNhMWFlYzEyNTUzMjA4N2QzMjE2OTVhJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZhY3Rvcl9pZD0wJmtleV9pZD0wJnJlcG9faWQ9MCJ9.95ZqDkJWNH5dgrhX-d31XPnXZVRD3lhb8AMy3ZzoaXk
+
+
+
+Question 4 of 5
+Week#2Coding
+Find Employees Who Report to More Than One Manager
+Problem: Given an Employees table
+with columns EmployeeID, Name, and ManagerID,
+find employees who report to more than one manager.
+
+WITH RecursiveCTE AS (
+    -- Base case: Start with employees who directly report to a manager
+    SELECT EmployeeID, ManagerID
+    FROM Employees
+    WHERE ManagerID IS NOT NULL
+    
+    UNION ALL
+    
+    -- Recursive case: Traverse up the hierarchy
+    SELECT e.EmployeeID, r.ManagerID
+    FROM Employees e
+    INNER JOIN RecursiveCTE r ON e.ManagerID = r.EmployeeID
+),
+ManagerCounts AS (
+    -- Count distinct managers for each employee
+    SELECT EmployeeID, COUNT(DISTINCT ManagerID) AS ManagerCount
+    FROM RecursiveCTE
+    GROUP BY EmployeeID
+)
+-- Final SELECT statement to retrieve employees with more than one manager
+SELECT e.EmployeeID, e.Name
+FROM Employees e
+INNER JOIN ManagerCounts m ON e.EmployeeID = m.EmployeeID
+WHERE m.ManagerCount > 1;
+
+
+
+-- Select employees who have more than one distinct manager level
+SELECT EmployeeID, Name
+FROM RecursiveCTE
+GROUP BY EmployeeID, Name
+HAVING COUNT(DISTINCT ManagerID) > 1;
+
+
+output: 
+https://private-user-images.githubusercontent.com/126189896/356792699-630de476-b076-4abf-be36-ced377bf1686.jpg?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjMyNzA3MDgsIm5iZiI6MTcyMzI3MDQwOCwicGF0aCI6Ii8xMjYxODk4OTYvMzU2NzkyNjk5LTYzMGRlNDc2LWIwNzYtNGFiZi1iZTM2LWNlZDM3N2JmMTY4Ni5qcGc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjQwODEwJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI0MDgxMFQwNjEzMjhaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0yNDVhNGJkOTRkZjFhZWJlZTAwODZkYjc5ZjcyN2I1ODM4YmRkM2M4NWJiYTgyZTk2YWI3NGE4YzI2ODcwNmM0JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZhY3Rvcl9pZD0wJmtleV9pZD0wJnJlcG9faWQ9MCJ9.7fWzcFGbfAlHYIzFEwTKkpIlBcZoOxn3MlexC6jAexk
+
+
+
+Question 5 of 5
+Week#2Coding
+Find the Monthly Average Sales for Each Salesperson
+Problem: Given a Sales table
+with columns SalesPersonID, SaleAmount, and SaleDate,
+find the monthly average sales for each salesperson.
+SELECT 
+    SalesPersonID, 
+    FORMAT(SaleDate, 'yyyy-MM') AS SaleMonth, 
+    AVG(SaleAmount) AS MonthlyAverageSales
+FROM 
+    Sales
+GROUP BY 
+    SalesPersonID, FORMAT(SaleDate, 'yyyy-MM');
+
+
+output:
+https://private-user-images.githubusercontent.com/126189896/356792706-5b9d6ab1-9c10-44e0-b0ff-e53624387100.jpg?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjMyNzA3MDgsIm5iZiI6MTcyMzI3MDQwOCwicGF0aCI6Ii8xMjYxODk4OTYvMzU2NzkyNzA2LTViOWQ2YWIxLTljMTAtNDRlMC1iMGZmLWU1MzYyNDM4NzEwMC5qcGc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjQwODEwJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI0MDgxMFQwNjEzMjhaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1kZTJjNDRiMTFjYWMzMGE2NmJlZmFhMzE2MTJkYWE5NDc5ZjA4MDY2MDMwOWIyNjIxY2QyZmJlODQ2M2JhYWU4JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZhY3Rvcl9pZD0wJmtleV9pZD0wJnJlcG9faWQ9MCJ9.esf_XlLu2bVJh2NxhfYkLUgnzrY92cwYBolbk6cTlhM
+
+

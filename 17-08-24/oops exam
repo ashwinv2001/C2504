@@ -1,0 +1,68 @@
+using System;
+
+public class SurgicalProcedure
+{
+    public string ProcedureID { get; set; }
+    public decimal Cost { get; set; }
+
+    // Constructor
+    public SurgicalProcedure(string procedureID, decimal cost)
+    {
+        ProcedureID = procedureID;
+        Cost = cost;
+    }
+
+    // Method to check if costs are equal
+    public bool Equals(SurgicalProcedure other)
+    {
+        if (other == null) return false;
+        return this.Cost == other.Cost;
+    }
+
+    // Method to check if costs are not equal
+    public bool NotEquals(SurgicalProcedure other)
+    {
+        return !Equals(other);
+    }
+
+    // Method to check if this procedure is more expensive than another
+    public bool GreaterThan(SurgicalProcedure other)
+    {
+        if (other == null) throw new ArgumentNullException(nameof(other));
+        return this.Cost > other.Cost;
+    }
+
+    // Method to check if this procedure is more expensive or the same price as another
+    public bool GreaterThanEquals(SurgicalProcedure other)
+    {
+        if (other == null) throw new ArgumentNullException(nameof(other));
+        return this.Cost >= other.Cost;
+    }
+
+    // Method to check if this procedure is less expensive than another
+    public bool LessThan(SurgicalProcedure other)
+    {
+        if (other == null) throw new ArgumentNullException(nameof(other));
+        return this.Cost < other.Cost;
+    }
+
+    // Method to check if this procedure is less expensive or the same price as another
+    public bool LessThanEquals(SurgicalProcedure other)
+    {
+        if (other == null) throw new ArgumentNullException(nameof(other));
+        return this.Cost <= other.Cost;
+    }
+}
+
+public class Program
+{
+    static void Main(string[] args)
+    {
+        SurgicalProcedure sp1 = new SurgicalProcedure("SP001", 5000);
+        SurgicalProcedure sp2 = new SurgicalProcedure("SP002", 4500);
+
+        Console.WriteLine(sp1.Equals(sp2));          // Output: False
+        Console.WriteLine(sp1.GreaterThan(sp2));     // Output: True
+        Console.WriteLine(sp1.LessThanEquals(sp2));  // Output: False
+    }
+}
