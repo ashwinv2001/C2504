@@ -1,35 +1,59 @@
+<Window x:Class="MinimizeApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Minimize App" Height="200" Width="300">
+    <Grid>
+        <TextBox x:Name="txtPID" Width="150" Height="30" Margin="10" HorizontalAlignment="Left"/>
+        <Button Content="Minimize" Width="100" Height="30" Margin="170,10,10,10"
+                Click="Minimize_Click"/>
+    </Grid>
+</Window>
+
+
+
+
+
+
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Interop;
 
-class Program
+namespace MinimizeApp
 {
-    static void Main()
+    public partial class MainWindow : Window
     {
-        List<string> l_csPackets = new List<string>
-        {
-            "Packet1 Data",
-            "Packet2 Data",
-            "Packet3 Data",
-            "Some info [Custom Trace] Trace details go here",
-            "Packet5 Data"
-        };
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        
+        private const int SW_MINIMIZE = 6; // Command to minimize the window
 
-        // Ensure index 3 exists before modifying it
-        if (l_csPackets.Count > 3)
+        public MainWindow()
         {
-            string original = l_csPackets[3];
-            int index = original.IndexOf("[Custom Trace]");
-
-            if (index != -1)
-            {
-                l_csPackets[3] = original.Substring(0, index).Trim();
-            }
+            InitializeComponent();
         }
 
-        // Output the modified list
-        foreach (var packet in l_csPackets)
+        private void Minimize_Click(object sender, RoutedEventArgs e)
         {
-            Console.WriteLine(packet);
+            if (int.TryParse(txtPID.Text, out int pid))
+            {
+                try
+                {
+                    Process process = Process.GetProcessById(pid);
+                    ShowWindow(process.MainWindowHandle, SW_MINIMIZE);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error: {ex.Message}");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid PID.");
+            }
         }
     }
 }
+
+
