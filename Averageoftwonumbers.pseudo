@@ -18,14 +18,12 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Automation;
 
 namespace MinimizeApp
 {
     public partial class MainWindow : Window
     {
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
-
         [DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
@@ -43,13 +41,12 @@ namespace MinimizeApp
                 try
                 {
                     Process process = Process.GetProcessById(pid);
-
-                    // Try to get the main window handle
                     IntPtr hWnd = process.MainWindowHandle;
-                    
-                    if (hWnd == IntPtr.Zero) // If MainWindowHandle is not found, use FindWindow
+
+                    if (hWnd == IntPtr.Zero)
                     {
-                        hWnd = FindWindow(null, process.MainWindowTitle);
+                        // Use UIAutomation to get the UWP window
+                        hWnd = GetUwpWindowHandle(pid);
                     }
 
                     if (hWnd != IntPtr.Zero)
@@ -70,6 +67,30 @@ namespace MinimizeApp
             {
                 MessageBox.Show("Please enter a valid PID.");
             }
+        }
+
+        private IntPtr GetUwpWindowHandle(int pid)
+        {
+            try
+            {
+                var rootElement = AutomationElement.RootElement;
+                foreach (AutomationElement element in rootElement.FindAll(TreeScope.Children, Condition.TrueCondition))
+                {
+                    int elementPid;
+                    element.GetCurrentPropertyValue(AutomationElement.ProcessIdProperty, out elementPid);
+
+                    if (elementPid == pid)
+                    {
+                        return new IntPtr(element.Current.NativeWindowHandle);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error getting UWP window: {ex.Message}");
+            }
+
+            return IntPtr.Zero;
         }
     }
 }
