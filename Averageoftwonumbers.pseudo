@@ -7,27 +7,20 @@ namespace Concord.Web.UI.Dialogs
 {
     public class IndexBasedTemplateSelector : DataTemplateSelector
     {
-        public DataTemplate Template1 { get; set; }
-        public DataTemplate Template2 { get; set; }
+        public DataTemplate FirstItemTemplate { get; set; }
+        public DataTemplate SecondItemTemplate { get; set; }
         public DataTemplate DefaultTemplate { get; set; }
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
             if (item is DataRowView rowView)
             {
-                try
-                {
-                    int index = rowView.Row?.Table?.Rows.IndexOf(rowView.Row) ?? -1;
+                int index = rowView.Row?.Table?.Rows.IndexOf(rowView.Row) ?? -1;
 
-                    if (index == 0)
-                        return Template1;
-                    else if (index == 1)
-                        return Template2;
-                }
-                catch
-                {
-                    // Fallback in case of unexpected issues
-                }
+                if (index == 0)
+                    return FirstItemTemplate;
+                else if (index == 1)
+                    return SecondItemTemplate;
             }
 
             return DefaultTemplate;
