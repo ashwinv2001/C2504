@@ -20,58 +20,54 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Header Instructions -->
+        <!-- Header -->
         <StackPanel Orientation="Vertical" Grid.Row="0" Grid.ColumnSpan="2" Margin="10,10,10,5">
             <Label Name="Msg1" FontSize="12">These are unused repository items.</Label>
             <Label Name="Msg2" FontSize="12">Please check the item you want to delete and click the “Delete” button.</Label>
             <CheckBox Content="All" Margin="15,5,0,0" Checked="All_Checked" Unchecked="All_Unchecked" MinWidth="30"/>
         </StackPanel>
 
-        <!-- List Section with Extra Row -->
-        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="10,0,10,5">
-            <!-- Fake Row to appear like part of the list -->
-            <Grid Margin="0,0,0,2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <CheckBox Margin="5,2,5,2" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="1" Text="Sample RepositoryDoctitle" Margin="5,2,5,2" VerticalAlignment="Center" FontSize="12"/>
-            </Grid>
-
-            <!-- Actual ListView -->
-            <ListView Name="UnusedStepList" MinHeight="250" MinWidth="450"
-                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                      ScrollViewer.VerticalScrollBarVisibility="Auto"
-                      FontSize="12">
-                <ListView.Resources>
-                    <Style x:Key="GridHeaderStyle" TargetType="{x:Type GridViewColumnHeader}">
-                        <Setter Property="Visibility" Value="Collapsed"/>
-                    </Style>
-                    <Style TargetType="ListViewItem">
-                        <Style.Triggers>
-                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                                <Setter Property="IsSelected" Value="True"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </ListView.Resources>
-                <ListView.View>
-                    <GridView ColumnHeaderContainerStyle="{StaticResource GridHeaderStyle}">
-                        <GridViewColumn>
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <CheckBox Margin="5,0" IsChecked="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                              Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked"/>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn DisplayMemberBinding="{Binding RepositoryName}" Width="Auto"/>
-                        <GridViewColumn DisplayMemberBinding="{Binding RepositoryDoctitle}" Width="Auto"/>
-                    </GridView>
-                </ListView.View>
-            </ListView>
-        </StackPanel>
+        <!-- ListView with dummy first row item -->
+        <ListView Grid.Row="1" Grid.ColumnSpan="2" Name="UnusedStepList"
+                  Margin="10,0,10,5" MinHeight="250" MinWidth="450"
+                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                  FontSize="12">
+            <ListView.Resources>
+                <Style x:Key="GridHeaderStyle" TargetType="{x:Type GridViewColumnHeader}">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </Style>
+                <Style TargetType="ListViewItem">
+                    <Style.Triggers>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter Property="IsSelected" Value="True"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ListView.Resources>
+            <ListView.View>
+                <GridView ColumnHeaderContainerStyle="{StaticResource GridHeaderStyle}">
+                    <GridViewColumn>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox Margin="5,0"
+                                          IsChecked="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          Checked="CheckBox_Checked"
+                                          Unchecked="CheckBox_Unchecked"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding RepositoryName}" Width="Auto"/>
+                    <GridViewColumn>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding RepositoryDoctitle}" Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
 
         <!-- Status Text -->
         <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Name="TextNoItems" Text="{Binding Status}" Margin="20,10,0,0" FontSize="16"/>
