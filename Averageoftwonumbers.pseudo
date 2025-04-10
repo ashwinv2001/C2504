@@ -1,29 +1,4 @@
-using System;
-using System.Data;
-using System.Windows;
-using System.Windows.Controls;
-
-namespace Concord.Web.UI.Dialogs
-{
-    public class IndexBasedTemplateSelector : DataTemplateSelector
-    {
-        public DataTemplate FirstItemTemplate { get; set; }
-        public DataTemplate SecondItemTemplate { get; set; }
-        public DataTemplate DefaultTemplate { get; set; }
-
-        public override DataTemplate SelectTemplate(object item, DependencyObject container)
-        {
-            if (item is DataRowView rowView)
-            {
-                int index = rowView.Row?.Table?.Rows.IndexOf(rowView.Row) ?? -1;
-
-                if (index == 0)
-                    return FirstItemTemplate;
-                else if (index == 1)
-                    return SecondItemTemplate;
-            }
-
-            return DefaultTemplate;
-        }
-    }
-}
+<local:IndexBasedTemplateSelector x:Key="MyTemplateSelector"
+                                  FirstItemTemplate="{StaticResource FirstRowTemplate}"
+                                  SecondItemTemplate="{StaticResource SecondRowTemplate}"
+                                  DefaultTemplate="{StaticResource DefaultRowTemplate}" />
