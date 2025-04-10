@@ -1,29 +1,42 @@
-<ListView.View>
-    <GridView ColumnHeaderContainerStyle="{StaticResource GridHeaderStyle}">
-        <!-- Column for selection checkbox -->
-        <GridViewColumn>
-            <GridViewColumn.CellTemplate>
-                <DataTemplate>
-                    <CheckBox Margin="5,0" 
-                              IsChecked="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                              Checked="CheckBox_Checked" 
-                              Unchecked="CheckBox_Unchecked"/>
-                </DataTemplate>
-            </GridViewColumn.CellTemplate>
-        </GridViewColumn>
+<StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="10,0,10,5">
+    <!-- Original ListView -->
+    <ListView Name="UnusedStepList" MinHeight="300" MinWidth="450"
+              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+              ScrollViewer.VerticalScrollBarVisibility="Auto"
+              FontSize="12">
+        <ListView.Resources>
+            <Style x:Key="GridHeaderStyle" TargetType="{x:Type GridViewColumnHeader}">
+                <Setter Property="Visibility" Value="Collapsed" />
+            </Style>
+            <Style TargetType="ListViewItem">
+                <Style.Triggers>
+                    <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                        <Setter Property="IsSelected" Value="True"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </ListView.Resources>
+        <ListView.View>
+            <GridView ColumnHeaderContainerStyle="{StaticResource GridHeaderStyle}">
+                <GridViewColumn>
+                    <GridViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox Margin="5,0"
+                                      IsChecked="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      Checked="CheckBox_Checked"
+                                      Unchecked="CheckBox_Unchecked"/>
+                        </DataTemplate>
+                    </GridViewColumn.CellTemplate>
+                </GridViewColumn>
+                <GridViewColumn DisplayMemberBinding="{Binding RepositoryName}" Width="Auto"/>
+                <GridViewColumn DisplayMemberBinding="{Binding RepositoryDoctitle}" Width="Auto"/>
+            </GridView>
+        </ListView.View>
+    </ListView>
 
-        <!-- Column with RepositoryName and RepositoryDoctitle checkbox -->
-        <GridViewColumn>
-            <GridViewColumn.CellTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Vertical">
-                        <TextBlock Text="{Binding RepositoryName}" />
-                        <CheckBox Content="{Binding RepositoryDoctitle}" 
-                                  IsChecked="{Binding IsDoctitleChecked, Mode=TwoWay}" 
-                                  Margin="10,2,0,0"/>
-                    </StackPanel>
-                </DataTemplate>
-            </GridViewColumn.CellTemplate>
-        </GridViewColumn>
-    </GridView>
-</ListView.View>
+    <!-- Extra Row with Checkbox + Doctitle -->
+    <StackPanel Orientation="Horizontal" Margin="5,10,0,0">
+        <CheckBox Name="ExtraDoctitleCheckBox" VerticalAlignment="Center"/>
+        <TextBlock Text="{Binding ExtraRepositoryDoctitle}" Margin="5,0,0,0" VerticalAlignment="Center" FontSize="12"/>
+    </StackPanel>
+</StackPanel>
