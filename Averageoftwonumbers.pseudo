@@ -1,97 +1,36 @@
-Unhandled WPF exception
-Exception thrown:
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at Concord.Web.UI.Dialogs.IndexBasedTemplateSelector.SelectTemplate(Object item, DependencyObject container) in D:\Quest_SVN\sources\Concord.Web\Concord.Web.UI\Dialogs\IndexBasedTemplateSelector.cs:line 17
-   at System.Windows.Controls.ContentPresenter.ChooseTemplate()
-   at System.Windows.Controls.ContentPresenter.EnsureTemplate()
-   at System.Windows.Controls.ContentPresenter.OnPreApplyTemplate()
-   at System.Windows.FrameworkElement.ApplyTemplate()
-   at System.Windows.FrameworkElement.MeasureCore(Size availableSize)
-   at System.Windows.UIElement.Measure(Size availableSize)
-   at System.Windows.Controls.Border.MeasureOverride(Size constraint)
-   at System.Windows.FrameworkElement.MeasureCore(Size availableSize)
-   at System.Windows.UIElement.Measure(Size availableSize)
-   at System.Windows.Controls.Control.MeasureOverride(Size constraint)
-   at System.Windows.FrameworkElement.MeasureCore(Size availableSize)
-   at System.Windows.UIElement.Measure(Size availableSize)
-   at System.Windows.Controls.VirtualizingStackPanel.MeasureChild(IItemContainerGenerator& generator, IContainItemStorage& itemStorageProvider, IContainItemStorage& parentItemStorageProvider, Object& parentItem, Boolean& hasUniformOrAverageContainerSizeBeenSet, Double& computedUniformOrAverageContainerSize, Double& computedUniformOrAverageContainerPixelSize, Boolean& computedAreContainersUniformlySized, Boolean& hasAnyContainerSpanChanged, IList& items, Object& item, IList& children, Int32& childIndex, Boolean& visualOrderChanged, Boolean& isHorizontal, Size& childConstraint, Rect& viewport, VirtualizationCacheLength& cacheSize, VirtualizationCacheLengthUnit& cacheUnit, Int64& scrollGeneration, Boolean& foundFirstItemInViewport, Double& firstItemInViewportOffset, Size& stackPixelSize, Size& stackPixelSizeInViewport, Size& stackPixelSizeInCacheBeforeViewport, Size& stackPixelSizeInCacheAfterViewport, Size& stackLogicalSize, Size& stackLogicalSizeInViewport, Size& stackLogicalSizeInCacheBeforeViewport, Size& stackLogicalSizeInCacheAfterViewport, Boolean& mustDisableVirtualization, Boolean isBeforeFirstItem, Boolean isAfterFirstItem, Boolean isAfterLastItem, Boolean skipActualMeasure, Boolean skipGeneration, Boolean isAncestorLookingForFirstItem, Boolean& hasBringIntoViewContainerBeenMeasured, Boolean& hasVirtualizingChildren)
-   at System.Windows.Controls.VirtualizingStackPanel.MeasureOverrideImpl(Size constraint, Nullable`1& lastPageSafeOffset, List`1& previouslyMeasuredOffsets, Nullable`1& lastPagePixelSize, Boolean remeasure)
-   at System.Windows.Controls.VirtualizingStackPanel.MeasureOverride(Size constraint)
-   at System.Windows.FrameworkElement.MeasureCore(Size availableSize)
-   at System.Windows.UIElement.Measure(Size availableSize)
-   at MS.Internal.Helper.MeasureElementWithSingleChild(UIElement element, Size constraint)
-   at System.Windows.Controls.ItemsPresenter.MeasureOverride(Size constraint)
-   at System.Windows.FrameworkElement.MeasureCore(Size availableSize)
-   at System.Windows.UIElement.Measure(Size availableSize)
-   at MS.Internal.Helper.MeasureElementWithSingleChild(UIElement element, Size constraint)
-   at System.Windows.Controls.ScrollContentPresenter.MeasureOverride(Size constraint)
-   at System.Windows.FrameworkElement.MeasureCore(Size availableSize)
-   at System.Windows.UIElement.Measure(Size availableSize)
-   at System.Windows.Controls.Grid.MeasureCell(Int32 cell, Boolean forceInfinityV)
-   at System.Windows.Controls.Grid.MeasureCellsGroup(Int32 cellsHead, Size referenceSize, Boolean ignoreDesiredSizeU, Boolean forceInfinityV, Boolean& hasDesiredSizeUChanged)
-   at System.Windows.Controls.Grid.MeasureOverride(Size constraint)
-   at System.Windows.FrameworkElement.MeasureCore(Size availableSize)
-   at System.Windows.UIElement.Measure(Size availableSize)
-   at System.Windows.Controls.ScrollViewer.MeasureOverride(Size constraint)
-   at System.Windows.FrameworkElement.MeasureCore(Size availableSize)
-   at System.Windows.UIElement.Measure(Size availableSize)
-   at System.Windows.Controls.Border.MeasureOverride(Size constraint)
-   at System.Windows.FrameworkElement.MeasureCore(Size availableSize)
-   at System.Windows.UIElement.Measure(Size availableSize)
-   at System.Windows.Controls.Control.MeasureOverride(Size constraint)
-   at System.Windows.FrameworkElement.MeasureCore(Size availableSize)
-   at System.Windows.UIElement.Measure(Size availableSize)
-   at System.Windows.Controls.Grid.MeasureCell(Int32 cell, Boolean forceInfinityV)
-   at System.Windows.Controls.Grid.MeasureCellsGroup(Int32 cellsHead, Size referenceSize, Boolean ignoreDesiredSizeU, Boolean forceInfinityV, Boolean& hasDesiredSizeUChanged)
-   at System.Windows.Controls.Grid.MeasureOverride(Size constraint)
-   at System.Windows.FrameworkElement.MeasureCore(Size availableSize)
-   at System.Windows.UIElement.Measure(Size availableSize)
-   at MS.Internal.Helper.MeasureElementWithSingleChild(UIElement element, Size constraint)
-   at System.Windows.Controls.ContentPresenter.MeasureOverride(Size constraint)
-   at System.Windows.FrameworkElement.MeasureCore(Size availableSize)
-   at System.Windows.UIElement.Measure(Size availableSize)
-   at System.Windows.Documents.AdornerDecorator.MeasureOverride(Size constraint)
-   at System.Windows.FrameworkElement.MeasureCore(Size availableSize)
-   at System.Windows.UIElement.Measure(Size availableSize)
-   at System.Windows.Controls.Border.MeasureOverride(Size constraint)
-   at System.Windows.FrameworkElement.MeasureCore(Size availableSize)
-   at System.Windows.UIElement.Measure(Size availableSize)
-   at System.Windows.Window.MeasureOverrideHelper(Size constraint)
-   at System.Windows.Window.MeasureOverride(Size availableSize)
-   at System.Windows.FrameworkElement.MeasureCore(Size availableSize)
-   at System.Windows.UIElement.Measure(Size availableSize)
-   at System.Windows.Interop.HwndSource.SetLayoutSize()
-   at System.Windows.Interop.HwndSource.set_RootVisualInternal(Visual value)
-   at System.Windows.Window.SetRootVisual()
-   at System.Windows.Window.SetRootVisualAndUpdateSTC()
-   at System.Windows.Window.SetupInitialState(Double requestedTop, Double requestedLeft, Double requestedWidth, Double requestedHeight)
-   at System.Windows.Window.CreateSourceWindow(Boolean duringShow)
-   at System.Windows.Window.ShowHelper(Object booleanBox)
-   at System.Windows.Window.ShowDialog()
-   at Concord.Web.UI.ViewModel.WebViewModel.ExecuteDeleteUnUseRepoCommand() in D:\Quest_SVN\sources\Concord.Web\Concord.Web.UI\ViewModel\WebViewModel.cs:line 6254
-   at Concord.Commands.DelegateCommand.Execute() in D:\Quest_SVN\sources\Concord\Concord.Util\Commands\DelegateCommand.cs:line 31
-   at Concord.Commands.DelegateCommand.System.Windows.Input.ICommand.Execute(Object parameter) in D:\Quest_SVN\sources\Concord\Concord.Util\Commands\DelegateCommand.cs:line 14
-   at MS.Internal.Commands.CommandHelpers.CriticalExecuteCommandSource(ICommandSource commandSource, Boolean userInitiated)
-   at System.Windows.Controls.Primitives.ButtonBase.OnClick()
-   at System.Windows.Controls.Button.OnClick()
-   at System.Windows.Controls.Primitives.ButtonBase.OnMouseLeftButtonUp(MouseButtonEventArgs e)
-   at System.Windows.RoutedEventArgs.InvokeHandler(Delegate handler, Object target)
-   at System.Windows.RoutedEventHandlerInfo.InvokeHandler(Object target, RoutedEventArgs routedEventArgs)
-   at System.Windows.EventRoute.InvokeHandlersImpl(Object source, RoutedEventArgs args, Boolean reRaised)
-   at System.Windows.UIElement.ReRaiseEventAs(DependencyObject sender, RoutedEventArgs args, RoutedEvent newEvent)
-   at System.Windows.UIElement.OnMouseUpThunk(Object sender, MouseButtonEventArgs e)
-   at System.Windows.RoutedEventArgs.InvokeHandler(Delegate handler, Object target)
-   at System.Windows.RoutedEventHandlerInfo.InvokeHandler(Object target, RoutedEventArgs routedEventArgs)
-   at System.Windows.EventRoute.InvokeHandlersImpl(Object source, RoutedEventArgs args, Boolean reRaised)
-   at System.Windows.UIElement.RaiseEventImpl(DependencyObject sender, RoutedEventArgs args)
-   at System.Windows.UIElement.RaiseTrustedEvent(RoutedEventArgs args)
-   at System.Windows.Input.InputManager.ProcessStagingArea()
-   at System.Windows.Input.InputManager.ProcessInput(InputEventArgs input)
-   at System.Windows.Input.InputProviderSite.ReportInput(InputReport inputReport)
-   at System.Windows.Interop.HwndMouseInputProvider.ReportInput(IntPtr hwnd, InputMode mode, Int32 timestamp, RawMouseActions actions, Int32 x, Int32 y, Int32 wheel)
-   at System.Windows.Interop.HwndMouseInputProvider.FilterMessage(IntPtr hwnd, WindowMessage msg, IntPtr wParam, IntPtr lParam, Boolean& handled)
-   at System.Windows.Interop.HwndSource.InputFilterMessage(IntPtr hwnd, Int32 msg, IntPtr wParam, IntPtr lParam, Boolean& handled)
-   at MS.Win32.HwndWrapper.WndProc(IntPtr hwnd, Int32 msg, IntPtr wParam, IntPtr lParam, Boolean& handled)
-   at MS.Win32.HwndSubclass.DispatcherCallbackOperation(Object o)
-   at System.Windows.Threading.ExceptionWrapper.InternalRealCall(Delegate callback, Object args, Int32 numArgs)
-   at System.Windows.Threading.ExceptionWrapper.TryCatchWhen(Object source, Delegate callback, Object args, Int32 numArgs, Delegate catchHandler)
+using System;
+using System.Data;
+using System.Windows;
+using System.Windows.Controls;
+
+namespace Concord.Web.UI.Dialogs
+{
+    public class IndexBasedTemplateSelector : DataTemplateSelector
+    {
+        public DataTemplate Template1 { get; set; }
+        public DataTemplate Template2 { get; set; }
+        public DataTemplate DefaultTemplate { get; set; }
+
+        public override DataTemplate SelectTemplate(object item, DependencyObject container)
+        {
+            if (item is DataRowView rowView)
+            {
+                try
+                {
+                    int index = rowView.Row?.Table?.Rows.IndexOf(rowView.Row) ?? -1;
+
+                    if (index == 0)
+                        return Template1;
+                    else if (index == 1)
+                        return Template2;
+                }
+                catch
+                {
+                    // Fallback in case of unexpected issues
+                }
+            }
+
+            return DefaultTemplate;
+        }
+    }
+}
