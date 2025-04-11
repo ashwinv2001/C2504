@@ -1,60 +1,32 @@
 using System.Windows;
 using System.Windows.Controls;
 
-public class RowTemplateSelector : DataTemplateSelector
+namespace Wpftestapp
 {
-    public DataTemplate FirstRowTemplate { get; set; }
-    public DataTemplate DefaultRowTemplate { get; set; }
-
-    public override DataTemplate SelectTemplate(object item, DependencyObject container)
+    public class RowTemplateSelector : DataTemplateSelector
     {
-        var listView = ItemsControl.ItemsControlFromItemContainer(container) as ListView;
-        int index = listView?.ItemContainerGenerator.IndexFromContainer(container) ?? -1;
+        public DataTemplate FirstRowTemplate { get; set; }
+        public DataTemplate DefaultRowTemplate { get; set; }
 
-        return index == 0 ? FirstRowTemplate : DefaultRowTemplate;
+        public override DataTemplate SelectTemplate(object item, DependencyObject container)
+        {
+            var listViewItem = container as ListViewItem;
+            if (listViewItem != null)
+            {
+                var listView = ItemsControl.ItemsControlFromItemContainer(listViewItem) as ListView;
+                if (listView != null)
+                {
+                    int index = listView.ItemContainerGenerator.IndexFromContainer(listViewItem);
+                    return index == 0 ? FirstRowTemplate : DefaultRowTemplate;
+                }
+            }
+            return DefaultRowTemplate;
+        }
     }
 }
 
 
 
 
-
-
-<Window x:Class="YourNamespace.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:YourNamespace"
-        Title="Name List" Height="350" Width="400">
-
-    <Window.Resources>
-        <!-- First Row Template -->
-        <DataTemplate x:Key="FirstRowTemplate">
-            <TextBlock Text="{Binding Name2}" FontWeight="Bold" Foreground="DarkBlue" />
-        </DataTemplate>
-
-        <!-- Default Row Template -->
-        <DataTemplate x:Key="DefaultRowTemplate">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="{Binding Name1}" Width="150"/>
-                <TextBlock Text="{Binding Name2}" Width="150"/>
-            </StackPanel>
-        </DataTemplate>
-
-        <!-- Template Selector -->
-        <local:RowTemplateSelector x:Key="MyTemplateSelector"
-                                   FirstRowTemplate="{StaticResource FirstRowTemplate}"
-                                   DefaultRowTemplate="{StaticResource DefaultRowTemplate}" />
-    </Window.Resources>
-
-    <StackPanel Margin="10">
-        <StackPanel Orientation="Horizontal" Margin="0 0 0 10">
-            <TextBox Width="120" Margin="0 0 5 0" Text="{Binding InputName1, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBox Width="120" Margin="0 0 5 0" Text="{Binding InputName2, UpdateSourceTrigger=PropertyChanged}" />
-            <Button Content="Add" Width="50" Command="{Binding AddCommand}" />
-        </StackPanel>
-
-        <!-- ListView using ItemTemplateSelector -->
-        <ListView ItemsSource="{Binding NameList}" ItemTemplateSelector="{StaticResource MyTemplateSelector}" />
-    </StackPanel>
-</Window>
-
+<ListView ItemsSource="{Binding NameList}" 
+          ItemTemplateSelector="{StaticResource MyTemplateSelector}" />
