@@ -27,6 +27,5 @@ namespace Wpftestapp
 
 
 
-
 <ListView ItemsSource="{Binding NameList}" 
           ItemTemplateSelector="{StaticResource MyTemplateSelector}" />
