@@ -1,31 +1,29 @@
-using System.Windows;
-using System.Windows.Controls;
+<Window x:Class="SimpleUniformGridDemo.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="UniformGrid Example" Height="350" Width="500">
+    <Grid Margin="10">
+        <UniformGrid Columns="2" Rows="3" Margin="0,0,0,100">
+            <!-- ComboBox -->
+            <Label Content="Select Option:" VerticalAlignment="Center"/>
+            <ComboBox Name="comboBox" Width="150" Margin="5">
+                <ComboBoxItem Content="Option 1"/>
+                <ComboBoxItem Content="Option 2"/>
+                <ComboBoxItem Content="Option 3"/>
+            </ComboBox>
 
-namespace Wpftestapp
-{
-    public class RowTemplateSelector : DataTemplateSelector
-    {
-        public DataTemplate FirstRowTemplate { get; set; }
-        public DataTemplate DefaultRowTemplate { get; set; }
+            <!-- TextBoxes -->
+            <Label Content="First Name:" VerticalAlignment="Center"/>
+            <TextBox Name="txtFirstName" Width="150" Margin="5"/>
 
-        public override DataTemplate SelectTemplate(object item, DependencyObject container)
-        {
-            var listViewItem = container as ListViewItem;
-            if (listViewItem != null)
-            {
-                var listView = ItemsControl.ItemsControlFromItemContainer(listViewItem) as ListView;
-                if (listView != null)
-                {
-                    int index = listView.ItemContainerGenerator.IndexFromContainer(listViewItem);
-                    return index == 0 ? FirstRowTemplate : DefaultRowTemplate;
-                }
-            }
-            return DefaultRowTemplate;
-        }
-    }
-}
+            <Label Content="Last Name:" VerticalAlignment="Center"/>
+            <TextBox Name="txtLastName" Width="150" Margin="5"/>
 
+            <Label Content="Email:" VerticalAlignment="Center"/>
+            <TextBox Name="txtEmail" Width="150" Margin="5"/>
+        </UniformGrid>
 
-
-<ListView ItemsSource="{Binding NameList}" 
-          ItemTemplateSelector="{StaticResource MyTemplateSelector}" />
+        <!-- DataGrid -->
+        <DataGrid Name="dataGrid" AutoGenerateColumns="True" Margin="0,160,0,0"/>
+    </Grid>
+</Window>
