@@ -1,45 +1,61 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SimpleCalculator; // Your WPF project namespace
-
-namespace SimpleCalculator.Tests
-{
-    [TestClass]
-    public class CalculatorTests
-    {
-        private Calculator calculator;
-
-        [TestInitialize]
-        public void Setup()
+private void But1_Click(object sender, RoutedEventArgs e)
         {
-            calculator = new Calculator();
-        }
+			// TODO: ここにイベント ハンドラーのコードを追加します。
+			if(this.ConfigContentsSV.HorizontalOffset != 0)
+			{
+                CurrentPageOffset = -1;
+				this.ConfigContentsSV.ScrollToHorizontalOffset(30);			
+				//*
+				DispatcherTimer timer = new DispatcherTimer();
+				timer.Interval = TimeSpan.FromMilliseconds(1);
+				timer.Tick += (s, args) =>
+				{
+					if(this.ConfigContentsSV.HorizontalOffset > 0)
+					{
+						this.ConfigContentsSV.ScrollToHorizontalOffset(this.ConfigContentsSV.HorizontalOffset - 5);
+					}else{
+						this.ConfigContentsSV.ScrollToHorizontalOffset(this.ConfigContentsSV.HorizontalOffset + 5);
+					}
+					double menupos = this.ConfigContentsSV.HorizontalOffset;       
+					if (menupos == 0)
+					{
+						((DispatcherTimer)s).Stop();
+						this.ConfigContentsSV.ScrollToHorizontalOffset(0);
+                        CurrentPageOffset = 0;
+					}
+                    
+				};
+				timer.Start();
+				//*/
+				Grid gr1 = this.But1.Template.FindName("ConfigSubMenuBut1Grid", But1) as Grid;
+				var But1_color = VisualTreeHelper.GetChild(gr1, 0);
+				But1_color.SetValue(Rectangle.FillProperty, new SolidColorBrush(Color.FromRgb(37, 99, 163)));
+				var But1_text = VisualTreeHelper.GetChild(gr1, 1);	
+				Grid gr2 = this.But2.Template.FindName("ConfigSubMenuBut2Grid", But2) as Grid;
+				var But2_color = VisualTreeHelper.GetChild(gr2, 0);
+				But2_color.SetValue(Rectangle.FillProperty, new SolidColorBrush(Color.FromRgb(45, 45, 45)));
+				var But2_text = VisualTreeHelper.GetChild(gr2, 1);	
+				Grid gr3 = this.But3.Template.FindName("ConfigSubMenuBut3Grid", But3) as Grid;
+				var But3_color = VisualTreeHelper.GetChild(gr3, 0);
+				But3_color.SetValue(Rectangle.FillProperty, new SolidColorBrush(Color.FromRgb(45, 45, 45)));
+				var But3_text = VisualTreeHelper.GetChild(gr3, 1);				
+				Grid gr4 = this.But4.Template.FindName("ConfigSubMenuBut4Grid", But4) as Grid;
+				var But4_color = VisualTreeHelper.GetChild(gr4, 0);
+				But4_color.SetValue(Rectangle.FillProperty, new SolidColorBrush(Color.FromRgb(45, 45, 45)));
+				var But4_text = VisualTreeHelper.GetChild(gr4, 1);	
+				Grid gr5 = this.But5.Template.FindName("ConfigSubMenuBut5Grid", But5) as Grid;
+				var But5_color = VisualTreeHelper.GetChild(gr5, 0);
+				But5_color.SetValue(Rectangle.FillProperty, new SolidColorBrush(Color.FromRgb(45, 45, 45)));
+				var But5_text = VisualTreeHelper.GetChild(gr5, 1);	
+				Grid gr6 = this.But6.Template.FindName("ConfigSubMenuBut6Grid", But6) as Grid;
+				var But6_color = VisualTreeHelper.GetChild(gr6, 0);
+				But6_color.SetValue(Rectangle.FillProperty, new SolidColorBrush(Color.FromRgb(45, 45, 45)));
+				var But6_text = VisualTreeHelper.GetChild(gr6, 1);
+                Grid gr7 = this.But7.Template.FindName("ConfigSubMenuBut7Grid", But7) as Grid;
+                var But7_color = VisualTreeHelper.GetChild(gr7, 0);
+                But7_color.SetValue(Rectangle.FillProperty, new SolidColorBrush(Color.FromRgb(45, 45, 45)));
+                var But7_text = VisualTreeHelper.GetChild(gr7, 1);
 
-        [TestMethod]
-        public void Add_TwoPositiveNumbers_ReturnsSum()
-        {
-            double result = calculator.Add(5, 3);
-            Assert.AreEqual(8, result);
+                LogAccesser.OutputMessage(1000035, ((ContentPresenter)But1_text).Content); // (1.0.0.9) add
+            }
         }
-
-        [TestMethod]
-        public void Subtract_TwoPositiveNumbers_ReturnsDifference()
-        {
-            double result = calculator.Subtract(10, 4);
-            Assert.AreEqual(6, result);
-        }
-
-        [TestMethod]
-        public void Add_NegativeAndPositive_ReturnsCorrectSum()
-        {
-            double result = calculator.Add(-2, 5);
-            Assert.AreEqual(3, result);
-        }
-
-        [TestMethod]
-        public void Subtract_ResultingInNegative_ReturnsCorrectResult()
-        {
-            double result = calculator.Subtract(3, 7);
-            Assert.AreEqual(-4, result);
-        }
-    }
-}
