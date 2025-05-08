@@ -1,71 +1,45 @@
-<Window x:Class="SimpleCalculator.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Simple Calculator" Height="220" Width="300">
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SimpleCalculator; // Your WPF project namespace
 
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-            <TextBox Name="Number1TextBox" Width="100" Margin="0,0,10,0"/>
-            <TextBox Name="Number2TextBox" Width="100"/>
-        </StackPanel>
-
-        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,10">
-            <Button Content="Add" Width="60" Margin="0,0,10,0" Click="AddButton_Click"/>
-            <Button Content="Subtract" Width="80" Click="SubtractButton_Click"/>
-        </StackPanel>
-
-        <TextBlock Name="ResultTextBlock" Grid.Row="2" FontSize="16" FontWeight="Bold" Margin="0,10,0,0"/>
-    </Grid>
-</Window>
-
-
-
-
-
-
-
-using System.Windows;
-
-namespace SimpleCalculator
+namespace SimpleCalculator.Tests
 {
-    public partial class MainWindow : Window
+    [TestClass]
+    public class CalculatorTests
     {
-        public MainWindow()
+        private Calculator calculator;
+
+        [TestInitialize]
+        public void Setup()
         {
-            InitializeComponent();
+            calculator = new Calculator();
         }
 
-        private void AddButton_Click(object sender, RoutedEventArgs e)
+        [TestMethod]
+        public void Add_TwoPositiveNumbers_ReturnsSum()
         {
-            if (double.TryParse(Number1TextBox.Text, out double num1) &&
-                double.TryParse(Number2TextBox.Text, out double num2))
-            {
-                double result = num1 + num2;
-                ResultTextBlock.Text = $"Result: {result}";
-            }
-            else
-            {
-                ResultTextBlock.Text = "Invalid input.";
-            }
+            double result = calculator.Add(5, 3);
+            Assert.AreEqual(8, result);
         }
 
-        private void SubtractButton_Click(object sender, RoutedEventArgs e)
+        [TestMethod]
+        public void Subtract_TwoPositiveNumbers_ReturnsDifference()
         {
-            if (double.TryParse(Number1TextBox.Text, out double num1) &&
-                double.TryParse(Number2TextBox.Text, out double num2))
-            {
-                double result = num1 - num2;
-                ResultTextBlock.Text = $"Result: {result}";
-            }
-            else
-            {
-                ResultTextBlock.Text = "Invalid input.";
-            }
+            double result = calculator.Subtract(10, 4);
+            Assert.AreEqual(6, result);
+        }
+
+        [TestMethod]
+        public void Add_NegativeAndPositive_ReturnsCorrectSum()
+        {
+            double result = calculator.Add(-2, 5);
+            Assert.AreEqual(3, result);
+        }
+
+        [TestMethod]
+        public void Subtract_ResultingInNegative_ReturnsCorrectResult()
+        {
+            double result = calculator.Subtract(3, 7);
+            Assert.AreEqual(-4, result);
         }
     }
 }
