@@ -1,31 +1,10 @@
- private void FilmFormatSimpleNumberOfRows_TextChanged(object sender, TextChangedEventArgs e)
+ public CsvSettingDataAccessor(string fileName)
         {
-            TextBox tb = sender as TextBox;
-            if (tb == null)
-            {
-                return;
-            }
-            bool result = int.TryParse(tb.Text, out int num);
-            if (result == false)
-            {
-                return;
-            }
-            bool[] enabledList = new bool[3];
-            for (int i = 0; i < enabledList.Length; i++)
-            {
-                if (num <= i)
-                {
-                    enabledList[i] = false;
-                }
-                else
-                {
-                    enabledList[i] = true;
-                }
-            }
-            if (filmFormatSimpleRow1 != null)
-            {
-                filmFormatSimpleRow1.IsEnabled = enabledList[0];
-                filmFormatSimpleRow2.IsEnabled = enabledList[1];
-                filmFormatSimpleRow3.IsEnabled = enabledList[2];
-            }
+            this.m_strFilePath  = fileName;
+            this.m_lstParam     = new Dictionary<object, CsvSettingData>();
+            this.m_lstHeader    = new List<string>();
+            /*  Begin: Added 1.0.0.1 */
+            m_strErrMsg = string.Empty;
+            /*  End: Added 1.0.0.1 */
+            m_result    = FileAccessCommon.RTN_NORMAL;  // (1.0.0.3) add
         }
