@@ -1,20 +1,210 @@
-[TestClass]
-public class CalculatorTests
-{
-    [TestMethod]
-    public void Add_TwoPositiveNumbers_ReturnsCorrectSum()
+ public class CsvFileAccess
     {
-        // Arrange: Set up test data and dependencies
-        Calculator calculator = new Calculator();
+        private string          fileName;
+        private StreamReader    reader;
+        private string          errMsg  = string.Empty;
 
-        int a = 5;
-        int b = 10;
-        int expected = 15;
+        public CsvFileAccess(string fileName)
+        {
+            this.fileName = fileName;
 
-        // Act: Call the method under test
-        int result = calculator.Add(a, b);
+        }
 
-        // Assert: Verify the result
-        Assert.AreEqual(expected, result);
+        public int ReadData(ref List<string> headerList, ref List<string> lineInfoList, ref string errMsg)
+        {
+            int result = FileAccessCommon.RTN_NORMAL;
+            string strHeader = string.Empty;
+
+            if (true == this.Open(Encoding.Default))
+            {
+                this.ReadString(lineInfoList, ref strHeader);
+                string[] seperator = new string[1];
+                seperator[0] = System.Environment.NewLine;
+                string[] headers = strHeader.Split(seperator, StringSplitOptions.None);
+
+                foreach (string header in headers)
+                {
+                    headerList.Add(header);
+                }
+
+                this.Close();
+            }
+            else
+            {
+                errMsg = this.GetLastErrorMessage();
+                return 101;
+            }
+
+            return result;
+        }
+
+        /* Begin: Added 1.0.0.5 */
+        public int ReadDataEncodeJapanese(ref List<string> headerList, ref List<string> lineInfoList, ref string errMsg)
+        {
+            int result = FileAccessCommon.RTN_NORMAL;
+            string strHeader = string.Empty;
+            /* Begin: Added 1.0.0.6 */
+            if (true == this.Open(Encoding.UTF8))
+            /* End: Added 1.0.0.6 */
+            {
+                this.ReadString(lineInfoList, ref strHeader);
+                string[] headers = strHeader.Split(new string[] { System.Environment.NewLine }, StringSplitOptions.None);
+
+                foreach (string header in headers)
+                {
+                    headerList.Add(header);
+                }
+
+                this.Close();
+            }
+            else
+            {
+                errMsg = this.GetLastErrorMessage();
+                return 101;
+            }
+
+            return result;
+        }
+        /* End: Added 1.0.0.5 */
+
+        private bool Open(Encoding encode)
+        {
+            bool ret = true;
+
+            if (File.Exists(fileName))
+            {
+                try
+                {
+                    reader = new StreamReader(fileName, encode, true);
+                }
+                catch (IOException ex)
+                {
+                    ret = false;
+                    this.errMsg = ex.Message;
+                    throw;
+                }
+            }
+            else
+            {
+                ret = false;
+            }
+
+            return ret;
+        }
+
+        private void Close()
+        {
+            if (null != reader)
+            {
+                reader.Close();
+                reader.Dispose();
+            }
+        }
+
+        private bool ReadString(List<string> dataList, ref string header)
+        {
+            bool ret = true;
+
+            header = string.Empty;
+
+            if (null != dataList)
+            {
+                dataList.Clear();
+            }
+            else
+            {
+                dataList = new List<string>();
+            }
+
+            if (null == reader)
+            {
+                ret = false;
+            }
+            else
+            {
+                while (!reader.EndOfStream)
+                {
+                    string readLine = reader.ReadLine().Trim();
+
+                    if (false == string.IsNullOrEmpty(readLine))
+                    {
+                        if ((true == readLine.StartsWith("#")) ||
+                            (true == readLine.StartsWith(";")))
+                        {
+                            if (string.IsNullOrEmpty(header))
+                            {
+                                header = readLine;
+                            }
+                            else
+                            {
+                                header += System.Environment.NewLine + readLine;
+                            }
+                        }
+                        else
+                        {
+                            dataList.Add(readLine);
+                        }
+                    }
+                }
+            }
+
+            return ret;
+        }
+
+        public int ReadData(Action<string> addfunc, ref string errMsg)
+        {
+            int result = FileAccessCommon.RTN_NORMAL;
+            List<string> lstLineInfo = new List<string>();
+            string strHeadder = string.Empty;
+
+            if (true == this.Open(Encoding.UTF8))
+            {
+                this.ReadString(lstLineInfo, ref strHeadder);
+
+                foreach (string line in lstLineInfo)
+                {
+                    addfunc(line);
+                }
+            }
+            else
+            {
+                errMsg = this.GetLastErrorMessage();
+                result = 101;
+            }
+
+            this.Close();
+            return result;
+        }
+
+        //(1.0.0.4 add)--->
+        public int ReadDataEncodeShiftJIS(Action<string> addfunc, ref string errMsg)
+        {
+            int result = 0;
+            List<string> lstLineInfo = new List<string>();
+            string strHeadder = string.Empty;
+
+            if (true == this.Open(Encoding.GetEncoding("shift_jis")))
+            {
+                this.ReadString(lstLineInfo, ref strHeadder);
+
+                foreach (string line in lstLineInfo)
+                {
+                    addfunc(line);
+                }
+            }
+            else
+            {
+                errMsg = this.GetLastErrorMessage();
+                result = 101;
+            }
+
+            this.Close();
+            return result;
+        }
+        //(1.0.0.4 add)---<
+
+        public string GetLastErrorMessage()
+        {
+            return this.errMsg;
+        }
     }
-}
