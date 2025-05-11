@@ -1,16 +1,2 @@
-[TestClass]
-public class CsvFileAccessTests
-{
-    [TestMethod]
-    public void GetLastErrorMessage_ShouldReturnDefaultEmpty()
-    {
-        // Arrange
-        var csvAccess = new CsvFileAccess("dummy.csv");
-
-        // Act
-        string err = csvAccess.GetLastErrorMessage();
-
-        // Assert
-        Assert.AreEqual(string.Empty, err);
-    }
-}
+Severity	Code	Description	Project	File	Line	Suppression State
+Warning		The primary reference "C:\UDR10A\src\Utility\FileAccess\bin\x64\Release\FileAccess.dll" could not be resolved because it has an indirect dependency on the assembly "SNRFPresetManage, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" which was built against the ".NETFramework,Version=v4.6.2" framework. This is a higher version than the currently targeted framework ".NETFramework,Version=v4.6.1".	UnitTestProject2			
