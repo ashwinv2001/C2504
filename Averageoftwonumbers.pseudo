@@ -1,10 +1,20 @@
- public CsvSettingDataAccessor(string fileName)
-        {
-            this.m_strFilePath  = fileName;
-            this.m_lstParam     = new Dictionary<object, CsvSettingData>();
-            this.m_lstHeader    = new List<string>();
-            /*  Begin: Added 1.0.0.1 */
-            m_strErrMsg = string.Empty;
-            /*  End: Added 1.0.0.1 */
-            m_result    = FileAccessCommon.RTN_NORMAL;  // (1.0.0.3) add
-        }
+[TestClass]
+public class CalculatorTests
+{
+    [TestMethod]
+    public void Add_TwoPositiveNumbers_ReturnsCorrectSum()
+    {
+        // Arrange: Set up test data and dependencies
+        Calculator calculator = new Calculator();
+
+        int a = 5;
+        int b = 10;
+        int expected = 15;
+
+        // Act: Call the method under test
+        int result = calculator.Add(a, b);
+
+        // Assert: Verify the result
+        Assert.AreEqual(expected, result);
+    }
+}
