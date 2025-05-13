@@ -1,2 +1,206 @@
-Severity	Code	Description	Project	File	Line	Suppression State
-Warning		The primary reference "C:\UDR10A\src\Tools\UDRConfiguration\UDRConfiguration\bin\x64\Debug\UDRConfiguration.exe" could not be resolved because it was built against the ".NETFramework,Version=v4.6.2" framework. This is a higher version than the currently targeted framework ".NETFramework,Version=v4.6.1".	UnitTestProject2			
+namespace UDRConfiguration.MultiLanguage
+{
+    /// <summary>
+    /// Class holds GUI strings that can be captions and tooltips.
+    /// </summary>
+    public class CaptionMessage
+    {
+        #region Variables
+        /// <summary>
+        /// File name in which the GUI strings are saved.
+        /// </summary>
+        private string filename = string.Empty;
+
+        /// <summary>
+        /// String in csv file that will be replaced with comma character.
+        /// </summary>
+        private const string Csv_Comma_Character = "@"; //(1.0.0.4 add)
+        #endregion
+
+        #region Constructors
+        /// <summary>
+        /// Creates an instance of <seealso cref="CaptionMessage"/> class.
+        /// </summary>
+        /// <param name="fileName"></param>
+        public CaptionMessage(string fileName)
+        {
+            this.filename = fileName;
+        }
+        #endregion
+
+        #region Classes
+        /// <summary>
+        /// Class to hold information of a GUI string.
+        /// </summary>
+        public class CaptionMessageData
+        {
+            /// <summary>
+            /// Assembly name in which the caption is used.
+            /// </summary>
+            public string Assembly;
+
+            /// <summary>
+            /// Mode of GUI string. It can be caption('CP') or Tooltip('TT').
+            /// </summary>
+            public string Mode;
+
+            /// <summary>
+            /// Tag code used to identify the GUI string.
+            /// </summary>
+            public string TagCode;
+
+            /// <summary>
+            /// Contains a list of messages to be displayed based on the language.
+            /// </summary>
+            public Dictionary<string, string> MessageList;
+
+            public CaptionMessageData()
+            {
+                Assembly = string.Empty;
+                Mode = string.Empty;
+                TagCode = string.Empty;
+                MessageList = new Dictionary<string, string>();
+            }
+        }
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Gets or sets the all the GUI strings in the file.
+        /// </summary>
+        public Dictionary<string, Dictionary<string, CaptionMessageData>> CaptionMessageList { get; private set; }
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// Initializes the Caption Messages List and loads data from file to the list.
+        /// </summary>
+        /// <returns>Value indicates whether initialize was success or not.</returns>
+        public bool Initialize()
+        {
+            try
+            {
+                CsvFileAccess csvAccess = new CsvFileAccess(filename);
+                CaptionMessageList = new Dictionary<string, Dictionary<string, CaptionMessageData>>();
+                return csvAccess.ReadData(AddCaptionData);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Gets the caption.
+        /// </summary>
+        /// <param name="message">The GUI string message to be displayed.</param>
+        /// <param name="assembly">The assembly.</param>
+        /// <param name="mode">The caption mode.</param>
+        /// <param name="tagCode">The tag/Code.</param>
+        /// <param name="currentLanguage">Current language.</param>
+        /// <returns></returns>
+        public int GetCaption(ref string message, string assembly, string mode, string tagCode, string currentLanguage)
+        {
+            if (!CaptionMessageList.ContainsKey(assembly))
+            {
+                // Assembly name specified is invalid.
+                return 1;
+            }
+
+            string secondKey = String.Concat(mode, tagCode);
+            if (!CaptionMessageList[assembly].ContainsKey(secondKey))
+            {
+                // Mode or Tag code specified is invalid.
+                return 2;
+            }
+
+            CaptionMessageData caption = CaptionMessageList[assembly][secondKey];
+            bool isMessageFound = caption.MessageList.TryGetValue(currentLanguage, out message);
+            if (!isMessageFound)
+            {
+                // Content to display in specified Language is not found. 
+                return 3;
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Adds the line to the CaptionMessageList.
+        /// </summary>
+        /// <param name="line">String that need to be added to CaptionMessageList.</param>
+        private void AddCaptionData(string line)
+        {
+            if (string.IsNullOrEmpty(line))
+            {
+                return;
+            }
+
+            string[] guiCaptiondata = line.Split(',');
+            string guiDataEnglish = String.Empty;
+            string guiDataJapanese = String.Empty;
+            CaptionMessageData captionMessageData = new CaptionMessageData();
+
+            // Assign data to captionMessageData.
+            for (int index = 0; index < guiCaptiondata.Length; index++)
+            {
+                if (string.IsNullOrEmpty(guiCaptiondata[index]))
+                {
+                    continue;
+                }
+                switch (index)
+                {
+                    case 0:
+                        break;
+                    case 1:
+                        captionMessageData.Assembly = guiCaptiondata[1];
+                        break;
+                    case 2:
+                        captionMessageData.Mode = guiCaptiondata[2];
+                        break;
+                    case 3:
+                        captionMessageData.TagCode = guiCaptiondata[3];
+                        break;
+                    case 4:
+                        // Since ',' is a separator, put '@' in the csv file. Replace that with ',' while displaying.
+                        guiDataEnglish = guiCaptiondata[4].Replace(Csv_Comma_Character, ",");
+
+                        /* Begin: Added 1.0.0.3 */
+                        // 改行\n文字が\\nとなるため、\nに戻す
+                        guiDataEnglish = guiDataEnglish.Replace("\\n", "\n");
+                        /* End: Added 1.0.0.3 */
+
+                        captionMessageData.MessageList.Add(CommonDef.English_Language, guiDataEnglish);
+                        break;
+                    case 5:
+                        // Since ',' is a separator, put '@' in the csv file. Replace that with ',' while displaying.
+                        guiDataJapanese = guiCaptiondata[5].Replace(Csv_Comma_Character, ",");
+                        
+                        /* Begin: Added 1.0.0.3 */
+                        // 改行\n文字が\\nとなるため、\nに戻す
+                        guiDataJapanese = guiDataJapanese.Replace("\\n", "\n");
+                        /* End: Added 1.0.0.3 */
+
+                        captionMessageData.MessageList.Add(CommonDef.Japanese_Language, guiDataJapanese);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            //Add captionMessageData to CaptionMessageList.
+            string secondKey = String.Concat(captionMessageData.Mode, captionMessageData.TagCode);
+            if (CaptionMessageList.ContainsKey(captionMessageData.Assembly))
+            {
+                CaptionMessageList[captionMessageData.Assembly][secondKey] = captionMessageData;
+            }
+            else
+            {
+                Dictionary<string, CaptionMessageData> captionList = new Dictionary<string, CaptionMessageData>();
+                captionList.Add(secondKey, captionMessageData);
+                CaptionMessageList[captionMessageData.Assembly] = captionList;
+            }
+        }
+        #endregion
+    }
+}
