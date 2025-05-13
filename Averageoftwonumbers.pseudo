@@ -1,25 +1,70 @@
- public int GetCaption(ref string message, string assembly, string mode, string tagCode, string currentLanguage)
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+
+[TestClass]
+public class CaptionServiceTests
+{
+    private CaptionService _service;
+
+    [TestInitialize]
+    public void Setup()
+    {
+        _service = new CaptionService();
+
+        _service.CaptionMessageList = new Dictionary<string, Dictionary<string, CaptionMessageData>>
         {
-            if (!CaptionMessageList.ContainsKey(assembly))
             {
-                // Assembly name specified is invalid.
-                return 1;
+                "MyAssembly", new Dictionary<string, CaptionMessageData>
+                {
+                    {
+                        "Info001", new CaptionMessageData
+                        {
+                            MessageList = new Dictionary<string, string>
+                            {
+                                { "en", "English message" },
+                                { "fr", "Message en français" }
+                            }
+                        }
+                    }
+                }
             }
+        };
+    }
 
-            string secondKey = String.Concat(mode, tagCode);
-            if (!CaptionMessageList[assembly].ContainsKey(secondKey))
-            {
-                // Mode or Tag code specified is invalid.
-                return 2;
-            }
+    [TestMethod]
+    public void GetCaption_Returns0_WhenCaptionIsFound()
+    {
+        string message = "";
+        int result = _service.GetCaption(ref message, "MyAssembly", "Info", "001", "en");
 
-            CaptionMessageData caption = CaptionMessageList[assembly][secondKey];
-            bool isMessageFound = caption.MessageList.TryGetValue(currentLanguage, out message);
-            if (!isMessageFound)
-            {
-                // Content to display in specified Language is not found. 
-                return 3;
-            }
+        Assert.AreEqual(0, result);
+        Assert.AreEqual("English message", message);
+    }
 
-            return 0;
-        }
+    [TestMethod]
+    public void GetCaption_Returns1_WhenAssemblyIsNotFound()
+    {
+        string message = "";
+        int result = _service.GetCaption(ref message, "InvalidAssembly", "Info", "001", "en");
+
+        Assert.AreEqual(1, result);
+    }
+
+    [TestMethod]
+    public void GetCaption_Returns2_WhenTagCodeIsNotFound()
+    {
+        string message = "";
+        int result = _service.GetCaption(ref message, "MyAssembly", "Warn", "999", "en");
+
+        Assert.AreEqual(2, result);
+    }
+
+    [TestMethod]
+    public void GetCaption_Returns3_WhenLanguageIsNotFound()
+    {
+        string message = "";
+        int result = _service.GetCaption(ref message, "MyAssembly", "Info", "001", "de");
+
+        Assert.AreEqual(3, result);
+    }
+}
