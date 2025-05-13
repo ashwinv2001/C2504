@@ -1,27 +1,2 @@
-public class CaptionMessageData
-{
-    public Dictionary<string, string> MessageList { get; set; }
-}
-
-public class CaptionService
-{
-    public Dictionary<string, Dictionary<string, CaptionMessageData>> CaptionMessageList 
-        = new Dictionary<string, Dictionary<string, CaptionMessageData>>();
-
-    public int GetCaption(ref string message, string assembly, string mode, string tagCode, string currentLanguage)
-    {
-        if (!CaptionMessageList.ContainsKey(assembly))
-            return 1;
-
-        string secondKey = string.Concat(mode, tagCode);
-        if (!CaptionMessageList[assembly].ContainsKey(secondKey))
-            return 2;
-
-        CaptionMessageData caption = CaptionMessageList[assembly][secondKey];
-        bool isMessageFound = caption.MessageList.TryGetValue(currentLanguage, out message);
-        if (!isMessageFound)
-            return 3;
-
-        return 0;
-    }
-}
+Severity	Code	Description	Project	File	Line	Suppression State
+Warning		The primary reference "C:\UDR10A\src\Tools\UDRConfiguration\UDRConfiguration\bin\x64\Debug\UDRConfiguration.exe" could not be resolved because it was built against the ".NETFramework,Version=v4.6.2" framework. This is a higher version than the currently targeted framework ".NETFramework,Version=v4.6.1".	UnitTestProject2			
