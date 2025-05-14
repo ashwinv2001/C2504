@@ -1,55 +1,150 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
-using UDRConfiguration.MultiLanguage;
-
-namespace UnitTestProject
+public interface ICalculatorService
 {
-    [TestClass]
-    public class CaptionMessageTests
+    double Add(double a, double b);
+    double Subtract(double a, double b);
+    double Multiply(double a, double b);
+    double Divide(double a, double b);
+}
+
+
+
+
+
+
+
+public class CalculatorService : ICalculatorService
+{
+    public double Add(double a, double b) => a + b;
+    public double Subtract(double a, double b) => a - b;
+    public double Multiply(double a, double b) => a * b;
+    public double Divide(double a, double b)
     {
-        [TestMethod]
-        public void GetCaption_ReturnsMessageSuccessfully()
+        if (b == 0) throw new DivideByZeroException("Cannot divide by zero.");
+        return a / b;
+    }
+}
+
+
+
+
+
+
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Windows.Input;
+
+public class MainViewModel : INotifyPropertyChanged
+{
+    private readonly ICalculatorService _calculatorService;
+
+    private double _number1;
+    private double _number2;
+    private double _result;
+
+    public double Number1
+    {
+        get => _number1;
+        set { _number1 = value; OnPropertyChanged(); }
+    }
+
+    public double Number2
+    {
+        get => _number2;
+        set { _number2 = value; OnPropertyChanged(); }
+    }
+
+    public double Result
+    {
+        get => _result;
+        set { _result = value; OnPropertyChanged(); }
+    }
+
+    public ICommand AddCommand { get; }
+    public ICommand SubtractCommand { get; }
+    public ICommand MultiplyCommand { get; }
+    public ICommand DivideCommand { get; }
+
+    public MainViewModel(ICalculatorService calculatorService)
+    {
+        _calculatorService = calculatorService;
+        AddCommand = new RelayCommand(() => Result = _calculatorService.Add(Number1, Number2));
+        SubtractCommand = new RelayCommand(() => Result = _calculatorService.Subtract(Number1, Number2));
+        MultiplyCommand = new RelayCommand(() => Result = _calculatorService.Multiply(Number1, Number2));
+        DivideCommand = new RelayCommand(() =>
         {
-            // Arrange
-            string expectedMessage = "Test Message";
-            string actualMessage = string.Empty;
+            try { Result = _calculatorService.Divide(Number1, Number2); }
+            catch (DivideByZeroException ex) { Result = double.NaN; }
+        });
+    }
 
-            var captionMessage = new CaptionMessage("dummy.csv");
+    public event PropertyChangedEventHandler PropertyChanged;
+    private void OnPropertyChanged([CallerMemberName] string prop = "") =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
+}
 
-            // Manually set the CaptionMessageList with test data
-            var messageList = new Dictionary<string, string>
-            {
-                { CommonDef.English_Language, expectedMessage }
-            };
+ 
 
-            var captionData = new CaptionMessage.CaptionMessageData
-            {
-                Assembly = "TestAssembly",
-                Mode = "CP",
-                TagCode = "001",
-                MessageList = messageList
-            };
+using System;
+using System.Windows.Input;
 
-            var secondKey = captionData.Mode + captionData.TagCode;
+public class RelayCommand : ICommand
+{
+    private readonly Action _execute;
+    private readonly Func<bool> _canExecute;
 
-            var innerDict = new Dictionary<string, CaptionMessage.CaptionMessageData>
-            {
-                { secondKey, captionData }
-            };
+    public RelayCommand(Action execute, Func<bool> canExecute = null)
+    {
+        _execute = execute;
+        _canExecute = canExecute ?? (() => true);
+    }
 
-            // Use reflection to set private property
-            var prop = typeof(CaptionMessage).GetProperty("CaptionMessageList");
-            prop.SetValue(captionMessage, new Dictionary<string, Dictionary<string, CaptionMessage.CaptionMessageData>>
-            {
-                { captionData.Assembly, innerDict }
-            });
+    public event EventHandler CanExecuteChanged;
+    public bool CanExecute(object parameter) => _canExecute();
+    public void Execute(object parameter) => _execute();
+}
 
-            // Act
-            int result = captionMessage.GetCaption(ref actualMessage, "TestAssembly", "CP", "001", CommonDef.English_Language);
 
-            // Assert
-            Assert.AreEqual(0, result);
-            Assert.AreEqual(expectedMessage, actualMessage);
+
+
+
+<Window x:Class="CalculatorApp.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Calculator" Height="300" Width="300">
+    <StackPanel Margin="20">
+        <TextBox Text="{Binding Number1, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Enter number 1"/>
+        <TextBox Text="{Binding Number2, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Enter number 2"/>
+
+        <WrapPanel Margin="10 5 0 5">
+            <Button Content="Add" Command="{Binding AddCommand}" Margin="5"/>
+            <Button Content="Subtract" Command="{Binding SubtractCommand}" Margin="5"/>
+            <Button Content="Multiply" Command="{Binding MultiplyCommand}" Margin="5"/>
+            <Button Content="Divide" Command="{Binding DivideCommand}" Margin="5"/>
+        </WrapPanel>
+
+        <TextBlock Text="Result:" FontWeight="Bold" />
+        <TextBlock Text="{Binding Result}" FontSize="16" Foreground="Blue"/>
+    </StackPanel>
+</Window>
+
+
+
+
+
+
+
+using System.Windows;
+using CalculatorApp.ViewModels;
+using CalculatorApp.Services;
+
+namespace CalculatorApp.Views
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+            DataContext = new MainViewModel(new CalculatorService());
         }
     }
 }
