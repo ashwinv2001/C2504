@@ -1,36 +1,31 @@
 <Window x:Class="SimpleCalculator.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Simple Calculator" Height="250" Width="300">
+        Title="Simple Calculator" Height="300" Width="300">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-            <TextBlock Text="Number 1:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-            <TextBox x:Name="Number1TextBox" Width="100"/>
+        
+        <StackPanel Orientation="Vertical" Grid.Row="0" Margin="0 0 0 10">
+            <TextBox Name="Input1" Margin="0 5" PlaceholderText="Enter first number"/>
+            <TextBox Name="Input2" Margin="0 5" PlaceholderText="Enter second number"/>
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,10">
-            <TextBlock Text="Number 2:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-            <TextBox x:Name="Number2TextBox" Width="100"/>
+        <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Center" Margin="0 0 0 10">
+            <Button Content="+" Width="50" Margin="5" Click="Add_Click"/>
+            <Button Content="−" Width="50" Margin="5" Click="Subtract_Click"/>
+            <Button Content="×" Width="50" Margin="5" Click="Multiply_Click"/>
+            <Button Content="÷" Width="50" Margin="5" Click="Divide_Click"/>
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,10">
-            <Button Content="Add" Width="60" Click="Add_Click" Margin="5"/>
-            <Button Content="Subtract" Width="60" Click="Subtract_Click" Margin="5"/>
-            <Button Content="Multiply" Width="60" Click="Multiply_Click" Margin="5"/>
-            <Button Content="Divide" Width="60" Click="Divide_Click" Margin="5"/>
-        </StackPanel>
-
-        <TextBlock x:Name="ResultTextBlock" Grid.Row="3" FontSize="16" FontWeight="Bold" Foreground="Blue"/>
+        <TextBlock Name="ResultText" Grid.Row="2" FontSize="16" 
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Text="Result will appear here"/>
     </Grid>
 </Window>
-
 
 
 
@@ -52,45 +47,44 @@ namespace SimpleCalculator
 
         private bool TryGetInputs(out double num1, out double num2)
         {
-            bool isValid1 = double.TryParse(Number1TextBox.Text, out num1);
-            bool isValid2 = double.TryParse(Number2TextBox.Text, out num2);
-
-            if (!isValid1 || !isValid2)
-            {
-                MessageBox.Show("Please enter valid numbers.");
-                return false;
-            }
-
-            return true;
+            return double.TryParse(Input1.Text, out num1) && double.TryParse(Input2.Text, out num2);
         }
 
         private void Add_Click(object sender, RoutedEventArgs e)
         {
-            if (TryGetInputs(out double a, out double b))
-                ResultTextBlock.Text = $"Result: {a + b}";
+            if (TryGetInputs(out double num1, out double num2))
+                ResultText.Text = $"Result: {num1 + num2}";
+            else
+                ResultText.Text = "Invalid input!";
         }
 
         private void Subtract_Click(object sender, RoutedEventArgs e)
         {
-            if (TryGetInputs(out double a, out double b))
-                ResultTextBlock.Text = $"Result: {a - b}";
+            if (TryGetInputs(out double num1, out double num2))
+                ResultText.Text = $"Result: {num1 - num2}";
+            else
+                ResultText.Text = "Invalid input!";
         }
 
         private void Multiply_Click(object sender, RoutedEventArgs e)
         {
-            if (TryGetInputs(out double a, out double b))
-                ResultTextBlock.Text = $"Result: {a * b}";
+            if (TryGetInputs(out double num1, out double num2))
+                ResultText.Text = $"Result: {num1 * num2}";
+            else
+                ResultText.Text = "Invalid input!";
         }
 
         private void Divide_Click(object sender, RoutedEventArgs e)
         {
-            if (TryGetInputs(out double a, out double b))
+            if (TryGetInputs(out double num1, out double num2))
             {
-                if (b == 0)
-                    MessageBox.Show("Cannot divide by zero.");
+                if (num2 != 0)
+                    ResultText.Text = $"Result: {num1 / num2}";
                 else
-                    ResultTextBlock.Text = $"Result: {a / b}";
+                    ResultText.Text = "Cannot divide by zero!";
             }
+            else
+                ResultText.Text = "Invalid input!";
         }
     }
 }
