@@ -1,12 +1,18 @@
-  public string RoadmapCreateSec
+ public void Load()
         {
-            get
+            // Validation ユーザ入力 値範囲チェック結果 成功にしておく
+            ValidateResultRoadmapCreateSec = true;
+            ValidateResultUpdateNotificationDates = true;
+            ValidateResultPasswordMaxFailure = true;
+            ValidateResultDeleteStudyDays = true;
+
+            string loadResult = AdvancedConfig.Load();
+            if (loadResult == string.Empty)
             {
-                return roadmapCreateSec;
+                SetModelToProperty();
             }
-            set
+            else
             {
-                roadmapCreateSec = value;
-                NotifyPropertyChanged("RoadmapCreateSec");
+                ViewModelLocator.MainViewModel.CloseCommand.Execute(new ErrorMessage(Msg.MsgType.ErrorLoad, loadResult));
             }
         }
