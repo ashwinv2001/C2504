@@ -1,18 +1,13 @@
- public void Load()
+ public ConfMenu_AdvancedConfigViewModel()
         {
-            // Validation ユーザ入力 値範囲チェック結果 成功にしておく
-            ValidateResultRoadmapCreateSec = true;
-            ValidateResultUpdateNotificationDates = true;
-            ValidateResultPasswordMaxFailure = true;
-            ValidateResultDeleteStudyDays = true;
+            loadCommand = new RelayCommand(param => Load(), null);
+        }
 
-            string loadResult = AdvancedConfig.Load();
-            if (loadResult == string.Empty)
-            {
-                SetModelToProperty();
-            }
-            else
-            {
-                ViewModelLocator.MainViewModel.CloseCommand.Execute(new ErrorMessage(Msg.MsgType.ErrorLoad, loadResult));
-            }
+
+  public RelayCommand(Action<object> execute, Predicate<object> canExecute)
+        {
+            if (execute == null)
+                throw new ArgumentNullException("execute");
+            _execute = execute;
+            _canExecute = canExecute;
         }
