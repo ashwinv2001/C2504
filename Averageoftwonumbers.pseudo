@@ -1,61 +1,21 @@
-namespace Toshiba.XRF.Common.Log
+[TestMethod]
+public void TestLoggerConstructor()
 {
-    public class Logger : IDisposable
+    try
     {
-        public Action<string> ShowMessage;
-
-        public Logger(string layer, bool outputBuildInformation = true);
-
-        public string Lang { get; }
-        public string ModuleName { get; }
-
-        public void Dispose();
-        public void ErrorDetail(Exception ex);
-        public string GetMessage(int msgNo, out MessageInfo info, params object[] param);
-        public string GetMessage(int msgNo, params object[] param);
-        public bool LoadMessageFile(string file);
-        public void OutputMessage(int msgNo, params object[] param);
-        public void SaveDetail(string filename);
-        [Conditional("SaveDetail__Enabled")]
-        public void SaveDetail();
-        public void WriteDetail(params object[] args);
-        public void WriteDetail(string message);
-
-        public enum MessageType
+        var testLogger = new Logger("TestModule");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Exception occurred:");
+        Console.WriteLine($"Type: {ex.GetType().FullName}");
+        Console.WriteLine($"Message: {ex.Message}");
+        Console.WriteLine($"StackTrace: {ex.StackTrace}");
+        if (ex.InnerException != null)
         {
-            inf = 0,
-            wrn = 1,
-            err = 2,
-            ftl = 3,
-            ope = 4
+            Console.WriteLine("Inner exception:");
+            Console.WriteLine($"Message: {ex.InnerException.Message}");
         }
-        [Flags]
-        public enum MessageMode
-        {
-            log = 1,
-            dlg = 2,
-            tst = 4,
-            udlg = 8,
-            utst = 16
-        }
-        public enum MessageOpt
-        {
-            OK = 1,
-            OC = 2
-        }
-
-        public class MessageInfo
-        {
-            public int Number;
-            public MessageType Type;
-            public bool Urgent;
-            public MessageMode Mode;
-            public MessageOpt Option;
-            public int DispSec;
-            public string Scenario;
-            public string Text;
-
-            public MessageInfo();
-        }
+        throw;
     }
 }
