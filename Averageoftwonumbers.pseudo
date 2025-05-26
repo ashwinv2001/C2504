@@ -1,98 +1,61 @@
-using System;
-using System.IO;
-using Toshiba.XRF.Common.Log;
-
-namespace UDRConfiguration.Common
+namespace Toshiba.XRF.Common.Log
 {
-    public static class LogAccesser
+    public class Logger : IDisposable
     {
-        #region Fields
+        public Action<string> ShowMessage;
 
-        private static readonly string ModuleName = "UDRConfiguration";
-        private static readonly string LogFolderPath = @"\log";
-        private static readonly string LogMessageFilePath = @"\process\pl\utility\Maintenance\UDRConfiguration.csv";
-        private static string fullLogFolderPath;
-        private static Logger logger;
+        public Logger(string layer, bool outputBuildInformation = true);
 
-        #endregion
+        public string Lang { get; }
+        public string ModuleName { get; }
 
-        #region Methods
+        public void Dispose();
+        public void ErrorDetail(Exception ex);
+        public string GetMessage(int msgNo, out MessageInfo info, params object[] param);
+        public string GetMessage(int msgNo, params object[] param);
+        public bool LoadMessageFile(string file);
+        public void OutputMessage(int msgNo, params object[] param);
+        public void SaveDetail(string filename);
+        [Conditional("SaveDetail__Enabled")]
+        public void SaveDetail();
+        public void WriteDetail(params object[] args);
+        public void WriteDetail(string message);
 
-        /// <summary>
-        /// 初期化します。
-        /// </summary>
-        public static void Initialize()
+        public enum MessageType
         {
-            string rootPath = Environment.GetEnvironmentVariable(CommonDef.EnvironmentRootPath);
-
-            fullLogFolderPath = String.Concat(rootPath, LogFolderPath);
-            string logMsFilePath = String.Concat(rootPath, LogMessageFilePath);
-
-            if (!Directory.Exists(fullLogFolderPath))
-            {
-                Directory.CreateDirectory(fullLogFolderPath);
-            }
-            CreateTodyaLogFolder();
-
-            logger = new Logger(ModuleName);
-            logger.LoadMessageFile(logMsFilePath);
+            inf = 0,
+            wrn = 1,
+            err = 2,
+            ftl = 3,
+            ope = 4
+        }
+        [Flags]
+        public enum MessageMode
+        {
+            log = 1,
+            dlg = 2,
+            tst = 4,
+            udlg = 8,
+            utst = 16
+        }
+        public enum MessageOpt
+        {
+            OK = 1,
+            OC = 2
         }
 
-        /// <summary>
-        /// メッセージを取得します。
-        /// </summary>
-        /// <param name="msgNo">メッセージNo</param>
-        /// <param name="param">パラメータ</param>
-        /// <returns>メッセージ</returns>
-        public static string GetMessage(int msgNo, params object[] param)
+        public class MessageInfo
         {
-            // paramがnullだとLogger内で例外が発生する
-            if (param == null)
-            {
-                param = new object[]{ string.Empty };
-            }
+            public int Number;
+            public MessageType Type;
+            public bool Urgent;
+            public MessageMode Mode;
+            public MessageOpt Option;
+            public int DispSec;
+            public string Scenario;
+            public string Text;
 
-            return logger.GetMessage(msgNo, param);
+            public MessageInfo();
         }
-
-        /* Begin: Added 1.0.0.1 */
-        /// <summary>
-        /// ログを出力します。
-        /// </summary>
-        /// <param name="msgNo">メッセージNo</param>
-        /// <param name="param">パラメータ</param>
-        /// <remarks>
-        /// ログメッセージファイルよりメッセージを検索しログ出力します。
-        /// </remarks>
-        public static void OutputMessage(int msgNo, params object[] param)
-        {
-            CreateTodyaLogFolder();
-            logger.OutputMessage(msgNo, param);
-        }
-        /* End: Added 1.0.0.1 */
-
-        /// <summary>
-        /// 本日の日付のログフォルダが存在しなければ作成します。
-        /// </summary>
-        private static void CreateTodyaLogFolder()
-        {
-            string todyLogFolderPath = fullLogFolderPath + @"\" + DateTime.Now.ToString("yyyyMMdd");
-            if (!Directory.Exists(todyLogFolderPath))
-            {
-                Directory.CreateDirectory(todyLogFolderPath);
-            }
-        }
-
-        /* Begin: Added 1.0.0.1 */
-        /// <summary>
-        /// 終了処理をします。
-        /// </summary>
-        public static void Terminate()
-        {
-            logger.Dispose();
-        }
-        /* End: Added 1.0.0.1 */
-
-        #endregion
     }
 }
