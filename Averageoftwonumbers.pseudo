@@ -1,13 +1,98 @@
- public ConfMenu_AdvancedConfigViewModel()
+using System;
+using System.IO;
+using Toshiba.XRF.Common.Log;
+
+namespace UDRConfiguration.Common
+{
+    public static class LogAccesser
+    {
+        #region Fields
+
+        private static readonly string ModuleName = "UDRConfiguration";
+        private static readonly string LogFolderPath = @"\log";
+        private static readonly string LogMessageFilePath = @"\process\pl\utility\Maintenance\UDRConfiguration.csv";
+        private static string fullLogFolderPath;
+        private static Logger logger;
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// 初期化します。
+        /// </summary>
+        public static void Initialize()
         {
-            loadCommand = new RelayCommand(param => Load(), null);
+            string rootPath = Environment.GetEnvironmentVariable(CommonDef.EnvironmentRootPath);
+
+            fullLogFolderPath = String.Concat(rootPath, LogFolderPath);
+            string logMsFilePath = String.Concat(rootPath, LogMessageFilePath);
+
+            if (!Directory.Exists(fullLogFolderPath))
+            {
+                Directory.CreateDirectory(fullLogFolderPath);
+            }
+            CreateTodyaLogFolder();
+
+            logger = new Logger(ModuleName);
+            logger.LoadMessageFile(logMsFilePath);
         }
 
-
-  public RelayCommand(Action<object> execute, Predicate<object> canExecute)
+        /// <summary>
+        /// メッセージを取得します。
+        /// </summary>
+        /// <param name="msgNo">メッセージNo</param>
+        /// <param name="param">パラメータ</param>
+        /// <returns>メッセージ</returns>
+        public static string GetMessage(int msgNo, params object[] param)
         {
-            if (execute == null)
-                throw new ArgumentNullException("execute");
-            _execute = execute;
-            _canExecute = canExecute;
+            // paramがnullだとLogger内で例外が発生する
+            if (param == null)
+            {
+                param = new object[]{ string.Empty };
+            }
+
+            return logger.GetMessage(msgNo, param);
         }
+
+        /* Begin: Added 1.0.0.1 */
+        /// <summary>
+        /// ログを出力します。
+        /// </summary>
+        /// <param name="msgNo">メッセージNo</param>
+        /// <param name="param">パラメータ</param>
+        /// <remarks>
+        /// ログメッセージファイルよりメッセージを検索しログ出力します。
+        /// </remarks>
+        public static void OutputMessage(int msgNo, params object[] param)
+        {
+            CreateTodyaLogFolder();
+            logger.OutputMessage(msgNo, param);
+        }
+        /* End: Added 1.0.0.1 */
+
+        /// <summary>
+        /// 本日の日付のログフォルダが存在しなければ作成します。
+        /// </summary>
+        private static void CreateTodyaLogFolder()
+        {
+            string todyLogFolderPath = fullLogFolderPath + @"\" + DateTime.Now.ToString("yyyyMMdd");
+            if (!Directory.Exists(todyLogFolderPath))
+            {
+                Directory.CreateDirectory(todyLogFolderPath);
+            }
+        }
+
+        /* Begin: Added 1.0.0.1 */
+        /// <summary>
+        /// 終了処理をします。
+        /// </summary>
+        public static void Terminate()
+        {
+            logger.Dispose();
+        }
+        /* End: Added 1.0.0.1 */
+
+        #endregion
+    }
+}
