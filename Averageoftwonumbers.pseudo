@@ -1,21 +1,65 @@
-[TestMethod]
-public void TestLoggerConstructor()
-{
-    try
-    {
-        var testLogger = new Logger("TestModule");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("Exception occurred:");
-        Console.WriteLine($"Type: {ex.GetType().FullName}");
-        Console.WriteLine($"Message: {ex.Message}");
-        Console.WriteLine($"StackTrace: {ex.StackTrace}");
-        if (ex.InnerException != null)
+    public Logger(string layer, bool outputBuildInformation = true) // (2.0.0.1) add param outputBuildInformation 
         {
-            Console.WriteLine("Inner exception:");
-            Console.WriteLine($"Message: {ex.InnerException.Message}");
+            // レイヤー名
+            _module = layer;
+
+            // ログ出力フォルダ
+            //string sysdir = Environment.GetEnvironmentVariable("TFD_HOME");      (1.0.0.8)
+            string sysdir = EnvironmentAccess.GetRootPath();                    // (1.0.0.8)
+            if (!sysdir.EndsWith(@"\"))
+            {
+                sysdir += @"\";
+            }
+            _logRoot = sysdir + @"log\";
+            //_opeLogRoot = sysdir + @"history\";//(1.0.0.7)  (1.0.0.13) del
+
+            //(1.0.0.14)ResetDate();
+
+            // 言語設定
+            string uniinfo = sysdir + @"ini\UniversalInfo.xml";
+            try
+            {
+                XElement root = XElement.Load(uniinfo);
+                _lang = root.Element("Language").Value;
+            }
+            catch
+            {
+                _lang = Thread.CurrentThread.CurrentUICulture.Name;
+            }
+
+            // (1.0.0.14)ログMMF
+            string mmf_name = LogMmfDefs.GetMmfName(layer);
+            try
+            {
+                MemoryMappedFile mmf = MemoryMappedFile.OpenExisting(mmf_name);
+                _mmfAccs = new LogMmfAccess(mmf);
+            }
+            catch
+            {
+                // 仮MMF生成（デバッグ用）
+                Mutex mutex;
+                MemoryMappedFile mmf;
+                LogMmfDefs.InitializeMmf(layer, 1024 * 1024, 2, out mutex, out mmf);
+                _mmfAccs = new LogMmfAccess(mmf);
+                _mmfAccs.LogDate = DateTime.Today;
+            }
+
+            // (1.0.0.9)--->
+            //_shortLog = new ShortLog(this);
+            //_OperationLog = new OperationLog(this);//(1.0.0.7)
+            _shortLog = new ShortLog(this, true);
+            _OperationLog = new ShortLog(this, false);
+            // (1.0.0.9)<---
+            _detailLog = new DetailLog(this);
+
+            // 共通メッセージ
+            LoadMessageFile(sysdir + @"process\DRite.csv");
+
+            // (1.0.0.10)ビルド情報出力
+            if (outputBuildInformation) // (2.0.0.1)
+            {
+                OutputMessage( 9, Assembly.GetEntryAssembly().Location);
+                OutputMessage(10, Assembly.GetEntryAssembly().GetName().Version);
+                OutputMessage(11, File.GetLastWriteTime(Assembly.GetEntryAssembly().Location));
+            }
         }
-        throw;
-    }
-}
