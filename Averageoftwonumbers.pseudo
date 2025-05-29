@@ -1,1 +1,21 @@
- _apcMaxLimit = ((IApp)Application.Current).MyUniversalInfo.LimitValue.ApcMaxLimit;
+using System.Windows; // for Application
+using YourMainProjectNamespace; // for IApp, UniversalInfo, LimitValue
+
+public class TestApp : Application, IApp
+{
+    public UniversalInfo MyUniversalInfo { get; set; }
+
+    public TestApp()
+    {
+        MyUniversalInfo = new UniversalInfo
+        {
+            LimitValue = new LimitValue
+            {
+                ApcMaxLimit = 123 // Test value
+            }
+        };
+    }
+}
+
+
+
