@@ -1,55 +1,170 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Windows;
-
-namespace YourNamespace.Tests
-{
-    [TestClass]
-    public class ApcChangeProcTests
-    {
-        [AssemblyInitialize]
-        public static void InitApplicationContext(TestContext context)
+   public static bool ApcChangeProc(ImageRelationInfo relationInfo, IniApcData.APCData iniApcInfo,
+                                        int apcNumber, string ipSourceFilename,
+                                        List<string> hTypePartDatavalues, int offsetGeneImageNumber, out int seqNumber,
+                                        ExecutingAssembly executingFrom = ExecutingAssembly.None,
+                                        bool isNotifyApcChangeNeeded = true)
+        /* End: Added  1.0.0.4 */
         {
-            // Only create if it's not already initialized
-            if (Application.Current == null)
+            string tempFolderPath = string.Empty;
+            bool isApcChangeSuccess = false;
+            /* Begin: Added  1.0.0.4 */
+            seqNumber = 0;
+            _executingAssembly = executingFrom;
+            /* End: Added  1.0.0.4 */
+            /* Begin: Added 1.0.0.6 */
+            if(ExecutingAssembly.PL == executingFrom)
             {
-                new Application();
+                _apcMaxLimit = ((IApp)Application.Current).MyUniversalInfo.LimitValue.ApcMaxLimit;
             }
+            /* End: Added 1.0.0.6 */
+            try
+            {
+                if (null == iniApcInfo?.list?.APC)
+                {
+                    /* Begin: Added 1.0.0.1 */
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.ApcChangeProc()] " +
+                                                       $"Return reason: IniApcInfo is null");
+                    /* End: Added 1.0.0.1 */
+                    return isApcChangeSuccess;
+                }
+
+                IniApcData.APC changedApcDetails = iniApcInfo.list.APC.Find(x => x.No == apcNumber);
+                if (null == changedApcDetails?.APCDATA)
+                {
+                    /* Begin: Added 1.0.0.1 */
+                    ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.ApcChangeProc()] " +
+                                                        $"Return reason: " +
+                                                        $"Apc information is null for ApcNumber:{apcNumber}");
+                    /* End: Added 1.0.0.1 */
+                    return isApcChangeSuccess;
+                }
+
+                if (!GetValuesFromRelationInfo(relationInfo, out string imageFilePath,
+                                               out int apcDisplayNumber, 
+                                               out string apcImageFileName))
+                {
+                    /* Begin: Added 1.0.0.1 */
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.ApcChangeProc()] " +
+                                                       $"Return reason: RelationInfo validation failed");
+                    /* End: Added 1.0.0.1 */
+                    return isApcChangeSuccess;
+                }
+                /* Begin: Added 1.0.0.7 */
+                InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.ApcChangeProc()]  started. ImageFilePath:{imageFilePath}");
+                /* End: Added 1.0.0.7 */
+                string seriesPath = Path.GetDirectoryName(imageFilePath);
+                FileAccessCommon.GetImageNo(imageFilePath, out int imageNumber);
+
+                // Create a temp folder inside Exam Folder and copying files for updating it.
+                if (!CreateTempApcChangeFolder(imageFilePath, out tempFolderPath))
+                {
+                    /* Begin: Added 1.0.0.1 */
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.ApcChangeProc()] " +
+                                                       $"Return reason: Creating TempApcChange folder failed ");
+                    /* End: Added 1.0.0.1 */
+                    return isApcChangeSuccess;
+                }
+
+
+                string tempImageFilePath = Path.Combine(tempFolderPath, Path.GetFileName(imageFilePath));
+                /* Begin: Added 1.0.0.1 */
+                // Read ActualInfoCsv in temp 
+                if (!GetActualInfoDetails(tempImageFilePath, offsetGeneImageNumber, out Dictionary<int, ActualInfo> actualInfoDict))
+                {
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.ApcChangeProc()] " +
+                                                       $"Return reason: ActualInfo.csv reading failed ");
+                    return isApcChangeSuccess;
+                }
+                if (!actualInfoDict.ContainsKey(imageNumber))
+                {
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdateActualInfoFile()] " +
+                                                       $"ActualInfo not contains the ImageNumber:{imageNumber}");
+                    return isApcChangeSuccess;
+                }
+
+                ActualInfo actualInfo = actualInfoDict[imageNumber];
+                int prevApcNumber = actualInfo.ApcNumber;
+                string existingRxRadApcFilePath = GetFilePath(tempImageFilePath,
+                                                              ImageLevelApcRelatedFiles.RxRadFolderAPCDataXMLFile,
+                                                              prevApcNumber, actualInfo.SeqNumber);
+                string newRxRadApcFilePath = GetRxRadAPCFilePathToBeCreate(tempImageFilePath, apcNumber, ref seqNumber);
+                /* End: Added 1.0.0.1 */
+
+                /* Begin: Added 1.0.0.5 */
+                bool isFilesUpdateSuccess = UpdateFilesInApcChangeTempFolder(changedApcDetails, actualInfoDict, actualInfo,
+                                                                             apcNumber, tempImageFilePath,
+                                                                             relationInfo, seqNumber,
+                                                                             ipSourceFilename, hTypePartDatavalues,
+                                                                             offsetGeneImageNumber);
+                /* End: Added 1.0.0.5 */
+                if (!isFilesUpdateSuccess)
+                {
+                    // Info Log
+
+                    /* Begin: Added 1.0.0.1 */
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.ApcChangeProc()] " +
+                                                       $"Return reason: Updating Files in temp folder failed ");
+              
+                    /* End: Added 1.0.0.1 */
+                    return isApcChangeSuccess;
+                }
+
+                CopyFilesToSeriesFolder(tempFolderPath, seriesPath, imageNumber, Path.GetFileName(newRxRadApcFilePath));
+                /* Begin: Added 1.0.0.1 */
+                CopyFilesToRxRadFolder(seriesPath, existingRxRadApcFilePath, newRxRadApcFilePath, 
+                                       out string detinationPath);
+                /* End: Added 1.0.0.1 */
+
+                if (isNotifyApcChangeNeeded)
+                {
+                    List<object> args = new List<object>();
+                    args.Add(imageFilePath);
+                    /* Begin: Added 1.0.0.1 */
+                    args.Add(detinationPath);
+                    args.Add(existingRxRadApcFilePath);
+                    args.Add(apcNumber);
+                    args.Add(seqNumber);
+                    /* End: Added 1.0.0.1 */
+                    ((IApp)Application.Current).EventRequest(EventType.NotifyAPCChanged, args);
+                    args.Clear();
+
+                    /* Begin: Added 1.0.0.6 */
+                    if (!((IApp)Application.Current).MyUniversalInfo.IsEachImageSave)
+                    {
+                        string tempSeriesPath = GetTemporarySeriesPath(seriesPath);
+                        if(CopyFilesToTempSeriesFolder(imageFilePath, tempFolderPath, tempSeriesPath, 
+                                                       imageNumber, Path.GetFileName(newRxRadApcFilePath)))
+                        {
+                            List<object> param = new List<object>();
+                            param.Add(false);
+                            ((IApp)Application.Current).EventRequest(EventType.BlueIconVisibilityOnTempImage, param);
+                            param.Clear();
+                        }
+                    }
+                    /* End: Added 1.0.0.6 */
+                }
+               isApcChangeSuccess = true;
+
+            }
+            catch (Exception ex)
+            {
+                isApcChangeSuccess = false;
+                /* Begin: Added 1.0.0.1 */
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+                /* End: Added 1.0.0.1 */
+            }
+            finally
+            {
+                DeleteTempApcChangeFolder(tempFolderPath);
+                /* Begin: Added 1.0.0.5 */
+                if (ExecutingAssembly.PL == executingFrom)
+                {
+                    if (isApcChangeSuccess && ((IApp)Application.Current).MyUniversalInfo.IsConfirmAPCChanged)
+                    {
+                        ((IApp)Application.Current).LogOut(412466);
+                    }
+                }
+                /* End: Added 1.0.0.5 */
+            }
+            return isApcChangeSuccess;
         }
-
-        [TestMethod]
-        public void ApcChangeProc_ShouldReturnTrue_WhenValidDataProvided()
-        {
-            // Arrange
-            var relationInfo = new ImageRelationInfo(); // mock or real
-            var iniApcInfo = new IniApcData.APCData();  // mock or real
-
-            int apcNumber = 1;
-            string ipSourceFilename = "mockFile.txt";
-            var hTypePartDatavalues = new List<string> { "Value1", "Value2" };
-            int offsetGeneImageNumber = 10;
-            int seqNumber;
-
-            // Set Application.Current["App"] if ApcChangeProc depends on it
-            Application.Current.Properties["App"] = new MockApp(); // Replace with actual expected type
-
-            // Act
-            bool result = RxRadApcChangeManage.ApcChangeProc(
-                relationInfo,
-                iniApcInfo,
-                apcNumber,
-                ipSourceFilename,
-                hTypePartDatavalues,
-                offsetGeneImageNumber,
-                out seqNumber,
-                ExecutingAssembly.None,
-                true
-            );
-
-            // Assert
-            Assert.IsTrue(result);
-        }
-    }
-
-    // Dummy placeholder if Application.Current["App"] is cast to something specific
-    public class MockApp { }
-}
