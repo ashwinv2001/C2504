@@ -2,18 +2,12 @@ using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Collections.Generic;
-using Toshiba.XRF.PresentationLayer.Common.RxRadApcChangeManage;
 using System.Windows;
-using System.IO;
-using System.Linq;
+using Toshiba.XRF.PresentationLayer.Common.RxRadApcChangeManage;
 using Toshiba.XRF.PresentationLayer;
 using Toshiba.XRF.PresentationLayer.Common;
 using Toshiba.XRF.PresentationLayer.Common.Interface;
 using Toshiba.XRF.Utility.Common.XmlDataAccess;
-using Toshiba.XRF.Utility.Common.FileAccess;
-
-
-
 
 namespace May30unittest
 {
@@ -23,7 +17,6 @@ namespace May30unittest
         [AssemblyInitialize]
         public static void InitApplicationContext(TestContext context)
         {
-            // Only create if it's not already initialized
             if (Application.Current == null)
             {
                 new Application();
@@ -34,8 +27,84 @@ namespace May30unittest
         public void ApcChangeProc_ShouldReturnTrue_WhenValidDataProvided()
         {
             // Arrange
-            var relationInfo = new ImageRelationInfo(); // mock or real
-            var iniApcInfo = new IniApcData.APCData();  // mock or real
+            var relationInfo = new ImageRelationInfo
+            {
+                ImageList = new List<string> { "Image1", "Image2" }
+            };
+
+            var iniApcInfo = new IniApcData.APCData
+            {
+                list = new LIST
+                {
+                    APC = new List<APC>
+                    {
+                        new APC
+                        {
+                            No = 1,
+                            APCDATA = new APCDATA
+                            {
+                                APC_Number = 1,
+                                APC_Region = "Chest",
+                                APC_Physique = "Normal",
+                                APC_Orientation = "PA",
+                                APC_LeftRight = "L",
+                                APC_RadiographicOrientation = "FRONT",
+                                APC_ViewPosition = "Upright",
+                                APC_IP = "123.456",
+                                APC_TOD = 0,
+                                APC_CTable90TOD = 0,
+                                APC_BP = "BP",
+                                APC_Technique = 1,
+                                APC_TubeVoltage = 120,
+                                APC_TubeCurrent = 300.0,
+                                APC_RadiationTime = 0.1,
+                                APC_TubeMAS = 30.0,
+                                APC_AEC = 1,
+                                APC_Density = 1,
+                                APC_InputSize = 14,
+                                APC_InputOrientation = "Portrait",
+                                APC_InputPosition = "Center",
+                                APC_FlipHorizontal = "False",
+                                APC_FlipVertical = "False",
+                                APC_FilmSize = "14x17",
+                                APC_FilmOrientation = "Portrait",
+                                APC_OutputMode = "Normal",
+                                APC_FilmLayout = "Single",
+                                APC_RotateReverseMark = "None",
+                                APC_AutoMark1 = "",
+                                APC_AutoMark2 = "",
+                                APC_Strings = "",
+                                APC_StringsPos = "",
+                                APC_BeamHardeningFilter = 0,
+                                APC_SID = 100,
+                                APC_Pt_thick = "20cm",
+                                APC_ShutterDetection = "Auto",
+                                APC_SubdividedDisplay = "None",
+                                APC_NegaPosi = "Posi",
+                                APC_DICOMBodyPart = "Chest",
+                                APC_Section = "Upper",
+                                APC_PID = 123,
+                                APC_ImageLaterality = "Left",
+                                APC_GridState = 1,
+                                APC_PatientOrientation = "HeadFirst",
+                                APC_ExposureIndex = "EI",
+                                APC_AutoFrame = "Yes",
+                                APC_ExpectedImage = "Expected",
+                                APC_EstimatedDoseValue = "1.2",
+                                APC_Scan = "Scan1",
+                                APC_FitToFrame = "Yes",
+                                APC_GridSuppression = "Off",
+                                APC_AutoPosition = "Auto",
+                                APC_FilmDensity = 1,
+                                APC_RxRadMAG = 1,
+                                StudyName = "TestStudy",
+                                APC_IsForChild = false,
+                                ImageFileName = "img.dcm"
+                            }
+                        }
+                    }
+                }
+            };
 
             int apcNumber = 1;
             string ipSourceFilename = "mockFile.txt";
@@ -43,8 +112,8 @@ namespace May30unittest
             int offsetGeneImageNumber = 10;
             int seqNumber;
 
-            // Set Application.Current["App"] if ApcChangeProc depends on it
-            Application.Current.Properties["App"] = new MockApp(); // Replace with actual expected type
+            // Set Application.Current["App"] to a mock object if accessed internally
+            Application.Current.Properties["App"] = new MockApp();
 
             // Act
             bool result = RxRadApcChangeManage.ApcChangeProc(
@@ -64,6 +133,12 @@ namespace May30unittest
         }
     }
 
-    // Dummy placeholder if Application.Current["App"] is cast to something specific
+    // Dummy placeholder for Application.Current["App"]
     public class MockApp { }
+
+    // Dummy for ImageRelationInfo if needed (replace with real class in your context)
+    public class ImageRelationInfo
+    {
+        public List<string> ImageList { get; set; } = new List<string>();
+    }
 }
