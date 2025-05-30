@@ -1,62 +1,36 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
-using Toshiba.XRF.PresentationLayer.Common.RxRadApcChangeManage;
 using System.Windows;
-using Moq;
-using System;
 
-namespace Toshiba.XRF.Tests
+namespace YourNamespace.Tests
 {
     [TestClass]
-    public class RxRadApcChangeManageTests
+    public class ApcChangeProcTests
     {
-        [TestInitialize]
-        public void Setup()
+        [AssemblyInitialize]
+        public static void InitApplicationContext(TestContext context)
         {
-            // Mock Application.Current and set required properties
-            var mockApp = new Mock<IApp>();
-
-            // Create dummy UniversalInfo
-            var mockUniversalInfo = new UniversalInfo
+            // Only create if it's not already initialized
+            if (Application.Current == null)
             {
-                LimitValue = new LimitValue { ApcMaxLimit = 100 },
-                IsEachImageSave = false,
-                IsConfirmAPCChanged = false
-            };
-
-            mockApp.SetupGet(a => a.MyUniversalInfo).Returns(mockUniversalInfo);
-            mockApp.Setup(a => a.EventRequest(It.IsAny<EventType>(), It.IsAny<List<object>>()));
-            mockApp.Setup(a => a.LogOut(It.IsAny<int>()));
-
-            Application.Current = new FakeApplication(mockApp.Object);
+                new Application();
+            }
         }
 
         [TestMethod]
-        public void ApcChangeProc_ValidInputs_ReturnsTrue()
+        public void ApcChangeProc_ShouldReturnTrue_WhenValidDataProvided()
         {
             // Arrange
-            var relationInfo = new ImageRelationInfo(); // You may need to mock values here
-            var iniApcInfo = new IniApcData.APCData
-            {
-                list = new IniApcData.APCDataList
-                {
-                    APC = new List<IniApcData.APC>
-                    {
-                        new IniApcData.APC
-                        {
-                            No = 1,
-                            APCDATA = new IniApcData.APCDATA()
-                        }
-                    }
-                }
-            };
+            var relationInfo = new ImageRelationInfo(); // mock or real
+            var iniApcInfo = new IniApcData.APCData();  // mock or real
 
             int apcNumber = 1;
-            string ipSourceFilename = "dummySourceFile.xml";
-            List<string> hTypePartDatavalues = new List<string> { "val1", "val2" };
-            int offsetGeneImageNumber = 0;
-
+            string ipSourceFilename = "mockFile.txt";
+            var hTypePartDatavalues = new List<string> { "Value1", "Value2" };
+            int offsetGeneImageNumber = 10;
             int seqNumber;
+
+            // Set Application.Current["App"] if ApcChangeProc depends on it
+            Application.Current.Properties["App"] = new MockApp(); // Replace with actual expected type
 
             // Act
             bool result = RxRadApcChangeManage.ApcChangeProc(
@@ -67,30 +41,15 @@ namespace Toshiba.XRF.Tests
                 hTypePartDatavalues,
                 offsetGeneImageNumber,
                 out seqNumber,
-                ExecutingAssembly.PL,
-                isNotifyApcChangeNeeded: false);
+                ExecutingAssembly.None,
+                true
+            );
 
             // Assert
             Assert.IsTrue(result);
         }
-
-        private class FakeApplication : Application
-        {
-            public FakeApplication(IApp app)
-            {
-                this.Resources["App"] = app;
-            }
-
-            public override object GetService(Type serviceType)
-            {
-                return Resources["App"];
-            }
-
-            public override object Current
-            {
-                get => base.Current;
-                set => base.Current = value;
-            }
-        }
     }
+
+    // Dummy placeholder if Application.Current["App"] is cast to something specific
+    public class MockApp { }
 }
