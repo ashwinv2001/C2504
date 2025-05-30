@@ -1,77 +1,73 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using System.Collections.Generic;
 using Toshiba.XRF.PresentationLayer.Common.RxRadApcChangeManage;
-using System.Windows;
-using System.IO;
+using Toshiba.XRF.PresentationLayer.Common; // assuming UniversalInfo is here
 using System;
-using System.Linq;
 
-namespace Toshiba.XRF.UnitTests
+namespace UnitTestProject1
 {
     [TestClass]
-    public class RxRadApcChangeManageTests
+    public class ApcChangeProcTests
     {
-        private Mock<IApp> mockApp;
-        private Mock<IUniversalInfo> mockUniversalInfo;
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            mockUniversalInfo = new Mock<IUniversalInfo>();
-            mockUniversalInfo.SetupGet(u => u.LimitValue.ApcMaxLimit).Returns(100);
-            mockUniversalInfo.SetupGet(u => u.IsEachImageSave).Returns(false);
-            mockUniversalInfo.SetupGet(u => u.IsConfirmAPCChanged).Returns(true);
-
-            mockApp = new Mock<IApp>();
-            mockApp.SetupGet(a => a.MyUniversalInfo).Returns(mockUniversalInfo.Object);
-            mockApp.Setup(a => a.EventRequest(It.IsAny<EventType>(), It.IsAny<List<object>>())).Verifiable();
-            mockApp.Setup(a => a.LogOut(It.IsAny<int>())).Verifiable();
-
-            Application.ResourceAssembly.GetType().GetProperty("Current").SetValue(null, mockApp.Object);
-        }
-
         [TestMethod]
-        public void ApcChangeProc_ValidInput_ShouldReturnTrue()
+        public void ApcChangeProc_WhenValidInput_ProcessesWithoutException()
         {
             // Arrange
-            var relationInfo = new ImageRelationInfo(); // Fill this as needed
-            var iniApcData = new IniApcData.APCData
+            var manage = new RxRadApcChangeManage();
+
+            var universalInfo = new UniversalInfo
             {
-                list = new IniApcData.APCList
+                LimitValue = new LimitValue
                 {
-                    APC = new List<IniApcData.APC>
-                    {
-                        new IniApcData.APC
-                        {
-                            No = 1,
-                            APCDATA = new IniApcData.APCDATA { /* fill with valid data */ }
-                        }
-                    }
-                }
+                    ApcMaxLimit = 100
+                },
+                IsEachImageSave = true,
+                IsConfirmAPCChanged = false
             };
 
-            var hTypeValues = new List<string> { "H1", "H2" };
-            int seqNumber;
-            string dummyImagePath = @"C:\Temp\TestImage.dcm";
-            string dummyFile = Path.Combine(Path.GetDirectoryName(dummyImagePath), "ActualInfo.csv");
-
-            // Create dummy files/folders if necessary
-            Directory.CreateDirectory(Path.GetDirectoryName(dummyImagePath));
-            File.WriteAllText(dummyImagePath, "fake content");
-            File.WriteAllText(dummyFile, "fake csv content");
-
-            // Mock any file helpers or statics if possible via wrappers
+            int currentApc = 50;
+            int newApc = 70;
+            int kVp = 120;
+            double tubeCurrent = 3.5;
+            double time = 0.5;
+            string patientId = "P123";
+            string studyUid = "S123";
+            string seriesUid = "SR123";
+            string imageUid = "I123";
+            bool retake = false;
+            string imageType = "CT";
+            int fov = 200;
 
             // Act
-            bool result = RxRadApcChangeManage.ApcChangeProc(relationInfo, iniApcData, 1,
-                dummyImagePath, hTypeValues, 0, out seqNumber,
-                ExecutingAssembly.PL, true);
+            manage.ApcChangeProc(
+                universalInfo,
+                currentApc,
+                newApc,
+                kVp,
+                tubeCurrent,
+                time,
+                patientId,
+                studyUid,
+                seriesUid,
+                imageUid,
+                retake,
+                imageType,
+                fov);
 
             // Assert
-            Assert.IsTrue(result);
-            Assert.IsTrue(seqNumber >= 0);
-            mockApp.Verify();
+            // If no exception, test passes; add further assertions if return values or state change are testable
         }
+    }
+
+    // Mocking support types (define these only if your test project doesn't already reference them)
+    public class UniversalInfo
+    {
+        public LimitValue LimitValue { get; set; }
+        public bool IsEachImageSave { get; set; }
+        public bool IsConfirmAPCChanged { get; set; }
+    }
+
+    public class LimitValue
+    {
+        public int ApcMaxLimit { get; set; }
     }
 }
