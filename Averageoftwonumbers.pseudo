@@ -1,96 +1,69 @@
-  public class APCData
+using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using System.Collections.Generic;
+using Toshiba.XRF.PresentationLayer.Common.RxRadApcChangeManage;
+using System.Windows;
+using System.IO;
+using System.Linq;
+using Toshiba.XRF.PresentationLayer;
+using Toshiba.XRF.PresentationLayer.Common;
+using Toshiba.XRF.PresentationLayer.Common.Interface;
+using Toshiba.XRF.Utility.Common.XmlDataAccess;
+using Toshiba.XRF.Utility.Common.FileAccess;
+
+
+
+
+namespace May30unittest
+{
+    [TestClass]
+    public class ApcChangeProcTests
+    {
+        [AssemblyInitialize]
+        public static void InitApplicationContext(TestContext context)
         {
-            [XmlElement("List")]
-            public LIST list;
-        }
-
-  public class LIST
-        {
-            [XmlElement("APC")]
-            public List<APC> APC;
-        }
-
-
- public class APCDATA
-        {
-            public int APC_Number;
-            public string APC_RISCode;
-            public string APC_Region;
-            public string APC_Physique;
-            public string APC_Orientation;
-            public string APC_LeftRight;
-            public string APC_RadiographicOrientation;
-            public string APC_ViewPosition;
-            public string APC_IP;
-            public int APC_TOD;
-            /* Begin: Added 1.0.0.8 */
-            public int APC_CTable90TOD;
-            /* End: Added 1.0.0.8 */
-            public string APC_BP;
-            public int APC_Technique;
-            public int APC_TubeVoltage;
-            public double APC_TubeCurrent;
-            public double APC_RadiationTime;
-            public double APC_TubeMAS;
-            public int APC_AEC;
-            public int APC_Density;
-            public int APC_InputSize;
-            public string APC_InputOrientation;
-            public string APC_InputPosition;
-            /* Begin: Added 1.0.0.5 */
-            public string APC_FlipHorizontal;
-            public string APC_FlipVertical;
-            /* End: Added 1.0.0.5 */
-            public string APC_FilmSize;
-            public string APC_FilmOrientation;
-            public string APC_OutputMode;
-            public string APC_FilmLayout;
-            public string APC_RotateReverseMark;
-            public string APC_AutoMark1;
-            public string APC_AutoMark2;
-            public string APC_Strings;
-            public string APC_StringsPos;
-            public int APC_BeamHardeningFilter;
-            public int APC_SID;
-            public string APC_Pt_thick;
-            public string APC_ShutterDetection;
-            public string APC_SubdividedDisplay;
-            public string APC_NegaPosi;
-            public string APC_DICOMBodyPart;
-            public string APC_Section;
-            public int APC_PID;
-            public string APC_ImageLaterality;
-            public int APC_GridState;
-            public string APC_PatientOrientation;
-            public string APC_ExposureIndex;
-            public string APC_AutoFrame;
-            public string APC_ExpectedImage;
-            public string APC_EstimatedDoseValue;
-            public string APC_Scan;
-            public string APC_FitToFrame;
-            public string APC_GridSuppression;
-            public string APC_AutoPosition;
-            public int APC_FilmDensity;
-            public int APC_RxRadMAG;
-            public string StudyName;
-            public bool APC_IsForChild; //(1.0.0.6) add
-
-            public string ImageFileName;  // 撮影画像のファイル名
-
-            // (1.0.0.7)---> add start
-            public string GetApcName()
+            // Only create if it's not already initialized
+            if (Application.Current == null)
             {
-                string apcName = string.Empty;
-
-                apcName += APC_Region.ToString() + " ";
-                apcName += APC_Physique.ToString() + " ";
-                apcName += APC_Orientation.ToString() + " ";
-                apcName += APC_LeftRight.ToString() + " ";
-                apcName += APC_RadiographicOrientation.ToString();
-
-                return apcName;
+                new Application();
             }
-            // (1.0.0.7)<--- add end
         }
 
+        [TestMethod]
+        public void ApcChangeProc_ShouldReturnTrue_WhenValidDataProvided()
+        {
+            // Arrange
+            var relationInfo = new ImageRelationInfo(); // mock or real
+            var iniApcInfo = new IniApcData.APCData();  // mock or real
 
+            int apcNumber = 1;
+            string ipSourceFilename = "mockFile.txt";
+            var hTypePartDatavalues = new List<string> { "Value1", "Value2" };
+            int offsetGeneImageNumber = 10;
+            int seqNumber;
+
+            // Set Application.Current["App"] if ApcChangeProc depends on it
+            Application.Current.Properties["App"] = new MockApp(); // Replace with actual expected type
+
+            // Act
+            bool result = RxRadApcChangeManage.ApcChangeProc(
+                relationInfo,
+                iniApcInfo,
+                apcNumber,
+                ipSourceFilename,
+                hTypePartDatavalues,
+                offsetGeneImageNumber,
+                out seqNumber,
+                ExecutingAssembly.None,
+                true
+            );
+
+            // Assert
+            Assert.IsTrue(result);
+        }
+    }
+
+    // Dummy placeholder if Application.Current["App"] is cast to something specific
+    public class MockApp { }
+}
