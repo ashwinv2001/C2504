@@ -1,5 +1,96 @@
-  public static bool ApcChangeProc(ImageRelationInfo relationInfo, IniApcData.APCData iniApcInfo,
-                                        int apcNumber, string ipSourceFilename,
-                                        List<string> hTypePartDatavalues, int offsetGeneImageNumber, out int seqNumber,
-                                        ExecutingAssembly executingFrom = ExecutingAssembly.None,
-                                        bool isNotifyApcChangeNeeded = true)
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using Toshiba.XRF.PresentationLayer.Common.RxRadApcChangeManage;
+using System.Windows;
+using Moq;
+using System;
+
+namespace Toshiba.XRF.Tests
+{
+    [TestClass]
+    public class RxRadApcChangeManageTests
+    {
+        [TestInitialize]
+        public void Setup()
+        {
+            // Mock Application.Current and set required properties
+            var mockApp = new Mock<IApp>();
+
+            // Create dummy UniversalInfo
+            var mockUniversalInfo = new UniversalInfo
+            {
+                LimitValue = new LimitValue { ApcMaxLimit = 100 },
+                IsEachImageSave = false,
+                IsConfirmAPCChanged = false
+            };
+
+            mockApp.SetupGet(a => a.MyUniversalInfo).Returns(mockUniversalInfo);
+            mockApp.Setup(a => a.EventRequest(It.IsAny<EventType>(), It.IsAny<List<object>>()));
+            mockApp.Setup(a => a.LogOut(It.IsAny<int>()));
+
+            Application.Current = new FakeApplication(mockApp.Object);
+        }
+
+        [TestMethod]
+        public void ApcChangeProc_ValidInputs_ReturnsTrue()
+        {
+            // Arrange
+            var relationInfo = new ImageRelationInfo(); // You may need to mock values here
+            var iniApcInfo = new IniApcData.APCData
+            {
+                list = new IniApcData.APCDataList
+                {
+                    APC = new List<IniApcData.APC>
+                    {
+                        new IniApcData.APC
+                        {
+                            No = 1,
+                            APCDATA = new IniApcData.APCDATA()
+                        }
+                    }
+                }
+            };
+
+            int apcNumber = 1;
+            string ipSourceFilename = "dummySourceFile.xml";
+            List<string> hTypePartDatavalues = new List<string> { "val1", "val2" };
+            int offsetGeneImageNumber = 0;
+
+            int seqNumber;
+
+            // Act
+            bool result = RxRadApcChangeManage.ApcChangeProc(
+                relationInfo,
+                iniApcInfo,
+                apcNumber,
+                ipSourceFilename,
+                hTypePartDatavalues,
+                offsetGeneImageNumber,
+                out seqNumber,
+                ExecutingAssembly.PL,
+                isNotifyApcChangeNeeded: false);
+
+            // Assert
+            Assert.IsTrue(result);
+        }
+
+        private class FakeApplication : Application
+        {
+            public FakeApplication(IApp app)
+            {
+                this.Resources["App"] = app;
+            }
+
+            public override object GetService(Type serviceType)
+            {
+                return Resources["App"];
+            }
+
+            public override object Current
+            {
+                get => base.Current;
+                set => base.Current = value;
+            }
+        }
+    }
+}
