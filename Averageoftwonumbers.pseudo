@@ -4,10 +4,9 @@ using Moq;
 using System.Collections.Generic;
 using System.Windows;
 using Toshiba.XRF.PresentationLayer.Common.RxRadApcChangeManage;
-using Toshiba.XRF.PresentationLayer;
-using Toshiba.XRF.PresentationLayer.Common;
 using Toshiba.XRF.PresentationLayer.Common.Interface;
 using Toshiba.XRF.Utility.Common.XmlDataAccess;
+using Toshiba.XRF.Utility.Common.FileAccess;
 
 namespace May30unittest
 {
@@ -17,90 +16,35 @@ namespace May30unittest
         [AssemblyInitialize]
         public static void InitApplicationContext(TestContext context)
         {
+            // Create Application if not already created
             if (Application.Current == null)
             {
                 new Application();
             }
+
+            // Initialize Application.Current["App"] if required by ApcChangeProc
+            Application.Current.Properties["App"] = new MockApp(); // Replace with real IApp mock if needed
         }
 
         [TestMethod]
         public void ApcChangeProc_ShouldReturnTrue_WhenValidDataProvided()
         {
             // Arrange
-            var relationInfo = new ImageRelationInfo
-            {
-                ImageList = new List<string> { "Image1", "Image2" }
-            };
-
+            ImageRelationInfo relationInfo = new ImageRelationInfo();  // Use correct namespace
             var iniApcInfo = new IniApcData.APCData
             {
-                list = new LIST
+                list = new IniApcData.LIST
                 {
-                    APC = new List<APC>
+                    APC = new List<IniApcData.APCDATA>
                     {
-                        new APC
+                        new IniApcData.APCDATA
                         {
-                            No = 1,
-                            APCDATA = new APCDATA
-                            {
-                                APC_Number = 1,
-                                APC_Region = "Chest",
-                                APC_Physique = "Normal",
-                                APC_Orientation = "PA",
-                                APC_LeftRight = "L",
-                                APC_RadiographicOrientation = "FRONT",
-                                APC_ViewPosition = "Upright",
-                                APC_IP = "123.456",
-                                APC_TOD = 0,
-                                APC_CTable90TOD = 0,
-                                APC_BP = "BP",
-                                APC_Technique = 1,
-                                APC_TubeVoltage = 120,
-                                APC_TubeCurrent = 300.0,
-                                APC_RadiationTime = 0.1,
-                                APC_TubeMAS = 30.0,
-                                APC_AEC = 1,
-                                APC_Density = 1,
-                                APC_InputSize = 14,
-                                APC_InputOrientation = "Portrait",
-                                APC_InputPosition = "Center",
-                                APC_FlipHorizontal = "False",
-                                APC_FlipVertical = "False",
-                                APC_FilmSize = "14x17",
-                                APC_FilmOrientation = "Portrait",
-                                APC_OutputMode = "Normal",
-                                APC_FilmLayout = "Single",
-                                APC_RotateReverseMark = "None",
-                                APC_AutoMark1 = "",
-                                APC_AutoMark2 = "",
-                                APC_Strings = "",
-                                APC_StringsPos = "",
-                                APC_BeamHardeningFilter = 0,
-                                APC_SID = 100,
-                                APC_Pt_thick = "20cm",
-                                APC_ShutterDetection = "Auto",
-                                APC_SubdividedDisplay = "None",
-                                APC_NegaPosi = "Posi",
-                                APC_DICOMBodyPart = "Chest",
-                                APC_Section = "Upper",
-                                APC_PID = 123,
-                                APC_ImageLaterality = "Left",
-                                APC_GridState = 1,
-                                APC_PatientOrientation = "HeadFirst",
-                                APC_ExposureIndex = "EI",
-                                APC_AutoFrame = "Yes",
-                                APC_ExpectedImage = "Expected",
-                                APC_EstimatedDoseValue = "1.2",
-                                APC_Scan = "Scan1",
-                                APC_FitToFrame = "Yes",
-                                APC_GridSuppression = "Off",
-                                APC_AutoPosition = "Auto",
-                                APC_FilmDensity = 1,
-                                APC_RxRadMAG = 1,
-                                StudyName = "TestStudy",
-                                APC_IsForChild = false,
-                                ImageFileName = "img.dcm"
-                            }
+                            APC_Number = 1,
+                            APC_Region = "Chest",
+                            APC_Physique = "Normal",
+                            APC_Orientation = "AP",
+                            APC_LeftRight = "Left",
+                            APC_RadiographicOrientation = "PA"
                         }
                     }
                 }
@@ -112,9 +56,6 @@ namespace May30unittest
             int offsetGeneImageNumber = 10;
             int seqNumber;
 
-            // Set Application.Current["App"] to a mock object if accessed internally
-            Application.Current.Properties["App"] = new MockApp();
-
             // Act
             bool result = RxRadApcChangeManage.ApcChangeProc(
                 relationInfo,
@@ -124,21 +65,18 @@ namespace May30unittest
                 hTypePartDatavalues,
                 offsetGeneImageNumber,
                 out seqNumber,
-                ExecutingAssembly.None,
+                null, // Pass null or mock Assembly if necessary
                 true
             );
 
             // Assert
-            Assert.IsTrue(result);
+            Assert.IsTrue(result, "ApcChangeProc should return true when valid data is provided.");
         }
     }
 
-    // Dummy placeholder for Application.Current["App"]
-    public class MockApp { }
-
-    // Dummy for ImageRelationInfo if needed (replace with real class in your context)
-    public class ImageRelationInfo
+    // Stub/mock class for Application.Current["App"]
+    public class MockApp
     {
-        public List<string> ImageList { get; set; } = new List<string>();
+        // Implement members only if ApcChangeProc accesses them
     }
 }
