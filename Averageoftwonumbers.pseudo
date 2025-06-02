@@ -1,2 +1,1573 @@
-Severity	Code	Description	Project	File	Line	Suppression State
-Error	CS1503	Argument 8: cannot convert from 'System.Reflection.Assembly' to 'Toshiba.XRF.Utility.Common.FileAccess.ExecutingAssembly'	May30unittest	C:\UDR10A\src\May30unittest\UnitTest1.cs	68	Active
+/**
+* Copyright(c) 2022 - 2024 Canon Medical Systems Corporation, All Rights Reserved.
+*
+* Namespace:   Toshiba.XRF.PresentationLayer.Common.RxRadApcChangeManage
+* Subsystem:   Core
+* Module name: RxRadApcChangeManage.cs - To manage APC change functionality after acquistion.
+*
+* Version    Date         Author             Comment
+* 1.0.0.0    2022/10/19   Maneesha Thomas    #13507:APC can be changed after RAD imaging and image processing can be reprocessed
+* 1.0.0.1    2022/11/25   Maneesha,Reshma    #13507:APC can be changed after RAD imaging and image processing can be reprocessed(Ph2).
+                          Samyuktha          #13507:APC can be changed after RAD imaging and image processing can be reprocessed(Ph2).
+* 1.0.0.2    2022/12/02   Vishnu,Maneesha    #13507:APC can be changed after RAD imaging and image processing can be reprocessed(Ph2.2: APC change before shooting)
+* 1.0.0.3    2022/11/25   Titti Skaria       #13605:CIF information is lost when header information is rewritten by patient edit, split join, and reconstruction
+* 1.0.0.4    2022/12/09   Reshma M R         #13507:APC can be changed after RAD imaging and image processing can be reprocessed(Ph3-Rich GUI for APC Change including Body part display)
+* 1.0.0.5    2022/12/12   Vishnu             #13507:APC can be changed after RAD imaging and image processing can be reprocessed(Ph4.2 PixelPitch recalculate)
+* 1.0.0.6    2022/12/14   Maneesha Thomas    #13507:APC can be changed after RAD imaging and image processing can be reprocessed(Ph4.1 APC Change in IsEachImagesave false)
+* 1.0.0.7    2022/12/28   Maneesha Thomas    #13507:APC can be changed after RAD imaging and image processing can be reprocessed(Bug fix)
+* 1.0.0.8    2024/01/23   Jasir Fayas        #15313:Distance can be measured using calibration object distance calibration(Phase 2)
+* 1.0.0.9    2024/01/30   Reshma R           #15313:Distance can be measured using calibration object distance calibration. (Phase 2 CMSC Review comments)
+* 1.0.1.0    2024/02/26   Amal, Jasir        #15444:[#15313-Phase4] Undo/Redo/Reset after object calibration and object calibration over division format images [Feedback]
+* 1.0.1.1    2024/08/30   Jasir Fayas        #16074:Distance calibration [AP, other than 90°] (C-arm Ultimax)
+* 1.0.1.2    2024/10/14   Hariharan K        #16307:RAD lateral imaging TOD for distance calibration can be specified
+**/
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+/* Begin: Added 1.0.0.4 */
+using System.Threading;
+/* End: Added 1.0.0.4 */
+using System.Windows;
+using Toshiba.XRF.LayerCommon.StudyObjectFile;
+using Toshiba.XRF.PresentationLayer.Common.Interface;
+using Toshiba.XRF.Utility.Common.FileAccess;
+using Toshiba.XRF.Utility.Common.ImageHeader;
+using Toshiba.XRF.Utility.Common.XmlDataAccess;
+/* Begin: Added 1.0.0.6 */
+using Toshiba.XRF.PresentationLayer.ImageProcess.Common;
+/* End: Added 1.0.0.6 */
+/* Begin: Added 1.0.0.8 */
+using Toshiba.XRF.ImageProcess.ImageOutput.ImageProcess.RFMeasureParam;
+using Toshiba.XRF.PresentationLayer.ImageProcess.Utility.Common;
+using System.Xml.Linq;
+/* End: Added 1.0.0.8 */
+
+
+namespace Toshiba.XRF.PresentationLayer.Common.RxRadApcChangeManage
+{
+    /// <summary>
+    /// Enum to keep a list APC related files.
+    /// </summary>
+    public enum ImageLevelApcRelatedFiles
+    {
+        ImageRawFile = 0,
+        ThumbanailRawFile = 1,
+        ActualInfoCSVFile = 2,
+        IPDataXMLFile = 3,
+        APCDataXMLFile = 4,
+        AutoWndCsvFile = 5,
+        /* Begin: Added 1.0.0.1 */
+        RxRadFolderAPCDataXMLFile = 6,
+        /* End: Added 1.0.0.1 */
+        /* Begin: Added 1.0.0.5 */
+        PostProcImageInfoXMLFile = 7,
+        /* End: Added 1.0.0.5 */
+    }
+
+    /// <summary>
+    /// Class for managing APC change logic.
+    /// </summary>
+    public class RxRadApcChangeManage
+    {
+        #region Member Variables
+        private static string _tempFolderName = "TempApcChange";
+        private static string _assemblyName = "PresentationLayer.RxRadApcChangeManage";
+        private static ExecutingAssembly _executingAssembly;
+        /* Begin: Added 1.0.0.6 */
+        private static int _apcMaxLimit = 10000;
+        /* End: Added 1.0.0.6 */
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// Functionality after Apc change
+        /// </summary>
+        /// <param name="relationInfo">ImageRelationInfo object</param>
+        /// <param name="iniApcInfo">IniApcData object</param>
+        /// <param name="apcNumber">Apc Number</param>
+        /// <param name="ipSourceFilename"> Ip source Filename</param> '
+        /// <param name="hTypePartDatavalues"> AW H tpe data values</param>
+        /// <param name="offsetGeneImageNumber"> Gene offset value for reading and writing actualinfo csv</param>
+        /// <param name="seqNumber"> Sequence number</param>
+        /// <param name="executingFrom">Assembly</param>
+        /// <param name="isNotifyApcChangeNeeded"> isNotifyApcChangeNeeded</param>
+        /* Begin: Added  1.0.0.4 */
+        public static bool ApcChangeProc(ImageRelationInfo relationInfo, IniApcData.APCData iniApcInfo,
+                                        int apcNumber, string ipSourceFilename,
+                                        List<string> hTypePartDatavalues, int offsetGeneImageNumber, out int seqNumber,
+                                        ExecutingAssembly executingFrom = ExecutingAssembly.None,
+                                        bool isNotifyApcChangeNeeded = true)
+        /* End: Added  1.0.0.4 */
+        {
+            string tempFolderPath = string.Empty;
+            bool isApcChangeSuccess = false;
+            /* Begin: Added  1.0.0.4 */
+            seqNumber = 0;
+            _executingAssembly = executingFrom;
+            /* End: Added  1.0.0.4 */
+            /* Begin: Added 1.0.0.6 */
+            if(ExecutingAssembly.PL == executingFrom)
+            {
+                _apcMaxLimit = ((IApp)Application.Current).MyUniversalInfo.LimitValue.ApcMaxLimit;
+            }
+            /* End: Added 1.0.0.6 */
+            try
+            {
+                if (null == iniApcInfo?.list?.APC)
+                {
+                    /* Begin: Added 1.0.0.1 */
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.ApcChangeProc()] " +
+                                                       $"Return reason: IniApcInfo is null");
+                    /* End: Added 1.0.0.1 */
+                    return isApcChangeSuccess;
+                }
+
+                IniApcData.APC changedApcDetails = iniApcInfo.list.APC.Find(x => x.No == apcNumber);
+                if (null == changedApcDetails?.APCDATA)
+                {
+                    /* Begin: Added 1.0.0.1 */
+                    ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.ApcChangeProc()] " +
+                                                        $"Return reason: " +
+                                                        $"Apc information is null for ApcNumber:{apcNumber}");
+                    /* End: Added 1.0.0.1 */
+                    return isApcChangeSuccess;
+                }
+
+                if (!GetValuesFromRelationInfo(relationInfo, out string imageFilePath,
+                                               out int apcDisplayNumber, 
+                                               out string apcImageFileName))
+                {
+                    /* Begin: Added 1.0.0.1 */
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.ApcChangeProc()] " +
+                                                       $"Return reason: RelationInfo validation failed");
+                    /* End: Added 1.0.0.1 */
+                    return isApcChangeSuccess;
+                }
+                /* Begin: Added 1.0.0.7 */
+                InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.ApcChangeProc()]  started. ImageFilePath:{imageFilePath}");
+                /* End: Added 1.0.0.7 */
+                string seriesPath = Path.GetDirectoryName(imageFilePath);
+                FileAccessCommon.GetImageNo(imageFilePath, out int imageNumber);
+
+                // Create a temp folder inside Exam Folder and copying files for updating it.
+                if (!CreateTempApcChangeFolder(imageFilePath, out tempFolderPath))
+                {
+                    /* Begin: Added 1.0.0.1 */
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.ApcChangeProc()] " +
+                                                       $"Return reason: Creating TempApcChange folder failed ");
+                    /* End: Added 1.0.0.1 */
+                    return isApcChangeSuccess;
+                }
+
+
+                string tempImageFilePath = Path.Combine(tempFolderPath, Path.GetFileName(imageFilePath));
+                /* Begin: Added 1.0.0.1 */
+                // Read ActualInfoCsv in temp 
+                if (!GetActualInfoDetails(tempImageFilePath, offsetGeneImageNumber, out Dictionary<int, ActualInfo> actualInfoDict))
+                {
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.ApcChangeProc()] " +
+                                                       $"Return reason: ActualInfo.csv reading failed ");
+                    return isApcChangeSuccess;
+                }
+                if (!actualInfoDict.ContainsKey(imageNumber))
+                {
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdateActualInfoFile()] " +
+                                                       $"ActualInfo not contains the ImageNumber:{imageNumber}");
+                    return isApcChangeSuccess;
+                }
+
+                ActualInfo actualInfo = actualInfoDict[imageNumber];
+                int prevApcNumber = actualInfo.ApcNumber;
+                string existingRxRadApcFilePath = GetFilePath(tempImageFilePath,
+                                                              ImageLevelApcRelatedFiles.RxRadFolderAPCDataXMLFile,
+                                                              prevApcNumber, actualInfo.SeqNumber);
+                string newRxRadApcFilePath = GetRxRadAPCFilePathToBeCreate(tempImageFilePath, apcNumber, ref seqNumber);
+                /* End: Added 1.0.0.1 */
+
+                /* Begin: Added 1.0.0.5 */
+                bool isFilesUpdateSuccess = UpdateFilesInApcChangeTempFolder(changedApcDetails, actualInfoDict, actualInfo,
+                                                                             apcNumber, tempImageFilePath,
+                                                                             relationInfo, seqNumber,
+                                                                             ipSourceFilename, hTypePartDatavalues,
+                                                                             offsetGeneImageNumber);
+                /* End: Added 1.0.0.5 */
+                if (!isFilesUpdateSuccess)
+                {
+                    // Info Log
+
+                    /* Begin: Added 1.0.0.1 */
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.ApcChangeProc()] " +
+                                                       $"Return reason: Updating Files in temp folder failed ");
+              
+                    /* End: Added 1.0.0.1 */
+                    return isApcChangeSuccess;
+                }
+
+                CopyFilesToSeriesFolder(tempFolderPath, seriesPath, imageNumber, Path.GetFileName(newRxRadApcFilePath));
+                /* Begin: Added 1.0.0.1 */
+                CopyFilesToRxRadFolder(seriesPath, existingRxRadApcFilePath, newRxRadApcFilePath, 
+                                       out string detinationPath);
+                /* End: Added 1.0.0.1 */
+
+                if (isNotifyApcChangeNeeded)
+                {
+                    List<object> args = new List<object>();
+                    args.Add(imageFilePath);
+                    /* Begin: Added 1.0.0.1 */
+                    args.Add(detinationPath);
+                    args.Add(existingRxRadApcFilePath);
+                    args.Add(apcNumber);
+                    args.Add(seqNumber);
+                    /* End: Added 1.0.0.1 */
+                    ((IApp)Application.Current).EventRequest(EventType.NotifyAPCChanged, args);
+                    args.Clear();
+
+                    /* Begin: Added 1.0.0.6 */
+                    if (!((IApp)Application.Current).MyUniversalInfo.IsEachImageSave)
+                    {
+                        string tempSeriesPath = GetTemporarySeriesPath(seriesPath);
+                        if(CopyFilesToTempSeriesFolder(imageFilePath, tempFolderPath, tempSeriesPath, 
+                                                       imageNumber, Path.GetFileName(newRxRadApcFilePath)))
+                        {
+                            List<object> param = new List<object>();
+                            param.Add(false);
+                            ((IApp)Application.Current).EventRequest(EventType.BlueIconVisibilityOnTempImage, param);
+                            param.Clear();
+                        }
+                    }
+                    /* End: Added 1.0.0.6 */
+                }
+               isApcChangeSuccess = true;
+
+            }
+            catch (Exception ex)
+            {
+                isApcChangeSuccess = false;
+                /* Begin: Added 1.0.0.1 */
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+                /* End: Added 1.0.0.1 */
+            }
+            finally
+            {
+                DeleteTempApcChangeFolder(tempFolderPath);
+                /* Begin: Added 1.0.0.5 */
+                if (ExecutingAssembly.PL == executingFrom)
+                {
+                    if (isApcChangeSuccess && ((IApp)Application.Current).MyUniversalInfo.IsConfirmAPCChanged)
+                    {
+                        ((IApp)Application.Current).LogOut(412466);
+                    }
+                }
+                /* End: Added 1.0.0.5 */
+            }
+            return isApcChangeSuccess;
+        }
+
+        /* Begin: Added 1.0.0.2 */
+        /// <summary>
+        /// To update RxRad folder ApcData file
+        /// </summary>
+        /// <param name="apcFromIni">Ini apc information</param>
+        /// <param name="existingRxRadApcFilePath">Existing RxRad file path</param>
+        /// <param name="newApcNumber">Apc number</param>
+        /// <param name="executingFrom">Executing assembly</param>
+        /// <returns>Apc xml replace success or not</returns>
+        public static bool FileUpdateProcBeforeAcquisition(IniApcData.APC apcFromIni, 
+                                                           string existingRxRadApcFilePath, int newApcNumber, out int seqNumber,
+                                                           ExecutingAssembly executingFrom = ExecutingAssembly.None)
+        {
+            seqNumber = 0;
+            /* Begin: Added  1.0.0.4 */
+            _executingAssembly = executingFrom;
+            /* End: Added  1.0.0.4 */
+            /* Begin: Added 1.0.0.6 */
+            if (ExecutingAssembly.PL == executingFrom)
+            {
+                _apcMaxLimit = ((IApp)Application.Current).MyUniversalInfo.LimitValue.ApcMaxLimit;
+            }
+            /* End: Added 1.0.0.6 */
+            if (!File.Exists(existingRxRadApcFilePath))
+            {
+                InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.FileUpdateProcBeforeAcquisition()] " +
+                                                   $"Return resaon: ApcDataXML {existingRxRadApcFilePath} not exists ");
+                return false;
+            }
+            string rxRadFolderPath = Path.GetDirectoryName(existingRxRadApcFilePath);
+            string examFolderPath = Path.GetDirectoryName(rxRadFolderPath);
+            string tempFolderPath = Path.Combine(examFolderPath, _tempFolderName);
+            if (!Directory.Exists(tempFolderPath))
+            {
+                Directory.CreateDirectory(tempFolderPath);
+            }
+            try
+            {
+                // RxRad file path
+                string newRxRadApcFilePath = GetRxRadAPCFilePathToBeCreate(existingRxRadApcFilePath, 
+                                                                           newApcNumber, ref seqNumber);
+                // Temp RxRad file path
+                newRxRadApcFilePath = Path.Combine(tempFolderPath, Path.GetFileName(newRxRadApcFilePath));
+                // Update the temp  RxRad file path
+                if (!UpdateApcDataXMLInRxRadFolder(apcFromIni, existingRxRadApcFilePath,
+                                                   newRxRadApcFilePath))
+                {
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.FileUpdateProcBeforeAcquisition()] " +
+                                                       $"Return resaon: ApcDataXML from RxRad Folder update failed ");
+                    return false;
+                }
+
+                CopyFilesToRxRadFolder(rxRadFolderPath, existingRxRadApcFilePath, newRxRadApcFilePath,
+                                       out string detinationPath);
+            }
+            catch (Exception ex)
+            {
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+                return false;
+            }
+            finally
+            {
+                DeleteTempApcChangeFolder(tempFolderPath);
+            }
+            return true;
+        }
+        /* End: Added 1.0.0.2 */
+
+        #endregion
+
+        #region Private Methods
+        /// <summary>
+        /// To create TempApcChange folder and copy files to it
+        /// </summary>
+        /// <param name="imageFilePath">Series image file path</param>
+        /// <param name="tempFolderPath">Temp folder path in series folder</param>
+        /// <returns></returns>
+        private static bool CreateTempApcChangeFolder(string imageFilePath, out string tempFolderPath)
+        {
+            tempFolderPath = string.Empty;
+            try
+            {
+                string seriesPath = Path.GetDirectoryName(imageFilePath);
+                string examFolderPath = Path.GetDirectoryName(seriesPath);
+                List<string> filesToCopy = new List<string>();
+                foreach (ImageLevelApcRelatedFiles fileType in Enum.GetValues(typeof(ImageLevelApcRelatedFiles)))
+                {
+                    // The IPDataXML file will be a new file since its name contains the IPNumber and it may be different
+                    // So no need to copy IPData.xml file to temp folder.
+                    // APCData.xml in RxRad folder will be new one since its name contains the APC number and it can very.
+                    // So no need to copy APCData.xml in RxRad folder to temp folder.
+                    if (ImageLevelApcRelatedFiles.IPDataXMLFile == fileType ||
+                        ImageLevelApcRelatedFiles.RxRadFolderAPCDataXMLFile == fileType)
+                    {
+                        continue;
+                    }
+
+                    string filePath = GetFilePath(imageFilePath, fileType);
+                    if (!File.Exists(filePath))
+                    {
+                        // Error log
+                        /* Begin: Added 1.0.0.1 */
+                        ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.CreateTempApcChangeFolder()] " +
+                                                            $"Return resaon:" +
+                                                            $"FilePath:{filePath} is not exists");
+                        /* End: Added 1.0.0.1 */
+                        return false;
+                    }
+                    filesToCopy.Add(filePath);
+                }
+
+                tempFolderPath = Path.Combine(examFolderPath, _tempFolderName);
+                Directory.CreateDirectory(tempFolderPath);
+                foreach (string sourceFile in filesToCopy)
+                {
+                    string tempFilePath = Path.Combine(tempFolderPath, Path.GetFileName(sourceFile));
+                    /* Begin: Added  1.0.0.4 */
+                    for (int retryCnt = 0; retryCnt <= 3; retryCnt++)
+                    {
+                        try
+                        {
+                            // Copy files from series folder to temp folder
+                            FileLockIO.FileCopy(sourceFile, tempFilePath);
+                            break;
+                        }
+                        catch
+                        {
+                            if (retryCnt >= 3)
+                            {
+                                break;
+                            }
+
+                            Thread.Sleep(100);
+                            continue;
+                        }
+                    }
+                    /* End: Added  1.0.0.4 */
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Error log 
+                /* Begin: Added 1.0.0.1 */
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+                /* End: Added 1.0.0.1 */
+                return false;
+            }
+        }
+        /* Begin: Added 1.0.0.5 */
+        /// <summary>
+        /// To update files in ApcChangeTemp folder
+        /// </summary>
+        /// <param name="changedApcDetails">IniApcData</param>
+        /// <param name="actualInfoDict">actual info dictionary</param>
+        /// <param name="actualInfo">actual info</param>
+        /// <param name="apcNumber">apc number</param>
+        /// <param name="tempImageFilePath">temp image file path</param>
+        /// <param name="relationInfo">relation info</param>
+        /// <param name="seqNumber">sequence number</param>
+        /// <param name="ipSourceFilename">ip source file</param>
+        /// <param name="hTypePartDatavalues">hTypePartDatavalues</param>
+        /// <param name="offsetGeneImageNumber">Gene offset</param>
+        /// <returns>File update success or failure</returns>
+        private static bool UpdateFilesInApcChangeTempFolder(IniApcData.APC changedApcDetails,
+                                                             Dictionary<int, ActualInfo> actualInfoDict,
+                                                             ActualInfo actualInfo, int apcNumber, string tempImageFilePath,
+                                                             ImageRelationInfo relationInfo, int seqNumber,
+                                                             string ipSourceFilename, List<string> hTypePartDatavalues,
+                                                             int offsetGeneImageNumber)
+        /* End: Added 1.0.0.5 */
+        {
+            try
+            {
+                int.TryParse(changedApcDetails.APCDATA.APC_IP, out int ipNumber);
+                int prevApcNumber = actualInfo.ApcNumber;
+                string existingRxRadApcFilePath = GetFilePath(tempImageFilePath,
+                                                              ImageLevelApcRelatedFiles.RxRadFolderAPCDataXMLFile,
+                                                              prevApcNumber, actualInfo.SeqNumber);
+                string newRxRadFilePath = GetRxRadAPCFilePathToBeCreate(tempImageFilePath, apcNumber, ref seqNumber);
+                int apcPID = changedApcDetails.APCDATA.APC_PID;
+                int apcTOD = changedApcDetails.APCDATA.APC_TOD;
+                /* Begin: Added 1.0.1.2 */
+                if (90 == Math.Round(actualInfo.CTableCcir, MidpointRounding.AwayFromZero))
+                {
+                    apcTOD = changedApcDetails.APCDATA.APC_CTable90TOD;
+                }
+                /* End: Added 1.0.1.2 */
+                if (!GetValuesFromRelationInfo(relationInfo, out string imageFilePath,
+                                               out int apcDisplayNumber,
+                                               out string apcImageFileName))
+                {
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdateFilesInApcChangeTempFolder()] " +
+                                                       $"Return reason: RelationInfo validation failed");
+                    return false;
+                }
+                if (!File.Exists(tempImageFilePath))
+                {
+                    /* Begin: Added 1.0.0.1 */
+                    ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdateFilesInApcChangeTempFolder()] " +
+                                                        $"Return reason:" +
+                                                        $"FilePath:{tempImageFilePath} is not exists");
+                    /* End: Added 1.0.0.1 */
+                    return false;
+                }
+
+                string tempFolderPath = Path.GetDirectoryName(tempImageFilePath);
+                FileAccessCommon.GetImageNo(tempImageFilePath, out int imageNumber);
+
+                /* Begin: Added 1.0.0.1 */
+                if (!UpdateApcDataXMLInRxRadFolder(changedApcDetails, existingRxRadApcFilePath, newRxRadFilePath))
+                {
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdateFilesInApcChangeTempFolder()] " +
+                                                       $"Return resaon: ApcDataXML from RxRad Folder update failed ");
+                    return false;
+                }
+                /* End: Added 1.0.0.1 */
+
+                /* Begin: Added 1.0.0.5 */
+                if (!UpdateActualInfoFile(tempImageFilePath, imageNumber, apcNumber, seqNumber,
+                                            apcPID, apcTOD, actualInfoDict, actualInfo, offsetGeneImageNumber))
+                /* End: Added 1.0.0.5 */
+                {
+                    /* Begin: Added 1.0.0.1 */
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdateFilesInApcChangeTempFolder()] " +
+                                                       $"Return reason: ActualInfo File update failed ");
+                    /* End: Added 1.0.0.1 */
+                    return false;
+                }
+
+                string thumbnailFilePath = tempImageFilePath.Replace(FileAccessCommon.ImageExtension,
+                                                                     FileAccessCommon.ThumbnailImageExtension);
+                if (!File.Exists(thumbnailFilePath))
+                {
+                    /* Begin: Added 1.0.0.1 */
+                    ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdateFilesInApcChangeTempFolder()] " +
+                                                        $"Return reason: " +
+                                                        $"ThumbnailFilePath:{thumbnailFilePath} is not exists");
+                    /* End: Added 1.0.0.1 */
+                    return false;
+                }
+
+                string studyName;
+                if (!UpdateImageRawFileHeader(tempImageFilePath, apcNumber, out studyName) ||
+                    !UpdateImageRawFileHeader(thumbnailFilePath, apcNumber, out studyName))
+                {
+                    /* Begin: Added 1.0.0.1 */
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdateFilesInApcChangeTempFolder()] " +
+                                                       $"Return reason: ImageRawFileHeader update failed ");
+                    /* End: Added 1.0.0.1 */
+                    return false;
+                }
+
+                if (!UpdateAPCDataXMLFile(changedApcDetails, apcNumber, imageNumber, tempFolderPath,
+                                           studyName, apcDisplayNumber, apcImageFileName))
+                {
+
+                    /* Begin: Added 1.0.0.1 */
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdateFilesInApcChangeTempFolder()] " +
+                                                       $"Return reason: APCDataXML File update failed ");
+                    /* End: Added 1.0.0.1 */
+                    return false;
+                }
+
+                if (!CreateIPDataXMLFile(imageNumber, tempFolderPath, ipSourceFilename))
+                {
+                    // Info Log
+                    /* Begin: Added 1.0.0.1 */
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdateFilesInApcChangeTempFolder()] " +
+                                                       $"Return reason: IPDataXMLFile update failed ");
+                    /* End: Added 1.0.0.1 */
+                    return false;
+                }
+
+                if (!UpdateRXIPAWHtypeDataCSV(tempImageFilePath, hTypePartDatavalues))
+                {
+                    /* Begin: Added 1.0.0.1 */
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdateFilesInApcChangeTempFolder()] " +
+                                                       $"Return reason: RXIPAWHtypeDataCSV File update failed ");
+                    /* End: Added 1.0.0.1 */
+                    return false;
+                }
+
+                /* Begin: Added 1.0.0.8 */
+                // If object calibration is last performed distance calibration, 
+                // then postproc file cannot be updated with TOD pixel pitch.
+                if (ImageProcessUtyCommon.IsObjectCalibrationMode(relationInfo))
+                {
+                    /* Begin: Added 1.0.1.0 */
+                    if (!((IApp)Application.Current).MyUniversalInfo.IsEachImageSave)
+                    {
+                        // If IsEachImageSave is false, the object pixel pitch from relationInfo postproc
+                        // should be saved to the post proc in TempApcChange folder.
+                        // Otherwise, the object pixel pitch will be overwritten -
+                        // - with original series folder postproc pixel pitch.
+                        /* Begin: Added 1.0.1.1 */
+                        UpdatePostProcImageInfoFile(changedApcDetails, actualInfo,
+                                                    tempImageFilePath, imageNumber, relationInfo, isTempSave: true);
+                        /* End: Added 1.0.1.1 */
+                    }
+                    /* End: Added 1.0.1.0 */
+                    else
+                    {
+                        /* Begin: Added 1.0.0.9 */
+                        InfoLogOutBasedOnExecutingAssembly(
+                            $"[ApcChange][ObjectCalibration][{_assemblyName}.UpdateFilesInApcChangeTempFolder()] " +
+                            $"Object calibration is performed in the image. PostProcImageInfo File update not performed.");
+                        /* End: Added 1.0.0.9 */
+                    }
+                }
+                else
+                {
+                /* End: Added 1.0.0.8 */
+                    /* Begin: Added 1.0.0.5 */
+                    /* Begin: Added 1.0.1.1 */
+                    if (!UpdatePostProcImageInfoFile(changedApcDetails, actualInfo, 
+                                        tempImageFilePath, imageNumber, relationInfo))
+                    /* End: Added 1.0.1.1 */
+                    {
+                        /* Begin: Added 1.0.0.9 */
+                        InfoLogOutBasedOnExecutingAssembly(
+                            $"[ApcChange][ObjectCalibration][{_assemblyName}.UpdateFilesInApcChangeTempFolder()] " +
+                            $"Return reason: PostProcImageInfoFile File update is not successful");
+                        /* End: Added 1.0.0.9 */
+                    }
+                    /* End: Added 1.0.0.5 */
+                    
+                /* Begin: Added 1.0.0.8 */
+                }
+                /* End: Added 1.0.0.8 */
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Error log
+                /* Begin: Added 1.0.0.1 */
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+                /* End: Added 1.0.0.1 */
+                return false;
+            }
+        }
+
+        /* Begin: Added 1.0.0.5 */
+        /* Begin: Added 1.0.1.0 */
+        /// <summary>
+        /// To update PostProcImageInfoFile
+        /// </summary>
+        /// <param name="changedApcDetails">IniApcData</param>
+        /// <param name="actualInfo">ActualInfo object</param>
+        /// <param name="tempImageFilePath">temp image file path</param>
+        /// <param name="imageNumber">Image number</param>
+        /// <param name="relationInfo">For calculation of pixelpitch</param>
+        /// <param name="isTempSave">true if IsEachImageSave is false</param>
+        /// <returns></returns>
+        /* Begin: Added 1.0.1.1 */
+        private static bool UpdatePostProcImageInfoFile(IniApcData.APC changedApcDetails, ActualInfo actualInfo,
+                                                        string tempImageFilePath, int imageNumber,
+                                                        ImageRelationInfo relationInfo, bool isTempSave = false)
+        /* End: Added 1.0.1.1 */
+        {
+        /* End: Added 1.0.1.0 */
+            try
+            {
+                string postProcImageInfoFilePath = GetFilePath(tempImageFilePath, ImageLevelApcRelatedFiles.PostProcImageInfoXMLFile);
+                if (!File.Exists(postProcImageInfoFilePath))
+                {
+                    // Error log
+                    ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdatePostProcImageInfoFile()] " +
+                                                        $"Return reason: " +
+                                                        $"PostProcImageInfoFilePath:{postProcImageInfoFilePath} is not exists");
+                    return false;
+                }
+                PostProcImageInfomation postProcImageInfo = new PostProcImageInfomation();
+                if (!postProcImageInfo.LoadFrom(postProcImageInfoFilePath))
+                {
+                    // Error log 
+                    ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdatePostProcImageInfoFile()] " +
+                                                         $"Return reason:  {postProcImageInfoFilePath} " +
+                                                         $"loading failed");
+                    return false;
+                }
+
+                if (!postProcImageInfo.ImageInfoList.ContainsKey(imageNumber))
+                {
+                    // Error log
+                    ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdatePostProcImageInfoFile()] " +
+                                                        $"Return reason:  {postProcImageInfoFilePath} " +
+                                                        $"not contains the ImageNumber:{imageNumber}");
+                    return false;
+                }
+
+                /* Begin: Added 1.0.1.0 */
+                /* Begin: Added 1.0.1.1 */
+                if (isTempSave && null != relationInfo?.PostProcImageInfo)
+                /* End: Added 1.0.1.1 */
+                {
+                    // If IsEachImageSave is false, the object pixel pitch from relationInfo postproc
+                    // should be saved to the post proc in TempApcChange folder.
+                    // Otherwise, the object pixel pitch will be overwritten -
+                    // - with original series folder postproc pixel pitch.
+                    /* Begin: Added 1.0.1.1 */
+                    UpdatePixelPitchInPostProc(relationInfo.PostProcImageInfo, ref postProcImageInfo, imageNumber);
+                    /* End: Added 1.0.1.1 */
+                }
+                else
+                /* End: Added 1.0.1.0 */
+                {
+                    string pixelPitch = string.Empty;
+                    /* Begin: Added 1.0.1.1 */
+                    pixelPitch = GetCalculatedPixelpitch(actualInfo, changedApcDetails, relationInfo);
+                    /* End: Added 1.0.1.1 */
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdatePostProcImageInfoFile()] " +
+                                                            $"Calculated new pixel pitch value: {pixelPitch} " +
+                                                            $"for Apc number: {changedApcDetails.APCDATA.APC_Number}");
+                    // Only Changing the pixel pitch
+                    postProcImageInfo.ImageInfoList[imageNumber].ImageProcess.PixelPitch = pixelPitch; 
+                }
+                if (!postProcImageInfo.SaveTo(postProcImageInfoFilePath))
+                {
+                    // Error log 
+                    ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdatePostProcImageInfoFile()] " +
+                                                        $"Return reason: Saving Failed");
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Error log
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+                return false;
+            }
+        }
+
+        /* Begin: Added 1.0.1.0 */
+        /// <summary>
+        /// Update pixel pitch of an image from a source PostProcImageInfomation 
+        /// to a destination PostProcImageInfomation
+        /// </summary>
+        /// <param name="source">source PostProcImageInfomation</param>
+        /// <param name="dest">destination PostProcImageInfomation</param>
+        /// <param name="imgNumber">Image number</param>
+        private static void UpdatePixelPitchInPostProc(PostProcImageInfomation source, 
+                                                        ref PostProcImageInfomation dest, int imgNumber)
+        {
+            if (null == source || null == dest 
+                || !source.ImageInfoList.ContainsKey(imgNumber) 
+                || !dest.ImageInfoList.ContainsKey(imgNumber))
+            {
+                // Error log
+                ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdatePixelPitchInPostProc()] " +
+                                                    $"Return reason: Source/Destination PostProcImageInfo is not " +
+                                                    $"available for updating pixel pitch. " +
+                                                    $"Or {imgNumber} is not available in PostProcImageInformation");
+                return;
+            }
+            dest.ImageInfoList[imgNumber].ImageProcess.PixelPitch
+                        = source.ImageInfoList[imgNumber].ImageProcess.PixelPitch;
+        }
+        /* End: Added 1.0.1.0 */
+
+        /// <summary>
+        /// To calculate pixel pitch after changing APC, use new TOD in APC
+        /// </summary>
+        /// <param name="actualInfo">ActualInfo object</param>
+        /// <param name="apcInfo">APC information</param>
+        /// <param name="relationInfo">ImageRelationInfo</param>
+        /// <returns>Pixel pitch string value</returns>
+        /* Begin: Added 1.0.1.1 */
+        private static string GetCalculatedPixelpitch(ActualInfo actualInfo, IniApcData.APC apcInfo, 
+                                                      ImageRelationInfo relationInfo)
+        /* End: Added 1.0.1.1 */
+        {
+            double dPixelPitch = 0;
+            try
+            {
+                /* Begin: Added 1.0.1.2 */
+                int tod = 90 == Math.Round(actualInfo.CTableCcir) ?
+                    apcInfo.APCDATA.APC_CTable90TOD : apcInfo.APCDATA.APC_TOD;
+                return relationInfo?.CalculatePixelpitch(actualInfo, tod);
+                /* End: Added 1.0.1.2 */
+            }
+            catch (Exception ex)
+            {
+                // Error log 
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+                return dPixelPitch.ToString();
+            }
+        }
+        /* End: Added 1.0.0.5 */
+
+        /// <summary>
+        /// Copy files to series folder after editing
+        /// </summary>
+        /// <param name="tempFolderPath">Temp folder path</param>
+        /// <param name="seriesPath">SeriesPath</param>
+        /// <param name="imageNumber">Image Number</param>
+        /// <param name="newRxRadFileName">New Apc file in RxRad folder</param>
+        /// <returns></returns>
+        private static bool CopyFilesToSeriesFolder(string tempFolderPath, string seriesPath, int imageNumber,
+                                                    string newRxRadFileName)
+        {
+            // To delete the IPDataXML file corresponding to an image before copying new IPDataXML of an image.
+            DeleteIPdataXMLFileInSeriesFolder(seriesPath, imageNumber);
+
+            DirectoryInfo tempDirectory = new DirectoryInfo(tempFolderPath);
+            foreach (FileInfo sourceFileInfo in tempDirectory.GetFiles())
+            {
+                /* Begin: Added 1.0.0.1 */
+                // Do not copy ApcDataxml file in RxRad folder to series folder.
+                if (newRxRadFileName == sourceFileInfo.Name)
+                {
+                    continue;
+                }
+                /* End: Added 1.0.0.1 */
+                string destinationFilepath = Path.Combine(seriesPath, sourceFileInfo.Name);
+                /* Begin: Added  1.0.0.4 */
+                for (int retryCnt = 0; retryCnt <= 3; retryCnt++)
+                {
+                    try
+                    {
+                        // Replace files in source folder with that in temp folder
+                        FileLockIO.FileCopy(sourceFileInfo, destinationFilepath, true);
+                        break;
+                    }
+                    catch
+                    {
+                        if (retryCnt >= 3)
+                        {
+                            break;
+                        }
+
+                        Thread.Sleep(100);
+                        continue;
+                    }
+                }
+                /* End: Added  1.0.0.4 */
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// To copy file to RxRadFolder
+        /// </summary>
+        /// <param name="seriesPath"><SeriesPath/param>
+        /// <param name="existingRxRadFilePath">Exsting APC file path in RxRad folder</param>
+        /// <param name="newRxRadFilepath">New APC file path in RxRad folder</param>
+        /// <returns></returns>
+        private static bool CopyFilesToRxRadFolder(string seriesPath, string existingRxRadFilePath,
+                                                   string newRxRadFilepath, out string destinationFilepath)
+        {
+            FileInfo sourceFileInfo = new FileInfo(newRxRadFilepath);
+            string examFolderPath = Path.GetDirectoryName(seriesPath);
+            string rxRadFolderPath = Path.Combine(examFolderPath, StudyObjectFile.RxRadFileName);
+            destinationFilepath = Path.Combine(rxRadFolderPath, sourceFileInfo.Name);
+            FileLockIO.FileCopy(sourceFileInfo, destinationFilepath, true);
+            /* Begin: Added 1.0.0.2 */
+            FileLockIO.DeleteFile(existingRxRadFilePath);
+            /* End: Added 1.0.0.2 */
+            return true;
+        }
+
+        /// <summary>
+        /// To delete TempApcChange Folder
+        /// </summary>
+        /// <param name="tempFolderpath">TempApcChange folder path</param>
+        private static void DeleteTempApcChangeFolder(string tempFolderpath)
+        {
+            if (string.IsNullOrEmpty(tempFolderpath) || !Directory.Exists(tempFolderpath))
+            {
+                return;
+            }
+            Directory.Delete(tempFolderpath, true);
+        }
+
+        /* Begin: Added 1.0.0.1 */
+        /// <summary>
+        /// To upadate APCData.xml from RxRad folder
+        /// </summary>
+        /// <param name="changedApcDetails">Ini ApcInfo</param>
+        /// <param name="existingRxRadAPCFilePath">Existing RxRadAPCFilePath</param>
+        /// <param name="newRxRadAPCFilePath">New RxRadAPCFilePath</param>
+        /// <returns>True if file update is successful and false otherwise</returns>
+        private static bool UpdateApcDataXMLInRxRadFolder(IniApcData.APC changedApcDetails,
+                                                          string existingRxRadAPCFilePath,
+                                                          string newRxRadAPCFilePath)
+        {
+            try
+            {
+                Apc.APCInfo apcInfo = XmlDataAccess<Apc.APCInfo>.ReadData(existingRxRadAPCFilePath);
+                int apcDispNumber = apcInfo.APCDisplyNo;
+                string apcImageFilePath = apcInfo.APCData.FirstOrDefault().ImageFileName;
+                string studyName = apcInfo.APCData.FirstOrDefault().StudyName;
+
+                // Update Apc data.
+                IniApcData.APCInfo apcInfoObj = new IniApcData.APCInfo();
+                changedApcDetails.APCDATA.StudyName = studyName;
+                changedApcDetails.APCDATA.ImageFileName = apcImageFilePath;
+                apcInfoObj.APCData.Add(changedApcDetails.APCDATA);
+                apcInfoObj.APCDisplyNo = apcDispNumber;
+                XmlDataAccess<IniApcData.APCInfo>.SaveData(newRxRadAPCFilePath, apcInfoObj);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Error log
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+                return false;
+            }
+        }
+        /* End: Added 1.0.0.1 */
+
+        /// <summary>
+        /// To update ActualInfo file
+        /// </summary>
+        /// <param name="tempImageFilePath">Image file path in temp folder</param>
+        /// <param name="imageNumber">ImageNumber</param>
+        /// <param name="apcNumber">Apc number</param>
+        /// <param name="seqNumber">seq number</param>
+        /// <param name="apcPID">apcPID</param>
+        /// <param name="apcTOD">apcTOD</param>
+        /// <param name="actualInfoDict">actualInfoDict</param>
+        /// <param name="actualInfo">ActualInfo object</param>
+        /// <param name="offsetGeneImageNumber">Gene offset</param>
+        /// <returns>bool</returns>
+        /* Begin: Added 1.0.0.5 */
+        private static bool UpdateActualInfoFile(string tempImageFilePath, int imageNumber,
+                                                 int apcNumber, int seqNumber, int apcPID, int apcTOD,
+                                                 Dictionary<int, ActualInfo> actualInfoDict, ActualInfo actualInfo,
+                                                 int offsetGeneImageNumber)
+        /* End: Added 1.0.0.5 */
+        {
+            try
+            {
+                string actualInfoFilePath = GetFilePath(tempImageFilePath, ImageLevelApcRelatedFiles.ActualInfoCSVFile);
+                actualInfo.ApcNumber = apcNumber;
+                actualInfo.SeqNumber = seqNumber;
+                /* Begin: Added 1.0.0.5 */
+                actualInfo.PID = apcPID;
+                actualInfo.TOD = apcTOD;
+                /* End: Added 1.0.0.5 */
+                actualInfoDict[imageNumber] = actualInfo;
+                CsvFileUtility<ActualInfo>.WriteFile(actualInfoFilePath, actualInfoDict, offsetGeneImageNumber);
+                /* Begin: Added 1.0.0.5 */
+                InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdateActualInfoFile()] " +
+                                                        $"Updating PID value:{apcPID} , TOD value:{apcTOD}" +
+                                                        $"for Apc number: {apcNumber} in ActualInfo.csv");
+                /* End: Added 1.0.0.5 */
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Error log
+                /* Begin: Added 1.0.0.1*/
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+                /* End: Added 1.0.0.1 */
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// To update Image Raw file header in temp folder
+        /// </summary>
+        /// <param name="imageFilePath">Image file path in temp folder</param>
+        /// <param name="apcNumber">Apc Number</param>
+        /// <param name="studyName">Study Name</param>
+        /// <returns></returns>
+        /* Begin: Added 1.0.0.3 */        /// 
+        private static unsafe bool UpdateImageRawFileHeader(string imageFilePath, int apcNumber, out string studyName)
+        /* End: Added 1.0.0.3 */
+        {
+            studyName = string.Empty;
+            try
+            {
+
+                /* Begin: Added 1.0.0.3 */
+                byte[] header = FileAccessCommon.GetImageHeaderDataFromFileName(imageFilePath);
+                ImageHeader imageHeader = new ImageHeader();
+                fixed (byte* pByte = header)
+                {
+                    if (!imageHeader.UnPack(pByte))
+                    {
+                        // Error log
+                        ErrorLogOutBasedOnExecutingAssembly($"[{_assemblyName}.UpdateImageRawFileHeader()] " +
+                                                            $"Return reason: header unpacking failed");
+                        imageHeader = null;
+                    }
+                }
+                /* End: Added 1.0.0.3 */
+                if (null == imageHeader)
+                {
+                    // Error log
+                    /* Begin: Added 1.0.0.1 */
+                    ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdateImageRawFileHeader()] " +
+                                                        $"Return reason: ImageHeader information is null in File:{imageFilePath}");
+                    /* End: Added 1.0.0.1 */
+                    return false;
+                }
+
+                studyName = imageHeader.StudyName;
+                imageHeader.ApcNumber = apcNumber;
+                /* Begin: Added 1.0.0.3 */
+                imageHeader.Pack(header);
+                /* End: Added 1.0.0.3 */
+                using (FileLocker locker = new FileLocker(imageFilePath))
+                {
+                    // FileShare.Read is the default for those FileStream constructors without a FileShare parameter.
+                    // So no need to mention the FileShare mode.
+                    using (FileStream fileStream = new FileStream(imageFilePath, FileMode.Open, FileAccess.ReadWrite))
+                    {
+                        fileStream.Write(header, 0, header.Length);
+                        fileStream.Flush();
+                    }
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Error log
+                /* Begin: Added 1.0.0.1 */
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+                /* End: Added 1.0.0.1 */
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// To upadte APCData.xml in temp folder
+        /// </summary>
+        /// <param name="changedApcDetails">IniApc information</param>
+        /// <param name="apcNumber">Apc number</param>
+        /// <param name="imageNumber">Image number</param>
+        /// <param name="tempFolderPath">Temp folder path</param>
+        /// <param name="studyName">Study name</param>
+        /// <param name="apcDisplayNumber">Apc Display Number</param>
+        /// <returns></returns>
+        private static bool UpdateAPCDataXMLFile(IniApcData.APC changedApcDetails, int apcNumber, 
+                                                  int imageNumber, string tempFolderPath,
+                                                  string studyName, int apcDisplayNumber,
+                                                  string apcImageFileName)
+        {
+            try
+            {
+                // Update Apc data.
+                changedApcDetails.APCDATA.StudyName = studyName;
+                changedApcDetails.APCDATA.ImageFileName = apcImageFileName;
+                changedApcDetails.APCDATA.APC_ExpectedImage = null;
+                IniApcData.APCInfo apcInfo = new IniApcData.APCInfo();
+                apcInfo.APCData.Add(changedApcDetails.APCDATA);
+                apcInfo.APCDisplyNo = apcDisplayNumber;
+
+                // Save ApcData.xml in temp folder.
+                string newApcFileName = string.Concat("Image", imageNumber.ToString("D5"), "_APCData.xml");
+                string apcDataXMLFilePath = Path.Combine(tempFolderPath, newApcFileName);
+                XmlDataAccess<IniApcData.APCInfo>.SaveData(apcDataXMLFilePath, apcInfo);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Error log
+                /* Begin: Added 1.0.0.1 */
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+                /* End: Added 1.0.0.1 */
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// To create new IPDataXMl file to temp folder
+        /// </summary>
+        /// <param name="imageNumber">Image number</param>
+        /// <param name="parentFolderPath">Temp folder path</param>
+        /// <param name="sourceFileName">source ip filename</param>
+        /// <returns></returns>
+        private static bool CreateIPDataXMLFile(int imageNumber, string parentFolderPath,string sourceFileName)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(sourceFileName))
+                {
+                    // Error log
+                    /* Begin: Added 1.0.0.1 */
+                    ErrorLogOutBasedOnExecutingAssembly($"[{_assemblyName}.UpdateIPDataXMLFile()] " +
+                                                        $"Return reason: " +
+                                                        $"Ip source file name is null");
+                    /* End: Added 1.0.0.1 */
+                    return false;
+                }
+
+                string presetFileName = Path.GetFileName(sourceFileName);
+                string newIpFileName = string.Concat("Image", imageNumber.ToString("D5"), "_", presetFileName);
+                string destinationFileName = Path.Combine(parentFolderPath, newIpFileName);
+
+                if (File.Exists(sourceFileName) && !File.Exists(destinationFileName))
+                {
+                    FileLockIO.FileCopy(sourceFileName, destinationFileName);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Error log
+                /* Begin: Added 1.0.0.1 */
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+                /* End: Added 1.0.0.1 */
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// To update RXIPAWHtypeDataCSV file
+        /// </summary>
+        /// <param name="tempImageFilePath">mage file path in temp folder</param>
+        /// <param name="hTypePartDatavalues">AW H type values</param>
+        /// <returns></returns>
+        private static bool UpdateRXIPAWHtypeDataCSV(string tempImageFilePath, List<string> hTypePartDatavalues)
+        {
+            try
+            {
+                string rxIPAWHtypeDataCSVPath = FileAccessCommon.GetRXIPAWHtypeDataFileName(tempImageFilePath);
+                if (File.Exists(rxIPAWHtypeDataCSVPath))
+                {
+                    File.Delete(rxIPAWHtypeDataCSVPath);
+                }
+
+                if (1 >= hTypePartDatavalues.Count)
+                {
+                    // Error log
+                    /* Begin: Added 1.0.0.1 */
+                    ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.UpdateRXIPAWHtypeDataCSV()] " +
+                                                        $"Return reason: " +
+                                                        $"csv values is null");
+                    /* End: Added 1.0.0.1 */
+                    return false;
+                }
+                File.AppendAllLines(rxIPAWHtypeDataCSVPath, hTypePartDatavalues);
+                hTypePartDatavalues.Clear();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Error log
+                /* Begin: Added 1.0.0.1 */
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+                /* End: Added 1.0.0.1 */
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// To get values from relation info
+        /// </summary>
+        /// <param name="relationInfo">ImageRelationInfo object</param>
+        /// <param name="imageFilePath">Image file path in series folder</param>
+        /// <param name="apcDisplayNumber">Apc display number</param>
+        /// <param name="apcImageFileName">Apc Image FileName</param>
+        /// <returns></returns>
+        private static bool GetValuesFromRelationInfo(ImageRelationInfo relationInfo, out string imageFilePath,
+                                                      out int apcDisplayNumber, out string apcImageFileName)
+        {
+            imageFilePath = string.Empty;
+            apcDisplayNumber = 0;
+            apcImageFileName = string.Empty;
+            try
+            {
+                if (null == relationInfo?.StudyImageInformation)
+                {
+                    /* Begin: Added 1.0.0.1 */
+                    ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.GetValuesFromRelationInfo()] " +
+                                                        $"Return reason: RelationInfo is null");
+                    /* End: Added 1.0.0.1 */
+                    return false;
+                }
+
+                imageFilePath = relationInfo.StudyImageInformation.ImageFileName;
+                if(!File.Exists(imageFilePath))
+                {
+                    /* Begin: Added 1.0.0.1 */
+                    ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.GetValuesFromRelationInfo()] " +
+                                                        $"Return reason: imageFilePath:{imageFilePath} is not exists");
+                    /* End: Added 1.0.0.1 */
+                }
+                apcDisplayNumber = relationInfo.StudyImageInformation.APCDisplayNo;
+                apcImageFileName = relationInfo.StudyImageInformation.ApcInfoData?.ImageFileName;
+                return true;
+            }
+            catch(Exception ex)
+            {
+                // Error log
+                /* Begin: Added 1.0.0.1 */
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+                /* End: Added 1.0.0.1 */
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// To get file path
+        /// </summary>
+        /// <param name="imageFilePath">Image file path</param>
+        /// <param name="fileType">File Type</param>
+        /// <returns>File path</returns>
+        private static string GetFilePath(string imageFilePath, ImageLevelApcRelatedFiles fileType,
+                                          int apcNumber = 0, int seqNumber = 0)
+        {
+            string filePath = string.Empty;
+            string parentFolderPath = Path.GetDirectoryName(imageFilePath);
+            switch (fileType)
+            {
+                case ImageLevelApcRelatedFiles.ImageRawFile:
+                    filePath = imageFilePath;
+                    break;
+                case ImageLevelApcRelatedFiles.ThumbanailRawFile:
+                    filePath = imageFilePath.Replace(FileAccessCommon.ImageExtension,
+                                                     FileAccessCommon.ThumbnailImageExtension);
+                    break;
+                case ImageLevelApcRelatedFiles.ActualInfoCSVFile:
+                    filePath = Path.Combine(parentFolderPath, FileAccessCommon.ActualInfo_FileName);
+                    break;
+                case ImageLevelApcRelatedFiles.APCDataXMLFile:
+                    /* Begin: Added 1.0.0.2 */
+                    FileAccessCommon.GetImageNo(imageFilePath, out int imageNumber);
+                    /* End: Added 1.0.0.2 */
+                    filePath = Path.Combine(parentFolderPath, string.Concat("Image", imageNumber.ToString("D5"), "_",
+                                                                            FileAccessCommon.APCDataXMLName));
+                    break;
+                case ImageLevelApcRelatedFiles.IPDataXMLFile:
+                    /* Begin: Added 1.0.0.2 */
+                    FileAccessCommon.GetImageNo(imageFilePath, out int imageNum);
+                    /* End: Added 1.0.0.2 */
+                    string ipDataXmlTag = string.Concat("Image", imageNum.ToString("D5"), "_", "IPData");
+                    filePath = Directory.GetFiles(parentFolderPath).Where(x => x.Contains(ipDataXmlTag)).FirstOrDefault();
+                    break;
+                case ImageLevelApcRelatedFiles.AutoWndCsvFile:
+                    filePath = FileAccessCommon.GetRXIPAWHtypeDataFileName(imageFilePath);
+                    break;
+                /* Begin: Added 1.0.0.1 */
+                case ImageLevelApcRelatedFiles.RxRadFolderAPCDataXMLFile:
+                    string examFolderPath = Path.GetDirectoryName(parentFolderPath);
+                    string rxRadFolderPath = Path.Combine(examFolderPath, StudyObjectFile.RxRadFileName);
+                    string rxRadApcFilename = string.Format(@"I{0}_{1}.xml", apcNumber, seqNumber.ToString("D4"));
+                    filePath = Path.Combine(rxRadFolderPath, rxRadApcFilename);
+                    break;
+                /* End: Added 1.0.0.1 */
+                /* Begin: Added 1.0.0.5 */
+                case ImageLevelApcRelatedFiles.PostProcImageInfoXMLFile:
+                    filePath = Path.Combine(parentFolderPath, FileAccessCommon.PostProcessProcInfo_FileName);
+                    break;
+                /* End: Added 1.0.0.5 */
+                default:
+                    filePath = string.Empty;
+                    break;
+            }
+            return filePath;
+        }
+
+        /// <summary>
+        /// To delete IPDataXML file corresponding to an image to series folder before copying new IPdata xml
+        /// </summary>
+        /// <param name="seriesPath">SeriesPath</param>
+        /// <param name="imageNumber">Image number</param>
+        private static void DeleteIPdataXMLFileInSeriesFolder(string seriesPath, int imageNumber)
+        {
+            string ipDataXmlTag = string.Concat("Image", imageNumber.ToString("D5"), "_", "IPData");
+            /* Begin: Added 1.0.0.7 */
+            string acquisitionIPXmlTag = "_Acquisition.xml";
+            List<string> files = Directory.GetFiles(seriesPath).Where(x => x.Contains(ipDataXmlTag) && 
+                                                                      !x.Contains(acquisitionIPXmlTag)).ToList();
+            /* End: Added 1.0.0.7 */
+            foreach (string ipDataFile in files)
+            {
+                /* Begin: Added  1.0.0.4 */
+                for (int retryCnt = 0; retryCnt <= 3; retryCnt++)
+                {
+                    try
+                    {
+                        FileLockIO.DeleteFile(ipDataFile);
+                        break;
+                    }
+                    catch
+                    {
+                        if (retryCnt >= 3)
+                        {
+                            break;
+                        }
+
+                        Thread.Sleep(100);
+                        continue;
+                    }
+                }
+                /* End: Added  1.0.0.4 */
+            }
+        }
+
+        /* Begin: Added 1.0.0.1 */
+        /// <summary>
+        /// To get RxRadAPCFilePath to be create
+        /// </summary>
+        /// <param name="tempImagefilePath">Temp image file path</param>
+        /// <param name="newApcNumber">Apc number</param>
+        /// <param name="seqNumber">Sequence number</param>
+        /// <returns>RxRad Apc File path</returns>
+        private static string GetRxRadAPCFilePathToBeCreate(string tempImagefilePath, int newApcNumber, ref int seqNumber)
+        {
+            string newRxRadAPCFilePath = GetFilePath(tempImagefilePath,
+                                                     ImageLevelApcRelatedFiles.RxRadFolderAPCDataXMLFile,
+                                                     newApcNumber, seqNumber);
+            int apcIterator = 0;
+            do
+            {
+                if (File.Exists(newRxRadAPCFilePath))
+                {
+                    seqNumber = seqNumber + 1;
+                    newRxRadAPCFilePath = GetFilePath(tempImagefilePath,
+                                                      ImageLevelApcRelatedFiles.RxRadFolderAPCDataXMLFile,
+                                                      newApcNumber, seqNumber);
+                }
+                else
+                {
+                    break;
+                }
+                apcIterator++;
+            /* Begin: Added 1.0.0.6 */
+            } while (apcIterator < _apcMaxLimit);
+            /* End: Added 1.0.0.6 */
+
+            newRxRadAPCFilePath = Path.Combine(Path.GetDirectoryName(tempImagefilePath),
+                                               Path.GetFileName(newRxRadAPCFilePath));
+            return newRxRadAPCFilePath;
+        }
+
+        /// <summary>
+        /// To read ActualInfo.CSV file
+        /// </summary>
+        /// <param name="imagefilePath">Temp Image FilePath</param>
+        /// <param name="actualInfoDict">ActualInfo dictionary</param>
+        /// <param name="offsetGeneImageNumber">Gene offset</param>
+        /// <returns>Read success or not</returns>
+        private static bool GetActualInfoDetails(string imagefilePath, int offsetGeneImageNumber, 
+                                                 out Dictionary<int, ActualInfo> actualInfoDict)
+        {
+            actualInfoDict = null;
+            try
+            {
+                string actualInfoFilePath = GetFilePath(imagefilePath, ImageLevelApcRelatedFiles.ActualInfoCSVFile);
+                if (!File.Exists(actualInfoFilePath))
+                {
+                    ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.GetActualInfoDetails()] " +
+                                                        $"Return resaon: " +
+                                                        $"ActualInfoFilePath:{actualInfoFilePath} is not exists");
+                    return false;
+                }
+                actualInfoDict = CsvFileUtility<ActualInfo>.LoadFile(actualInfoFilePath, offsetGeneImageNumber);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Error log based on executing Assembly
+        /// </summary>
+        /// <param name="logString">Log string</param>
+        private static void ErrorLogOutBasedOnExecutingAssembly(string logString)
+        {
+            switch (_executingAssembly)
+            {
+                case ExecutingAssembly.PL:
+                    ((IApp)Application.Current).LogOut(412347, logString);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Info log based on executing Assembly
+        /// </summary>
+        /// <param name="logString">Log string</param>
+        private static void InfoLogOutBasedOnExecutingAssembly(string logString)
+        {
+            switch (_executingAssembly)
+            {
+                case ExecutingAssembly.PL:
+                    ((IApp)Application.Current).LogOut(412437, logString);
+                    break;
+                default:
+                    break;
+            }
+        }
+        /* End: Added 1.0.0.1 */
+
+        /* Begin: Added 1.0.0.6 */
+        /// <summary>
+        /// To get temporaray series path
+        /// </summary>
+        /// <param name="originalSeriesPath"></param>
+        /// <returns>Temp series path</returns>
+        public static string GetTemporarySeriesPath(string originalSeriesPath)
+        {
+            string tempSeries = string.Empty;
+            DirectoryInfo dirc = new DirectoryInfo(originalSeriesPath);
+            if(ExecutingAssembly.PL != _executingAssembly)
+            {
+                return tempSeries;
+            }
+            if (LAYOUTSTATUS.PatientExamLayout == ((IApp)Application.Current).LayoutNumber)
+            {
+                tempSeries = Path.Combine(ImageProcessCommon.GetDataRootForTempDataPath(true) + dirc.Parent, dirc.Name);
+            }
+            else if (LAYOUTSTATUS.ImageEditLayout == ((IApp)Application.Current).LayoutNumber)
+            {
+                tempSeries = Path.Combine(ImageProcessCommon.GetDataRootForTempDataPath(false) + dirc.Parent, dirc.Name);
+            }
+            return tempSeries;
+        }
+
+        /// <summary>
+        /// Get temporary ip file path
+        /// </summary>
+        /// <param name="seriesPath"></param>
+        /// <param name="originalIpFileName"></param>
+        /// <returns></returns>
+        private static string GetTempIPFileName(string seriesPath, string originalIpFileName)
+        {
+            DirectoryInfo dirc = new DirectoryInfo(seriesPath);
+            string tempSeriesFilePath = string.Empty;
+            if (ExecutingAssembly.PL != _executingAssembly)
+            {
+                return tempSeriesFilePath;
+            }
+            if (LAYOUTSTATUS.PatientExamLayout == ((IApp)Application.Current).LayoutNumber)
+            {
+                tempSeriesFilePath = Path.Combine(ImageProcessCommon.GetDataRootForTempDataPath(true) + dirc.Parent, dirc.Name);
+            }
+            else if (LAYOUTSTATUS.ImageEditLayout == ((IApp)Application.Current).LayoutNumber)
+            {
+                tempSeriesFilePath = Path.Combine(ImageProcessCommon.GetDataRootForTempDataPath(false) + dirc.Parent, dirc.Name);
+            }
+            string tempIpFileName = Path.Combine(tempSeriesFilePath, Path.GetFileName(originalIpFileName));
+            return tempIpFileName;
+        }
+
+        /// <summary>
+        /// Copy files to IsEachImageSave temp series folder after editing
+        /// </summary>
+        /// <param name="tempFolderPath">Temp folder path</param>
+        /// <param name="tempSeriesPath">SeriesPath</param>
+        /// <param name="imageNumber">Image Number</param>
+        /// <param name="newRxRadFileName">New Apc file in RxRad folder</param>
+        /// <returns></returns>
+        private static bool CopyFilesToTempSeriesFolder(string imageFilePath, string tempFolderPath, 
+                                                        string tempSeriesPath, int imageNumber,
+                                                        string newRxRadFileName)
+        {
+            DirectoryInfo tempDirectory = new DirectoryInfo(tempFolderPath);
+            foreach (FileInfo sourceFileInfo in tempDirectory.GetFiles())
+            {
+                ImageLevelApcRelatedFiles fileType = GetFileType(sourceFileInfo.FullName);
+
+                // Copy files from APC change temp foler to IsEachImageSave temp series folder
+                if (ImageLevelApcRelatedFiles.ActualInfoCSVFile == fileType ||
+                    ImageLevelApcRelatedFiles.AutoWndCsvFile == fileType ||
+                    ImageLevelApcRelatedFiles.APCDataXMLFile == fileType)
+                {
+                    string destinationFilepath = Path.Combine(tempSeriesPath, sourceFileInfo.Name);
+                    CopyOrReplaceFile(sourceFileInfo.FullName, destinationFilepath);
+                }
+                // Update the PostProcImageInfo.xml in IsEachImageSave temp series folder...
+                // corresponding to Apc changed image
+                else if (ImageLevelApcRelatedFiles.PostProcImageInfoXMLFile == fileType)
+                {
+                    string tempPostprocFile = Path.Combine(tempSeriesPath, 
+                                                           FileAccessCommon.PostProcessProcInfo_FileName);
+                    string orgPostProcFileName = Path.Combine(tempFolderPath, 
+                                                              FileAccessCommon.PostProcessProcInfo_FileName);
+                    if (!File.Exists(tempPostprocFile) || !File.Exists(orgPostProcFileName))
+                    {
+                        ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.CopyFilesToTempSeriesFolder()] " +
+                                                            $"Temp PostProc file not updated ");
+                        continue;
+                    }
+
+                    PostProcImageInfomation PostProcInfo = new PostProcImageInfomation();
+                    ImageInfo updatedPostProcInfo = null;
+                    PostProcInfo.LoadFrom(orgPostProcFileName);
+                    if (PostProcInfo.ImageInfoList.ContainsKey(imageNumber))
+                    {
+                        updatedPostProcInfo = PostProcInfo.ImageInfoList[imageNumber];
+                    }
+
+                    PostProcImageInfomation tempPostProcInfo = new PostProcImageInfomation();
+                    tempPostProcInfo.LoadFrom(tempPostprocFile);
+                    if (null != updatedPostProcInfo && tempPostProcInfo.ImageInfoList.ContainsKey(imageNumber))
+                    {
+                        tempPostProcInfo.ImageInfoList[imageNumber] = updatedPostProcInfo;
+                        tempPostProcInfo.ImageInfoList[imageNumber].IsTempEdited = 0;
+                        tempPostProcInfo.SaveTo(tempPostprocFile);
+                    }
+                }
+                else
+                {
+                    // Do nothing
+                }
+            }
+
+            string ipFilePath = imageFilePath.Replace(FileAccessCommon.ImageExtension,
+                                                      FileAccessCommon.ImageProcessFileExtension);
+            if(!File.Exists(ipFilePath))
+            {
+                ErrorLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.CopyFilesToTempSeriesFolder()] " +
+                                                    $"IP.xml file {ipFilePath} not exists ");
+                return false;
+            }
+
+            string tempIpFilePath = GetTempIPFileName(Path.GetDirectoryName(ipFilePath), ipFilePath);
+            string tempSeriespath = Path.GetDirectoryName(tempIpFilePath);
+            string histFile = ipFilePath.Replace(FileAccessCommon.ImageProcessFileExtension, "_Hist.txt");
+            string tempHistFile = Path.Combine(tempSeriespath, Path.GetFileName(histFile));
+
+            // Copy Ip.xml from series folder to IsEachImageSave temp series folder
+            CopyOrReplaceFile(ipFilePath, tempIpFilePath);
+
+            // During Recalculate, if IsEachImageSave is false,
+            // hist file updated to temp series folder from RXWindowing plugin.
+            // So Copy .hist file from IsEachImageSave temp series folder to original series folder
+            CopyOrReplaceFile(tempHistFile, histFile);
+            return true;
+        }
+
+        /// <summary>
+        /// To copy a file to a destination path
+        /// </summary>
+        /// <param name="sourceFilePath">Source File Path</param>
+        /// <param name="destinationFilePath">Destination File Path</param>
+        private static void CopyOrReplaceFile(string sourceFilePath, string destinationFilePath)
+        {
+            try
+            {
+                if (!File.Exists(sourceFilePath))
+                {
+                    InfoLogOutBasedOnExecutingAssembly($"[ApcChange][{_assemblyName}.CopyOrReplaceFile()] Returned " +
+                                                       $"SourceFilepath: {sourceFilePath} not exists");
+                }
+
+                FileInfo sourceFileInfo = new FileInfo(sourceFilePath);
+                for (int retryCnt = 0; retryCnt <= 3; retryCnt++)
+                {
+                    try
+                    {
+                        // Replace files in source folder with that in temp folder
+                        FileLockIO.FileCopy(sourceFileInfo, destinationFilePath, true);
+                        break;
+                    }
+                    catch
+                    {
+                        if (retryCnt >= 3)
+                        {
+                            break;
+                        }
+                        Thread.Sleep(100);
+                        continue;
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                ErrorLogOutBasedOnExecutingAssembly(ex.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Get file type
+        /// </summary>
+        /// <param name="filePath">file path</param>
+        /// <returns>file type</returns>
+        private static ImageLevelApcRelatedFiles GetFileType(string filePath)
+        {
+            if (filePath.Contains(FileAccessCommon.ActualInfo_FileName))
+            {
+                return ImageLevelApcRelatedFiles.ActualInfoCSVFile;
+            }
+            else if (filePath.Contains(FileAccessCommon.APCDataXMLName))
+            {
+                return ImageLevelApcRelatedFiles.APCDataXMLFile;
+            }
+            else if (filePath.Contains(FileAccessCommon.RXIPAWHtypeData_FileName))
+            {
+                return ImageLevelApcRelatedFiles.AutoWndCsvFile;
+            }
+            else if (filePath.Contains(FileAccessCommon.PostProcessProcInfo_FileName))
+            {
+                return ImageLevelApcRelatedFiles.PostProcImageInfoXMLFile;
+            }
+            else
+            {
+                return ImageLevelApcRelatedFiles.ImageRawFile;
+            }
+        }
+        /* End: Added 1.0.0.6 */
+        #endregion
+    }
+}
