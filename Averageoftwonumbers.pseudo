@@ -1,158 +1,94 @@
-        public void SendRxRadSetParameter(List<object> param, EventType type)
+ private void NotificationParameter(List<object> param, EventType type)
         {
-            //(1.4.3.0 add)--->
-            // RX検査以外では動くべきではない
-            // 現状、内部イベント"StudyInstanceSelectionChanged"が発生すると
-            // 検査モード関係なく動いてしまうのでガード
-            if (patientManageExam.GetStudyMode() != StudyMode.RX)
+            ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.ReceiveRequest, type, "[Debug for EventRequest][PhotoMenu.Frame.NotificationParameterDisplay()]", param);
+
+            // 切断中は通知された値を処理しない
+            if (myStatusInfo.ExpSequence.IsDisconnect())
             {
+                ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.ReceiveRequest, type, "[Debug for EventRequest][PhotoMenu.Frame.NotificationParameterDisplay()] Cutting.", null);
                 return;
             }
-            //(1.4.3.0 add)---<
 
-            // RF側のSetParameter送信時に撮影禁止設定が外れている可能性があるため再設定する
-            ScreenLockManage.SetAcqPermissionInterlock(LockType.ConditionChange, ExpPermissionManage.Reason.SetGenCondSequence); //(1.3.8.3) add
-
-            // (1.5.0.4)撮影完了タイマの再設定
-            ScreenLockManage.SetTimeoutSec(LockType.Acquisition, ((IApp)Application.Current).MyPLInfo.LockTimeOutAcquisition);
-
-            List<object> args = new List<object>();
-            List<object> setParam = new List<object>();
-            args.Add(LayerCommRequestType.SetParameter);
-
-            // StudyMode
-            setParam.Add(StudyMode.RX.ToString());
-
-            Protocol protocol = ReadProtocol();
-            if (protocol != null)
+            if (null == param || param.Count < 2)
             {
-                protocol.ProtocolName = RxRadApcManage.GetProtocolName();
-                RxRadApcManage.SetSelectedProtocol(protocol);
+                // パラメータが無い、または2個未満の場合は何もしない
+                ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.ReceiveRequest, type, "[Debug for EventRequest][PhotoMenu.Frame.NotificationParameterDisplay()] Lack of parameters.", null);
+                return;
+            }
 
-                List<Tech> techList = new List<Tech>();
+            bool settingResult = false;             //設定結果
+            bool.TryParse(param[1].ToString(), out settingResult);
 
-                int tNo = 0;
-                foreach (Tech tc in protocol.TechList.Tech)
+            if (settingResult)
+            {
+                // SetAcqMode送信
+                //if( RxRadApcManage.GetApcTechnique() != (int)TechniqueTypes.FPD_Table) //(1.4.4.3) del
+                if (RxRadApcManage.GetApcTechnique() != (int)Technique.RAD) //(1.4.4.3) add
                 {
-                    if (tc.TechType == ProtocolList.TechNameDef.OneShot)
-                    {
-                        tc.No = tNo++;
-                        tc.Resolution = Tech.ResolutionDef.High;
-                        techList.Add(tc);
-                        break;
-                    }
+                    // FPD以外は送信しない
+                    return;
                 }
-                foreach (Tech tc in protocol.TechList.Tech)
-                {
-                    if (tc.TechType == ProtocolList.TechNameDef.Fluoro)
-                    {
-                        tc.No = tNo++;
-                        techList.Add(tc);
-                        break;
-                    }
-                }
-                protocol.TechList.Tech.Clear();
-                protocol.TechList.Tech = techList;
+                SendSetAcqMode(null, EventType.Unknown);
             }
             else
             {
-                protocol = new Protocol();
-            }
+                //(1.3.8.3)---> del
+                //if (((IApp)Application.Current).IsFirstSendSetParameterAfterStartExam)
+                //{
+                //    ((IApp)Application.Current).LogOut(412364);
+                //}
+                //else
+                //{
+                //(1.3.8.3)---< del
+                // ダイアログ表示中は撮影禁止(LockType.ConditionChangeに連動して撮影禁止が掛かっている為、タイマー停止の間、撮影禁止する)
+                ExpPermissionManage.StartProhibition(ExpPermissionManage.Reason.SetParameterReTryDialog);
+                //(1.4.1.3)---> add
+                // ダイアログ表示中はコマンドが破棄されタイムアウトする為、スイッチシーケンス関連のタイマーを停止する
+                //(1.4.4.5)---> del コマンドを破棄しないように変更した為、削除
+                //if (ScreenLockManage.isTimerActive(LockType.Acquisition))
+                //{
+                //    ScreenLockManage.StopTimer(LockType.Acquisition);
+                //}
+                //if (ScreenLockManage.isTimerActive(LockType.AcquisitionReady))
+                //{
+                //    ScreenLockManage.StopTimer(LockType.AcquisitionReady);
+                //}
+                //(1.4.4.5)---< del
+                //(1.4.1.3)---< add
+                // ダイアログ表示中はタイムアウト防止の為、画面ロック（タイマー）は一時停止
+                ScreenLockManage.StopTimer(LockType.ConditionChange);
 
-            string techXmlStr = XmlStringHandler<Protocol>.ClassToString(protocol);
-            setParam.Add(techXmlStr);
+                // 再送確認ダイアログ
+                ((IApp)Application.Current).IsSetParameterReTryDialogDisplay = true;
+                bool retry = ShowMessage(412365, LEVEL.Infomation, BUTTONTYPE.Button3, true);
+                ((IApp)Application.Current).IsSetParameterReTryDialogDisplay = false;
 
-            // APC選択フラグ
-            setParam.Add(true);
+                // 画面ロック（タイマー）再開（受信スレッドの最後のアンロックまでロックする）
+                ScreenLockManage.StartTimer(LockType.ConditionChange);
+                // ダイアログ表示中（画面ロック（タイマー）は停止中）の撮影禁止を解除
+                ExpPermissionManage.EndProhibition(ExpPermissionManage.Reason.SetParameterReTryDialog);
 
-            // ApcData
-            // 選択中のAPC番号からファイルを読み出してAPCData作成
-            Apc.APCData apcData = ReadExamApcData();
-            if (apcData != null)
-            {
-                int apcTechnique = RxRadApcManage.GetApcTechnique();
-                if (apcTechnique >= 0)
+                if (!retry)
                 {
-                    apcData.APC_Technique = apcTechnique;
-                }
-
-                // (1.3.7.2)---> add start
-                //(1.4.4.3)--->
-                //if ((apcData.APC_Technique == (int)TechniqueTypes.Gene1_Tube1) ||
-                //    (apcData.APC_Technique == (int)TechniqueTypes.Gene2_Tube2)) //(1.3.8.6 add)
-                if (apcData.APC_Technique == (int)Technique.Generator1 ||
-                    apcData.APC_Technique == (int)Technique.Generator2)
-                //(1.4.4.3)---<
-                {
-                    // Gene,Buckyの場合はMAG Normal固定
-                    //apcData.APC_RxRadMAG = (int)RxRadMAGType.N;            //(1.3.8.6 del)
-                    apcData.APC_RxRadMAG = (int)Protocol.MagSizeCode.Normal; //(1.3.8.6 add) こっち見た方が良い
-
-                    // Gene,Bucky術式のFilm感度は"2"
-                    apcData.APC_FilmDensity = (int)Tech.RadFilmSensitivityCode.MS; //(1.3.8.6 add)
-
-                    // Gene術式のAECは"off"
-                    apcData.APC_AEC = (int)Tech.RadAECCode.Off; //(1.3.8.6 add)
-
-                    // Gene術式のDensityは"0"
-                    apcData.APC_Density = (int)Tech.RadAECDensityCode.Code4; //(1.3.8.6 add)
-                }
-                //(1.4.4.3)---> add
-                else if (apcData.APC_Technique == (int)Technique.Bucky)
-                {
-                    // Gene,Buckyの場合はMAG Normal固定
-                    apcData.APC_RxRadMAG = (int)Protocol.MagSizeCode.Normal;
-
-                    // Gene,Bucky術式のFilm感度は"2"
-                    apcData.APC_FilmDensity = (int)Tech.RadFilmSensitivityCode.MS;
-
-                    // BuckyでAECが3chの設定値の場合、元々BuckyのAPCとしてそのままとする
-                    if (apcData.APC_AEC < APCData_AEC_3ch_Min_Value || APCData_AEC_3ch_Max_Value < apcData.APC_AEC)
+                    //(1.4.5.8)---> add
+                    // 撮影禁止状態から再度選択して撮影出来るようにAPCを未選択状態にする
+                    // EventRequestにより閉じた場合、未選択にしない
+                    if (CommonParts.IsMessageBoxCloseEventRequested == false) //(1.4.7.0) add
                     {
-                        apcData.APC_AEC= (int)Tech.RadAECCode.Off;
-                        apcData.APC_Density = (int)Tech.RadAECDensityCode.Code4;
+                        AutoSelectOff(param, type);
                     }
+                    RxRadApcManage.ClearSelectedApcWithoutBodyType();
+                    // ライブモニタのカレントテクニックを空にする
+                    SendRxRadChangedProtocolTechInfo();
+                    //(1.4.5.8)---< add
+
+                    return;
                 }
-                else if (apcData.APC_Technique == (int)Technique.RAD)
-                {
-                    // Gene術式以外のFilm感度は"0"
-                    apcData.APC_FilmDensity = (int)Tech.RadFilmSensitivityCode.DontCare;
+                //}
 
-                    // RADでAECがONの設定値の場合、元々RADのAPCとしてそのままとする
-                    if (apcData.APC_AEC != APCData_AEC_1ch_On_Value)
-                    {
-                        apcData.APC_AEC= (int)Tech.RadAECCode.Off;
-                        apcData.APC_Density = (int)Tech.RadAECDensityCode.Code4;
-                    }
-                //(1.4.4.3)---< add
-                //(1.3.8.6 add)--->
-                }
-                //(1.3.8.6 add)---<
-                // (1.3.7.2)<--- add end
-
-                RxRadApcManage.AdjustBodyType(apcData);
+                // SetParameter再送
+                SendRxRadSetParameter(null, EventType.Unknown);
             }
-            // (1.3.6.6)---> add start
-            else
-            {
-                ((IApp)Application.Current).LogOut(412350, "[PhotoMenu.SendRxRadSetParameter()] : APCData is null.", true);
-                return;
-            }
-            // (1.3.6.6)<--- add end
-            setParam.Add(apcData == null ? null : XmlStringHandler<Apc.APCData>.ClassToString(apcData));
 
-            // Seq番号
-            RxRadApcManage.ApcInfo apcInfo = RxRadApcManage.GetSelectedApc();  // (1.3.9.8) del //(1.4.4.4) add
-            //setParam.Add(apcInfo.GetSeqNoInt());  // (1.3.9.8) del
-            //setParam.Add(GetNextSeqNumberInt(apcData));  // (1.3.9.8) add  //(1.4.4.4) del
-            setParam.Add(int.Parse(apcInfo.SeqNumber)); //(1.4.4.4) add
-
-            args.Add(setParam);
-            ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.SendRequest, EventType.SendLayerCommCommandRequested, "[Debug for EventRequest][PhotoCond.Frame.SendSetParameterRequest()]", args);
-            ((IApp)Application.Current).EventRequest(EventType.SendLayerCommCommandRequested, args);
-            setParam.Clear();
-            args.Clear();
-
-            SendPrepAcquisition();
-            //(1.4.5.5) add ---<
+            //((IApp)Application.Current).IsFirstSendSetParameterAfterStartExam = false; //(1.3.8.3) del
         }
