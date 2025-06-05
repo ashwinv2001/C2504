@@ -1,23 +1,158 @@
-  public bool IsExamStartInProgress {  // (1.6.4.7) mod
-            get
+        public void SendRxRadSetParameter(List<object> param, EventType type)
+        {
+            //(1.4.3.0 add)--->
+            // RX検査以外では動くべきではない
+            // 現状、内部イベント"StudyInstanceSelectionChanged"が発生すると
+            // 検査モード関係なく動いてしまうのでガード
+            if (patientManageExam.GetStudyMode() != StudyMode.RX)
             {
-                if( ScreenLockManage.isTimerActive(LockType.CanStartExam) ||
-                    ScreenLockManage.isTimerActive(LockType.StartExam) ||
-                    ScreenLockManage.isTimerActive(LockType.StartExamToConditionChange) ||
-                    ScreenLockManage.isTimerActive(LockType.ConditionChange) ||
-                    ScreenLockManage.isTimerActive(LockType.SetAcqMode))
+                return;
+            }
+            //(1.4.3.0 add)---<
+
+            // RF側のSetParameter送信時に撮影禁止設定が外れている可能性があるため再設定する
+            ScreenLockManage.SetAcqPermissionInterlock(LockType.ConditionChange, ExpPermissionManage.Reason.SetGenCondSequence); //(1.3.8.3) add
+
+            // (1.5.0.4)撮影完了タイマの再設定
+            ScreenLockManage.SetTimeoutSec(LockType.Acquisition, ((IApp)Application.Current).MyPLInfo.LockTimeOutAcquisition);
+
+            List<object> args = new List<object>();
+            List<object> setParam = new List<object>();
+            args.Add(LayerCommRequestType.SetParameter);
+
+            // StudyMode
+            setParam.Add(StudyMode.RX.ToString());
+
+            Protocol protocol = ReadProtocol();
+            if (protocol != null)
+            {
+                protocol.ProtocolName = RxRadApcManage.GetProtocolName();
+                RxRadApcManage.SetSelectedProtocol(protocol);
+
+                List<Tech> techList = new List<Tech>();
+
+                int tNo = 0;
+                foreach (Tech tc in protocol.TechList.Tech)
                 {
-                    // 検査開始中に掛かる画面ロックが掛かっている場合は検査開始中とみなす
-                    // 但し、ConditionChangeとSetAcqModeは検査開始中以外でも掛かるので注意が必要
-                    return true;
+                    if (tc.TechType == ProtocolList.TechNameDef.OneShot)
+                    {
+                        tc.No = tNo++;
+                        tc.Resolution = Tech.ResolutionDef.High;
+                        techList.Add(tc);
+                        break;
+                    }
+                }
+                foreach (Tech tc in protocol.TechList.Tech)
+                {
+                    if (tc.TechType == ProtocolList.TechNameDef.Fluoro)
+                    {
+                        tc.No = tNo++;
+                        techList.Add(tc);
+                        break;
+                    }
+                }
+                protocol.TechList.Tech.Clear();
+                protocol.TechList.Tech = techList;
+            }
+            else
+            {
+                protocol = new Protocol();
+            }
+
+            string techXmlStr = XmlStringHandler<Protocol>.ClassToString(protocol);
+            setParam.Add(techXmlStr);
+
+            // APC選択フラグ
+            setParam.Add(true);
+
+            // ApcData
+            // 選択中のAPC番号からファイルを読み出してAPCData作成
+            Apc.APCData apcData = ReadExamApcData();
+            if (apcData != null)
+            {
+                int apcTechnique = RxRadApcManage.GetApcTechnique();
+                if (apcTechnique >= 0)
+                {
+                    apcData.APC_Technique = apcTechnique;
                 }
 
-                // 検査開始中では無い
-                
-                return false;
-            }
-            set
-            {
+                // (1.3.7.2)---> add start
+                //(1.4.4.3)--->
+                //if ((apcData.APC_Technique == (int)TechniqueTypes.Gene1_Tube1) ||
+                //    (apcData.APC_Technique == (int)TechniqueTypes.Gene2_Tube2)) //(1.3.8.6 add)
+                if (apcData.APC_Technique == (int)Technique.Generator1 ||
+                    apcData.APC_Technique == (int)Technique.Generator2)
+                //(1.4.4.3)---<
+                {
+                    // Gene,Buckyの場合はMAG Normal固定
+                    //apcData.APC_RxRadMAG = (int)RxRadMAGType.N;            //(1.3.8.6 del)
+                    apcData.APC_RxRadMAG = (int)Protocol.MagSizeCode.Normal; //(1.3.8.6 add) こっち見た方が良い
 
+                    // Gene,Bucky術式のFilm感度は"2"
+                    apcData.APC_FilmDensity = (int)Tech.RadFilmSensitivityCode.MS; //(1.3.8.6 add)
+
+                    // Gene術式のAECは"off"
+                    apcData.APC_AEC = (int)Tech.RadAECCode.Off; //(1.3.8.6 add)
+
+                    // Gene術式のDensityは"0"
+                    apcData.APC_Density = (int)Tech.RadAECDensityCode.Code4; //(1.3.8.6 add)
+                }
+                //(1.4.4.3)---> add
+                else if (apcData.APC_Technique == (int)Technique.Bucky)
+                {
+                    // Gene,Buckyの場合はMAG Normal固定
+                    apcData.APC_RxRadMAG = (int)Protocol.MagSizeCode.Normal;
+
+                    // Gene,Bucky術式のFilm感度は"2"
+                    apcData.APC_FilmDensity = (int)Tech.RadFilmSensitivityCode.MS;
+
+                    // BuckyでAECが3chの設定値の場合、元々BuckyのAPCとしてそのままとする
+                    if (apcData.APC_AEC < APCData_AEC_3ch_Min_Value || APCData_AEC_3ch_Max_Value < apcData.APC_AEC)
+                    {
+                        apcData.APC_AEC= (int)Tech.RadAECCode.Off;
+                        apcData.APC_Density = (int)Tech.RadAECDensityCode.Code4;
+                    }
+                }
+                else if (apcData.APC_Technique == (int)Technique.RAD)
+                {
+                    // Gene術式以外のFilm感度は"0"
+                    apcData.APC_FilmDensity = (int)Tech.RadFilmSensitivityCode.DontCare;
+
+                    // RADでAECがONの設定値の場合、元々RADのAPCとしてそのままとする
+                    if (apcData.APC_AEC != APCData_AEC_1ch_On_Value)
+                    {
+                        apcData.APC_AEC= (int)Tech.RadAECCode.Off;
+                        apcData.APC_Density = (int)Tech.RadAECDensityCode.Code4;
+                    }
+                //(1.4.4.3)---< add
+                //(1.3.8.6 add)--->
+                }
+                //(1.3.8.6 add)---<
+                // (1.3.7.2)<--- add end
+
+                RxRadApcManage.AdjustBodyType(apcData);
             }
+            // (1.3.6.6)---> add start
+            else
+            {
+                ((IApp)Application.Current).LogOut(412350, "[PhotoMenu.SendRxRadSetParameter()] : APCData is null.", true);
+                return;
+            }
+            // (1.3.6.6)<--- add end
+            setParam.Add(apcData == null ? null : XmlStringHandler<Apc.APCData>.ClassToString(apcData));
+
+            // Seq番号
+            RxRadApcManage.ApcInfo apcInfo = RxRadApcManage.GetSelectedApc();  // (1.3.9.8) del //(1.4.4.4) add
+            //setParam.Add(apcInfo.GetSeqNoInt());  // (1.3.9.8) del
+            //setParam.Add(GetNextSeqNumberInt(apcData));  // (1.3.9.8) add  //(1.4.4.4) del
+            setParam.Add(int.Parse(apcInfo.SeqNumber)); //(1.4.4.4) add
+
+            args.Add(setParam);
+            ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.SendRequest, EventType.SendLayerCommCommandRequested, "[Debug for EventRequest][PhotoCond.Frame.SendSetParameterRequest()]", args);
+            ((IApp)Application.Current).EventRequest(EventType.SendLayerCommCommandRequested, args);
+            setParam.Clear();
+            args.Clear();
+
+            SendPrepAcquisition();
+            //(1.4.5.5) add ---<
         }
