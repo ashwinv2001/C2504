@@ -1,60 +1,351 @@
-  private void RfParameterNotificationReceived(List<object> param, EventType type)
+  private void RFStatusNotificationReceiveProc(List<object> param, EventType type)
         {
-            ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.ReceiveRequest, type, "[Debug for EventRequest][PhotoMenu.Frame.RfParameterNotificationReceived()]", param);
-            // RFのSetParameterの応答としてParameterNotificationを受ける
-
-            if (null == param || param.Count < 2)
+            ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.ReceiveRequest, EventType.StatusNotificationReceived, "[Debug for EventRequest][{0}.Frame.RFStatusNotificationReceiveProc()]", execName, param);
+        
+            if (param == null || param.Count < 2 || myStatusInfo == null)  // (1.1.8.8) add
             {
-                // パラメータが無い、または2個未満の場合は何もしない
-                ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.ReceiveRequest, type, "[Debug for EventRequest][PhotoMenu.Frame.NotificationParameterDisplay()] Lack of parameters.", null);
+                string dspString = myStatusInfo == null ? "myStatusInfo == null." : "invalid parameter.";
+                ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.ReceiveRequest, EventType.StatusNotificationReceived, "[Debug for EventRequest][{0}.Frame.RFStatusNotificationReceiveProc()] " + dspString, execName, null);  // (1.1.8.8) add
                 return;
             }
 
-            //(1.4.3.4)---> add
-            bool settingResult = false;             //設定結果
-            bool.TryParse(param[1].ToString(), out settingResult);
-            //(1.4.3.4)---< add
+            string noticeString = param[0].ToString();
+            string from         = param[1].ToString();
 
-            if (((IApp)Application.Current).sentAcqMode == false)
+            if (from.Equals(LayerType.AcquisitionLayer.ToString()))  // (1.2.7.8) add
             {
-                if (settingResult) //(1.4.3.4) add
+                // (1.3.1.6)---> add start
+                if (((IApp)Application.Current).IsExamination() && patientManageExam.GetStudyMode() == StudyMode.RX)
                 {
-                    // SetParameter完了通知
-                    List<object> param1 = new List<object>();
-                    ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.SendRequest, EventType.RfSetParameterEndNotification, "[Debug for EventRequest][PhotoMenu.Frame.RfParameterNotificationReceived()]", param1);
-                    ((IApp)Application.Current).EventRequest(EventType.RfSetParameterEndNotification, param1);
-                    param1.Clear();
+                    /* Begin: Added 1.4.4.7 */
+                    if (myStatusInfo.LoadFromString(noticeString))
+                    {
+                        switch(myStatusInfo.ExpSequence)
+                        {
+                            case EXP_SEQUENCE_STATUS.Connecting:
+                            case EXP_SEQUENCE_STATUS.NotUsed:
+                            case EXP_SEQUENCE_STATUS.NotStandBy:
+                            case EXP_SEQUENCE_STATUS.StandBy:
+                            case EXP_SEQUENCE_STATUS.Forbidden:
+                                if (statusSwitchOn)
+                                {
+                                    statusSwitchOn = false;
+                                    if (statusXRayOn == false)
+                                    {
+                                        this.DotDetailPanel.IsEnabled = true;
+                                    }
+                                    statusXRayOn = false;
+                                }
+                                break;
+                            case EXP_SEQUENCE_STATUS.SwitchOn:
+                            case EXP_SEQUENCE_STATUS.Ready:
+                            case EXP_SEQUENCE_STATUS.SetUp:
+                                if (statusSwitchOn == false)
+                                {
+                                    statusSwitchOn = true;
+                                    this.DotDetailPanel.IsEnabled = false;
+                                    statusXRayOn = false;
+                                }
+                                break;
+                            case EXP_SEQUENCE_STATUS.XRayOn:
+                                statusXRayOn = true;
+                                statusSwitchOn = true;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    /* End: Added 1.4.4.7 */
+                    // RX検査中の場合は無視する
+                    string logMsg = String.Format("[{0}.Frame.RFStatusNotificationReceiveProc()]", execName);
+                    ((IApp)Application.Current).LogOut(412398, logMsg, "SwitchSequence");
+                    return;
                 }
-                //(1.4.3.4)---> add
-                else
-                {
-                    if (ExpPermissionManage.ContainsKey(ExpPermissionManage.Reason.SetGenCondSequence)) //(1.4.3.5) add
-                    {
-                        // SetParameterに連動した撮影禁止を解除しないようにする
-                        ScreenLockManage.SetStartAcqPermissionInterlockClear(LockType.ConditionChange);
-                    }
-                    //(1.4.3.5)---> add
-                    else
-                    {
-                        // SetGenCondSequenceの撮影禁止が掛かっていなかった場合（透視中は撮影禁止にしない）、禁止にする
-                        ExpPermissionManage.StartProhibition(ExpPermissionManage.Reason.SetGenCondSequence);
-                    }
-                    //(1.4.3.5)---< add
+                // (1.3.1.6)<--- add end
 
-                    // SetAcqModeを送信しない為、応答で行っている処理をここでも行う
-                    // ※RXに切り替えた際、GENEの方はSetAcqModeを出さないので撮影許可が出なくなる
-                    RfItem rfItem = FindRFItem(photoMenuListRF);
-                    if (null == rfItem)
-                    {
-                        return;
-                    }
-                    rfItem.RecvAcqModeChanged();
+                // 情報の読み出し
+                if (!myStatusInfo.LoadFromString(noticeString))
+                {
+                    // 状態の読み出しに失敗したら終了
+                    ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.ReceiveRequest, EventType.StatusNotificationReceived, "[Debug for EventRequest][{0}.Frame.RFStatusNotificationReceiveProc()] StatusInfo load failed.", execName, null);  // (1.1.8.8) add
+                    return;
                 }
-                //(1.4.3.4)---< add
+
+                // ExpSequenceで画面制御を行う
+                switch (myStatusInfo.ExpSequence)
+                {
+                    case EXP_SEQUENCE_STATUS.Connecting:
+                    case EXP_SEQUENCE_STATUS.NotUsed:
+                    case EXP_SEQUENCE_STATUS.NotStandBy:
+                    case EXP_SEQUENCE_STATUS.StandBy:
+                    case EXP_SEQUENCE_STATUS.Forbidden:
+                        if (statusSwitchOn)
+                        {
+                            // Switch ON状態からの場合はFF状態を設定
+                            statusSwitchOn = false;
+
+                            if (statusXRayOn == false)
+                            {
+                                // 曝射しないでボタンを放したらをロック解除します
+
+                                // Seq周りのボタン制御
+                                RfItem rfSeqPage = FindRFItem(photoMenuListRF);
+                                if (rfSeqPage != null &&
+                                    (rfSeqPage.seqAcqParameterGridPanel != null || rfSeqPage.daAcqParameterGridPanel != null || rfSeqPage.dsaAcqParameterGridPanel != null))  // (1.2.1.7) add
+                                {
+                                    // Seq手技
+                                    // (1.2.0.9)---> add start
+                                    if (rfSeqPage.seqAcqParameterGridPanel != null)
+                                    {
+                                        rfSeqPage.seqAcqParameterGridPanel.ReadySwitchOff(param, type);
+                                    }
+
+                                    // DA手技
+                                    if (rfSeqPage.daAcqParameterGridPanel != null)
+                                    {
+                                        rfSeqPage.daAcqParameterGridPanel.ReadySwitchOff(param, type);
+                                    }
+                                    // (1.2.0.9)<--- add end
+
+                                    // DSA手技
+                                    // (1.2.1.7)---> add start
+                                    if (rfSeqPage.dsaAcqParameterGridPanel != null)
+                                    {
+                                        rfSeqPage.dsaAcqParameterGridPanel.ReadySwitchOff(param, type);
+                                    }
+                                    // (1.2.1.7)<--- add end
+
+                                    // (1.3.2.5)---> add start
+                                    // RoadMap
+                                    if (rfSeqPage.roadmapParameterGridPanel != null)
+                                    {
+                                        rfSeqPage.roadmapParameterGridPanel.ReadySwitchOff(param, type);
+                                    }
+
+                                    // Stitch手技
+                                    if (rfSeqPage.stitchAcqParameterGridPanel != null)
+                                    {
+                                        rfSeqPage.stitchAcqParameterGridPanel.ReadySwitchOff(param, type);
+                                    }
+
+                                    // TOMO手技
+                                    if (rfSeqPage.tomoAcqParameterGridPanel != null)
+                                    {
+                                        rfSeqPage.tomoAcqParameterGridPanel.ReadySwitchOff(param, type);
+                                    }
+                                    // (1.3.2.5)<--- add end
+
+                                    // Stage表示をクリア
+                                    rfSeqPage.SeqAcqClearAllStages();  // (1.2.1.2) add
+                                }
+                            }
+                        }
+                        statusXRayOn = false;
+                        /* Begin: Added 1.2.4.11 */
+                        _isRadiographicAcquisitionInProgress = false;
+                        /* End: Added 1.2.4.11 */
+                        break;
+
+                    case EXP_SEQUENCE_STATUS.SwitchOn:
+                    case EXP_SEQUENCE_STATUS.Ready:
+                    case EXP_SEQUENCE_STATUS.SetUp:
+                        if (statusSwitchOn == false)
+                        {
+                            // Switchがまだ押されていない状態であればON状態にする
+                            statusSwitchOn = true;
+
+                            // Seq周りのボタン制御
+                            RfItem rfSeqPage = FindRFItem(photoMenuListRF);
+                            if (rfSeqPage != null &&
+                                (rfSeqPage.seqAcqParameterGridPanel != null || rfSeqPage.daAcqParameterGridPanel != null || rfSeqPage.dsaAcqParameterGridPanel != null))  // (1.2.1.7) add
+                            {
+                                // Seq手技
+                                // (1.2.0.4)---> add start
+                                if (rfSeqPage.seqAcqParameterGridPanel != null)
+                                {
+                                    rfSeqPage.seqAcqParameterGridPanel.ReadySwitchOn(param, type);
+                                }
+
+                                // DA手技
+                                if (rfSeqPage.daAcqParameterGridPanel != null)
+                                {
+                                    rfSeqPage.daAcqParameterGridPanel.ReadySwitchOn(param, type);
+                                }
+
+                                // DSA手技
+                                // (1.2.1.7)---> add start
+                                if (rfSeqPage.dsaAcqParameterGridPanel != null)
+                                {
+                                    rfSeqPage.dsaAcqParameterGridPanel.ReadySwitchOn(param, type);
+                                }
+                                // (1.2.1.7)<--- add end
+
+                                // RoadMap
+                                // (1.2.0.2)---> add start
+                                if (rfSeqPage.roadmapParameterGridPanel != null)
+                                {
+                                    rfSeqPage.roadmapParameterGridPanel.ReadySwitchOn(param, type);
+                                }
+                                // (1.2.0.2)<--- add end
+
+                                //(1.2.3.9)--->
+                                // Tomo
+                                if (rfSeqPage.tomoAcqParameterGridPanel != null)
+                                {
+                                    rfSeqPage.tomoAcqParameterGridPanel.ReadySwitchOn(param, type);
+                                }
+                                //(1.2.3.9)---<
+
+                                // Stitch
+                                // (1.2.3.0)---> add start
+                                if (rfSeqPage.stitchAcqParameterGridPanel != null)
+                                {
+                                    rfSeqPage.stitchAcqParameterGridPanel.ReadySwitchOn(param, type);
+                                }
+                                // (1.2.3.0)<--- add end
+
+                                // 手技選択ポップアップを表示している場合は閉じる
+                                rfSeqPage.CloseTechSelector();  // (1.2.1.6) add
+
+                                //コマンドは送らず、表示を撮影手技に変更する
+                                if (((IApp)Application.Current).IsExamination()) //(1.2.6.2) add
+                                {
+                                    rfSeqPage.DisplayAcqTech();
+                                }
+                                // (1.2.0.4)<--- add end
+                            }
+
+                            // 曝射状態をクリア
+                            statusXRayOn = false;
+                        }
+                        /* Begin: Added 1.2.4.11 */
+                        _isRadiographicAcquisitionInProgress = true;
+                        /* End: Added 1.2.4.11 */
+                        break;
+
+                    case EXP_SEQUENCE_STATUS.XRayOn:
+
+                        // 曝射状態にする
+                        statusXRayOn = true;
+
+                        // いきなり来る場合もある
+                        statusSwitchOn = true;
+                        /* Begin: Added 1.3.2.9 */
+                        _isXrayOn = true;
+                        /* End: Added 1.3.2.9 */
+                        break;
+
+                    default:
+                        break;
+                }
+
+                // FPD状態を監視し、ACTIVE以外になったら撮影系の画面ロックを解除する
+                // (1.1.9.7)---> add start
+                if (myStatusInfo.FpdStatus != FPD_STATE.ACTIVE)
+                {
+                    if (ScreenLockManage.isTimerActive(LockType.Acquisition))
+                    {
+                        ScreenLockManage.StopTimer(LockType.Acquisition);
+                    }
+
+                    if (ScreenLockManage.isTimerActive(LockType.AcquisitionReady))
+                    {
+                        ScreenLockManage.StopTimer(LockType.AcquisitionReady);
+                    }
+
+                    if (((IApp)Application.Current).isFluoroStarted)
+                    {
+                        // FPD非アクティブにより透視を止める
+                        ((IApp)Application.Current).LogOut(412350, "[PhotoMenu.RFStatusNotificationReceiveProc()] Stopping fluoroscopy due to FPD inactivity.");  // (1.5.3.8) add
+
+                        // 透視中の場合は透視を終了させる
+                        ((IApp)Application.Current).EventRequest(EventType.StopFLModeReceived, null);
+                    }
+                }
+                // (1.1.9.7)<--- add end
+
+                bool bSendSetParameter = false;
+                bool bSendSetAcqMode = false;
+
+                // SetParamterを出すかどうか判定
+                if (myStatusInfo.IsPrevSequenceNotConnect && !myStatusInfo.ExpSequence.IsDisconnect() && myStatusInfo.ExpSequence != EXP_SEQUENCE_STATUS.NotStandBy)
+                {
+                    // ExpSequenceがNone/Connectingから別の状態になったらSetParameterを出しなおす
+                    bSendSetParameter = true;
+                }
+
+                if (!bSendSetParameter)
+                {
+                    // SetParameterの流れでSetAcqModeが出るのでSetParameterを出す場合は判定しない
+                    // SetParameterが出ないのであればFPD状態を判定
+                    if (myStatusInfo.FpdStatus == FPD_STATE.ACTIVE)
+                    {
+                        if (myStatusInfo.PrevFpdStatus == FPD_STATE.INIT || myStatusInfo.PrevFpdStatus == FPD_STATE.NOT_INIT || myStatusInfo.PrevFpdStatus == FPD_STATE.FAIL)
+                        {
+                            bSendSetAcqMode = true;
+                        }
+                    }
+                }
+
+                // SetParamerを出すのは検査中でRF検査の場合のみ
+                if (((IApp)Application.Current).IsExamination() && patientManageExam.GetStudyMode() == StudyMode.RF)
+                {
+                    if (bSendSetParameter && !ScreenLockManage.isTimerActive(LockType.SetAcqMode) && !ScreenLockManage.isTimerActive(LockType.ConditionChange))  // (1.1.5.8) add
+                    {
+                        // SetParameterを出す
+                        RfItem rfItem = FindRFItem(photoMenuListRF);
+                        if (rfItem != null)
+                        {
+                            rfItem.SendSetParameterRequest(true);   // (1.2.4.7)
+                        }
+                    }
+                    else if (bSendSetAcqMode && !ScreenLockManage.isTimerActive(LockType.SetAcqMode) && !ScreenLockManage.isTimerActive(LockType.ConditionChange))  // (1.1.5.8) add
+                    {
+                        // SetAcqModeを出す. 但し、現在SetAcqModeを送信中ではない場合
+                        RfItem rfItem = FindRFItem(photoMenuListRF);
+                        if (rfItem != null)
+                        {
+                            rfItem.SendSetAcqMode(myStatusInfo.FpdModel, systemInfo);  // (1.1.7.9) add
+                        }
+                    }
+                }
+
+                if (myStatusInfo.ExpSequence.IsDisconnect())
+                {
+                    // 前回状態を未接続として設定
+                    myStatusInfo.IsPrevSequenceNotConnect = true;
+                }
+                else if (myStatusInfo.ExpSequence != EXP_SEQUENCE_STATUS.NotStandBy)
+                {
+                    // 未接続、NotStandBy以外であれば接続済みとする
+                    myStatusInfo.IsPrevSequenceNotConnect = false;
+                }
+
+                // 前回値として保存
+                myStatusInfo.PrevExpSequence = myStatusInfo.ExpSequence;
+                myStatusInfo.PrevFpdStatus = myStatusInfo.FpdStatus;
+            //(1.2.7.8)---> add
             }
-            else
+            else if (from.Equals(LayerType.LogCollector.ToString()))
             {
-                // ParameterNotificationを受けてのSetAcqMode通知を再開するため元に戻す
-                ((IApp)Application.Current).sentAcqMode = false;
+                if (true == this.myStatusInfoLC.LoadFromString(noticeString))
+                {
+                    // Data drive
+                    string LocaDataRoot = ((IApp)Application.Current).GetDataRoot(StudyMode.RF);
+
+                    Drive myDrive = this.myStatusInfoLC.myDriveList.Find(delegate (Drive drive) { return drive.Name.Split(':')[0] == LocaDataRoot.Split(':')[0]; });
+                    if (myDrive != null)
+                    {
+                        if (myDrive.Status == StatusNotificationDataFromLC.DriveStatus.Normal)
+                        {
+                            IsNotEnoughAvailableDisk = false;
+                        }
+                        else if (myDrive.Status == StatusNotificationDataFromLC.DriveStatus.Warning)
+                        {
+                            IsNotEnoughAvailableDisk = true;
+                        }
+                    }
+                }
             }
-       }
+            //(1.2.7.8)<--- add
+        }
