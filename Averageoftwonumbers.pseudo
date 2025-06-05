@@ -1,3 +1,23 @@
-  testFile = Path.Combine(testFolder, "ActualInfo.csv");
-            File.WriteAllText(testFile, "DUMMY CONTENTS FOR TESTING");
-            File.Create(testFile);
+  public bool IsExamStartInProgress {  // (1.6.4.7) mod
+            get
+            {
+                if( ScreenLockManage.isTimerActive(LockType.CanStartExam) ||
+                    ScreenLockManage.isTimerActive(LockType.StartExam) ||
+                    ScreenLockManage.isTimerActive(LockType.StartExamToConditionChange) ||
+                    ScreenLockManage.isTimerActive(LockType.ConditionChange) ||
+                    ScreenLockManage.isTimerActive(LockType.SetAcqMode))
+                {
+                    // 検査開始中に掛かる画面ロックが掛かっている場合は検査開始中とみなす
+                    // 但し、ConditionChangeとSetAcqModeは検査開始中以外でも掛かるので注意が必要
+                    return true;
+                }
+
+                // 検査開始中では無い
+                
+                return false;
+            }
+            set
+            {
+
+            }
+        }
