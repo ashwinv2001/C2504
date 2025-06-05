@@ -1,13 +1,7 @@
- private void NotificationParameter(List<object> param, EventType type)
+  private void RfParameterNotificationReceived(List<object> param, EventType type)
         {
-            ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.ReceiveRequest, type, "[Debug for EventRequest][PhotoMenu.Frame.NotificationParameterDisplay()]", param);
-
-            // 切断中は通知された値を処理しない
-            if (myStatusInfo.ExpSequence.IsDisconnect())
-            {
-                ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.ReceiveRequest, type, "[Debug for EventRequest][PhotoMenu.Frame.NotificationParameterDisplay()] Cutting.", null);
-                return;
-            }
+            ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.ReceiveRequest, type, "[Debug for EventRequest][PhotoMenu.Frame.RfParameterNotificationReceived()]", param);
+            // RFのSetParameterの応答としてParameterNotificationを受ける
 
             if (null == param || param.Count < 2)
             {
@@ -16,79 +10,51 @@
                 return;
             }
 
+            //(1.4.3.4)---> add
             bool settingResult = false;             //設定結果
             bool.TryParse(param[1].ToString(), out settingResult);
+            //(1.4.3.4)---< add
 
-            if (settingResult)
+            if (((IApp)Application.Current).sentAcqMode == false)
             {
-                // SetAcqMode送信
-                //if( RxRadApcManage.GetApcTechnique() != (int)TechniqueTypes.FPD_Table) //(1.4.4.3) del
-                if (RxRadApcManage.GetApcTechnique() != (int)Technique.RAD) //(1.4.4.3) add
+                if (settingResult) //(1.4.3.4) add
                 {
-                    // FPD以外は送信しない
-                    return;
+                    // SetParameter完了通知
+                    List<object> param1 = new List<object>();
+                    ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.SendRequest, EventType.RfSetParameterEndNotification, "[Debug for EventRequest][PhotoMenu.Frame.RfParameterNotificationReceived()]", param1);
+                    ((IApp)Application.Current).EventRequest(EventType.RfSetParameterEndNotification, param1);
+                    param1.Clear();
                 }
-                SendSetAcqMode(null, EventType.Unknown);
+                //(1.4.3.4)---> add
+                else
+                {
+                    if (ExpPermissionManage.ContainsKey(ExpPermissionManage.Reason.SetGenCondSequence)) //(1.4.3.5) add
+                    {
+                        // SetParameterに連動した撮影禁止を解除しないようにする
+                        ScreenLockManage.SetStartAcqPermissionInterlockClear(LockType.ConditionChange);
+                    }
+                    //(1.4.3.5)---> add
+                    else
+                    {
+                        // SetGenCondSequenceの撮影禁止が掛かっていなかった場合（透視中は撮影禁止にしない）、禁止にする
+                        ExpPermissionManage.StartProhibition(ExpPermissionManage.Reason.SetGenCondSequence);
+                    }
+                    //(1.4.3.5)---< add
+
+                    // SetAcqModeを送信しない為、応答で行っている処理をここでも行う
+                    // ※RXに切り替えた際、GENEの方はSetAcqModeを出さないので撮影許可が出なくなる
+                    RfItem rfItem = FindRFItem(photoMenuListRF);
+                    if (null == rfItem)
+                    {
+                        return;
+                    }
+                    rfItem.RecvAcqModeChanged();
+                }
+                //(1.4.3.4)---< add
             }
             else
             {
-                //(1.3.8.3)---> del
-                //if (((IApp)Application.Current).IsFirstSendSetParameterAfterStartExam)
-                //{
-                //    ((IApp)Application.Current).LogOut(412364);
-                //}
-                //else
-                //{
-                //(1.3.8.3)---< del
-                // ダイアログ表示中は撮影禁止(LockType.ConditionChangeに連動して撮影禁止が掛かっている為、タイマー停止の間、撮影禁止する)
-                ExpPermissionManage.StartProhibition(ExpPermissionManage.Reason.SetParameterReTryDialog);
-                //(1.4.1.3)---> add
-                // ダイアログ表示中はコマンドが破棄されタイムアウトする為、スイッチシーケンス関連のタイマーを停止する
-                //(1.4.4.5)---> del コマンドを破棄しないように変更した為、削除
-                //if (ScreenLockManage.isTimerActive(LockType.Acquisition))
-                //{
-                //    ScreenLockManage.StopTimer(LockType.Acquisition);
-                //}
-                //if (ScreenLockManage.isTimerActive(LockType.AcquisitionReady))
-                //{
-                //    ScreenLockManage.StopTimer(LockType.AcquisitionReady);
-                //}
-                //(1.4.4.5)---< del
-                //(1.4.1.3)---< add
-                // ダイアログ表示中はタイムアウト防止の為、画面ロック（タイマー）は一時停止
-                ScreenLockManage.StopTimer(LockType.ConditionChange);
-
-                // 再送確認ダイアログ
-                ((IApp)Application.Current).IsSetParameterReTryDialogDisplay = true;
-                bool retry = ShowMessage(412365, LEVEL.Infomation, BUTTONTYPE.Button3, true);
-                ((IApp)Application.Current).IsSetParameterReTryDialogDisplay = false;
-
-                // 画面ロック（タイマー）再開（受信スレッドの最後のアンロックまでロックする）
-                ScreenLockManage.StartTimer(LockType.ConditionChange);
-                // ダイアログ表示中（画面ロック（タイマー）は停止中）の撮影禁止を解除
-                ExpPermissionManage.EndProhibition(ExpPermissionManage.Reason.SetParameterReTryDialog);
-
-                if (!retry)
-                {
-                    //(1.4.5.8)---> add
-                    // 撮影禁止状態から再度選択して撮影出来るようにAPCを未選択状態にする
-                    // EventRequestにより閉じた場合、未選択にしない
-                    if (CommonParts.IsMessageBoxCloseEventRequested == false) //(1.4.7.0) add
-                    {
-                        AutoSelectOff(param, type);
-                    }
-                    RxRadApcManage.ClearSelectedApcWithoutBodyType();
-                    // ライブモニタのカレントテクニックを空にする
-                    SendRxRadChangedProtocolTechInfo();
-                    //(1.4.5.8)---< add
-
-                    return;
-                }
-                //}
-
-                // SetParameter再送
-                SendRxRadSetParameter(null, EventType.Unknown);
+                // ParameterNotificationを受けてのSetAcqMode通知を再開するため元に戻す
+                ((IApp)Application.Current).sentAcqMode = false;
             }
-
-            //((IApp)Application.Current).IsFirstSendSetParameterAfterStartExam = false; //(1.3.8.3) del
-        }
+       }
