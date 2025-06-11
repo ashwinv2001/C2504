@@ -1,105 +1,59 @@
-  public void SendSetParameterRequest(bool setApc = false, bool notifySts = false,
-                                    bool isScreenLock = true, PreIPData preIPData = null)
-        /* End: Added 1.2.6.5 */
-        {
-            // (1.0.2.2)---> add start
-            if (ProtocolList.TechNameDef.IsSequenceTech(currentTechType) && seqParamCheckResult == false)  // (1.0.6.6) add
+     public bool Stop(bool isTimeoutHappens = false)  // (1.0.2.9) add
             {
-                // Seq手技の場合はパラメータチェックの結果、NGであればSetParameterは送信しない
-                return;
-            }
-            // (1.0.2.2)<--- add end
-
-            if (protocol == null)                                   // (1.0.3.10)
-            {
-                return;
-            }
-
-            // (1.0.4.1)---> add start
-            // 元（全手技リスト）をバックアップしておく
-            TechList backupTechList = protocol.TechList;
-            // 手技を選別
-            protocol.TechList = makeTechList(currentFpdModel);
-
-            Tech radTech = protocol.TechList.Tech[0];
-            //(1.2.3.8 add)--->
-            // 撮影手技が変わったか？判定
-            if (_previousRadTechType != radTech.TechType)   // (1.2.8.10)
-            {
-                // 撮影手技変更だったら、一足早く、撮影禁止要求を出す
-                // ※撮影手技の切り替えだったら、撮影だけ禁止（透視は許可）にしたい
-                ExpPermissionManage.StartProhibition(ExpPermissionManage.Reason.ChangeAcqTech);
-
-                _previousRadTechType = radTech.TechType;    // (1.2.8.10)
-            }
-            //(1.2.3.8 add)---<
-
-            // (1.2.7.5)--->
-            // 撮影完了タイマの再設定
-            int additionTimeSec = 0;
-            if (ProtocolList.TechNameDef.IsStagedSequenceTech(radTech?.TechType))
-            {
-                for (int i = 0; i < Sequence.StageDef.SEQ_ACQ_MAX_STAGE; i++)
+                if( Status != LockStatus.Active)
                 {
-                    if (radTech.Sequence[i].Valid == 1)
-                    {
-                        additionTimeSec += (int)Math.Ceiling((double)radTech.Sequence[i].Time) + (int)radTech.Sequence[i].Delay;
-                    }
+                    // 指定種別ではロックされていない
+                    ((IApp)Application.Current).LogOut(301066, myLockName);
+                    return false;
                 }
-            }
-            ScreenLockManage.SetTimeoutSec(LockType.Acquisition, ((IApp)Application.Current).MyPLInfo.LockTimeOutAcquisition + additionTimeSec);
-            // (1.2.7.5)<---
 
-            // 送信用XMLに変換
-            string protocolStr = XmlStringHandler<Protocol>.ClassToString(protocol);
-            // 元に戻す
-            protocol.TechList = backupTechList;
-            // (1.0.4.1)<--- add end
 
-            /* Begin: Added 1.2.6.5 */
-            if (null == preIPData && null != _iPPresetManage)
-            {
-                // Send last saved preset data.
-                preIPData = _iPPresetManage.GetCurrentPreIPData();
-            }
-            /* End: Added 1.2.6.5 */
 
-            //(1.2.5.3)--->
-            // 透視中かを判定
-            if(((IApp)Application.Current).isFluoroStarted || notifySts == true)
-            {
-                // 透視中またはNotifySystemStatus経由では撮影禁止にしない
-                ScreenLockManage.SetAcqPermissionInterlock(LockType.ConditionChange, ExpPermissionManage.Reason.None);
-                // SetAcqMode送信済みの場合は再送しないようにしておく
-                ((IApp)Application.Current).sentAcqMode = notifySts;
-            }
-            else
-            {
-                // 通常の操作では撮影禁止にする
-                ScreenLockManage.SetAcqPermissionInterlock(LockType.ConditionChange, ExpPermissionManage.Reason.SetGenCondSequence);
-            }
+                // 複数起動可能？
 
-            if (isScreenLock == false)
-            {
-                // 画面ロックしない
-                parentFrame.IsEnableScreenLockSetParameter = false;
-            }
+                if (duplication == false)
+                {
+                    // 複数起動なしの場合はすぐ停止
+                    count = 0;
+                }
+                else
+                {
+                    // 数を減らす
+                    count--;
+                }
 
-            // SetParameter送信
-            List<object> args1 = new List<object>();
-            List<object> param1 = new List<object>();
-            args1.Add(LayerCommRequestType.SetParameter);
-            // StudyMode
-            param1.Add(StudyMode.RF.ToString());
-            param1.Add(protocolStr);
-            param1.Add(setApc);
-            /* Begin: Added 1.2.6.5 */
-            param1.Add(preIPData);
-            /* End: Added 1.2.6.5 */
-            args1.Add(param1);
-            ((IApp)Application.Current).InnerEventLogOut(InnerEventActionType.SendRequest, EventType.SendLayerCommCommandRequested, "[Debug for EventRequest][PhotoMenu.RfItem.SendRfSetParameter()]", args1);
-            ((IApp)Application.Current).EventRequest(EventType.SendLayerCommCommandRequested, args1);
-            param1.Clear();
-            args1.Clear();
-            //(1.2.5.3)---<
-        }
+                if (count <= 0)
+                {
+                    //((IApp)Application.Current).LogOut(301065, "Unlock", myLockName, timeoutSec);  // (1.0.1.6) del
+
+                    // 停止状態に設定
+                    status = LockStatus.Inactive;
+
+                    // タイマを停止
+                    string appendMsg = "[Timer is NULL]";  // (1.0.1.6) add
+                    if (timer != null)
+                    {
+                        appendMsg = "[" + timer.GetHashCode().ToString() + "]";  // (1.0.1.6) add
+                        timer.Stop();
+                        timer = null;
+                    }
+                    ((IApp)Application.Current).LogOut(301065, "Unlock", myLockName + appendMsg, timeoutSec);  // (1.0.1.6) add
+
+                    // 画面ロック解除
+                    //LockWindow(false, myLockName);  // (1.0.2.9) del
+                    LockWindow(false, myLockName, isTimeoutHappens);  // (1.0.2.9) add
+
+                    // 撮影禁止と連動(許可に)
+                    //if (acqPermissionInterlock != ExpPermissionManage.Reason.None)     // (1.0.0.5) del
+                    if (startAcqPermissionInterlock != ExpPermissionManage.Reason.None)  // (1.0.0.5) add
+                    {
+                        //ExpPermissionManage.EndProhibition(acqPermissionInterlock);     // (1.0.0.5) del
+                        ExpPermissionManage.EndProhibition(startAcqPermissionInterlock);  // (1.0.0.5) add
+                        startAcqPermissionInterlock = ExpPermissionManage.Reason.None;    // (1.0.0.5) add
+                    }
+
+                    return true;
+                }
+
+                return false;
+            }
