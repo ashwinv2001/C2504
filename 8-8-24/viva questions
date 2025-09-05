@@ -1,0 +1,57 @@
+1. What is a database?
+
+Answer: A database is an organized collection of structured information or data, typically stored electronically in a computer system. Databases are managed by Database Management Systems (DBMS) to ensure efficient data storage, retrieval, and management.
+2. What is an RDBMS, and how does it differ from a DBMS?
+
+Answer: An RDBMS (Relational Database Management System) is a type of DBMS that stores data in a tabular form (rows and columns) and supports relationships between tables. A DBMS may not support these relationships and can store data in various formats such as hierarchical, network, or object-oriented models.
+3. What are some common examples of RDBMS?
+
+Answer: Common examples include MySQL, PostgreSQL, Oracle, Microsoft SQL Server, and IBM Db2.
+Characteristics of Database Management Systems
+1. What are the ACID properties in a database?
+
+Answer: ACID stands for Atomicity, Consistency, Isolation, and Durability. These properties ensure reliable transaction processing:
+Atomicity: Ensures that a transaction is completed fully or not at all.
+Consistency: Ensures that the database remains in a consistent state before and after a transaction.
+Isolation: Ensures that transactions are executed independently of each other.
+Durability: Ensures that the results of a transaction are permanently saved in the database.
+2. How does a DBMS ensure data security?
+
+Answer: A DBMS ensures data security through user authentication, access control mechanisms, encryption, and regular audits. It defines user roles and permissions to control who can view or modify data.
+3. What is data integrity, and how is it maintained in a database?
+
+Answer: Data integrity refers to the accuracy and consistency of data over its lifecycle. It is maintained using constraints such as primary keys, foreign keys, unique constraints, and check constraints that enforce rules on the data.
+4. Explain the concept of data independence.
+
+Answer: Data independence is the ability to change the schema at one level without affecting the schema at the next higher level. There are two types:
+Logical Data Independence: Changes to the logical schema (e.g., adding new attributes) do not affect the external schema.
+Physical Data Independence: Changes to the physical storage of data do not affect the logical schema.
+Data Modeling
+1. What is data modeling, and why is it important?
+
+Answer: Data modeling is the process of creating a visual representation (model) of the data structure in a database. It helps in designing databases that accurately represent the business requirements and ensures that data is organized efficiently.
+2. What are the different types of data models?
+
+Answer: The three main types are:
+Conceptual Data Model: A high-level overview of the data and relationships, focusing on the business perspective.
+Logical Data Model: More detailed, including specific attributes and relationships, without considering how data will be stored physically.
+Physical Data Model: Describes how the data will be stored physically in the database, including table structures, indexes, and partitions.
+3. What is normalization, and why is it used?
+
+Answer: Normalization is the process of organizing data in a database to reduce redundancy and improve data integrity. It involves dividing large tables into smaller, related tables and defining relationships between them, which helps in minimizing duplication and ensuring data consistency.
+Relational Data Modeling
+1. What is a relational data model?
+
+Answer: A relational data model represents data in tables (relations) where each table consists of rows (tuples) and columns (attributes). Relationships between tables are established using keys, such as primary keys and foreign keys.
+2. What is a primary key?
+
+Answer: A primary key is a unique identifier for each record in a table. It ensures that each record is unique and can be retrieved or referenced accurately.
+3. What is a foreign key, and how does it create relationships between tables?
+
+Answer: A foreign key is a field in one table that references the primary key of another table. It establishes a relationship between the two tables, ensuring referential integrity.
+4. What are the different types of relationships in a relational database?
+
+Answer: The main types of relationships are:
+One-to-One: A relationship where each record in Table A is related to one and only one record in Table B.
+One-to-Many: A relationship where each record in Table A can be related to multiple records in Table B.
+Many-to-Many: A relationship where records in Table A can be related to multiple records in Table B, and vice versa. This is usually implemented using a junction table.

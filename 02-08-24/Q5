@@ -1,0 +1,35 @@
+PSEUDOCODE
+Initialize term as 21
+Initialize index as 1
+
+While index < N
+    Increment index
+    term = term + index
+
+Print term
+C# CODE
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        // Read the value of N
+        Console.Write("Enter the value of N: ");
+        int N = int.Parse(Console.ReadLine());
+
+        // Initialize the first term and the index
+        int term = 21;
+        int index = 1;
+
+        // Generate terms until the Nth term is reached
+        while (index < N)
+        {
+            index++;
+            term += index;
+        }
+
+        // Print the Nth term
+        Console.WriteLine("The Nth term in the series is: " + term);
+    }
+}

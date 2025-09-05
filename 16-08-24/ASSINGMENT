@@ -1,0 +1,796 @@
+Q1
+For rational number of numerator and denominator like p/q 
+Implement
+1.Add 
+class MyUtil
+    {
+        public static int FindGCD(int a, int b) //GCD
+        {
+            while (a != b)
+            {
+                if (a > b)
+                    a -= b;
+                else
+                    b -= a;
+            }
+            return a;
+        }
+    }
+    class RationalNumber
+    {
+        public int Numerator { get; set; }
+        private int denominator;
+        public int Denominator
+        {
+            get
+            {
+                return denominator;
+            }
+            set
+            {
+                if (denominator == 0)
+                {
+                    denominator = 1;
+                }
+                denominator = value;
+            }
+        }
+
+        public RationalNumber(int _numerator, int _denominator)
+        {
+            // throw ERR this.Denominator = 0
+            if (_denominator == 0)
+            {
+                _denominator = 1;
+            }
+            this.Numerator = _numerator;
+            this.Denominator = _denominator;
+        }
+        public RationalNumber Add(RationalNumber other)
+        {
+            RationalNumber diff = new RationalNumber(0, 0);
+            diff.Numerator = (this.Numerator * other.Denominator) + (other.Numerator * this.Denominator);
+            diff.Denominator = this.Denominator * other.Denominator;
+
+            int gcd = MyUtil.FindGCD(diff.Numerator, diff.Denominator);
+            diff.Numerator = diff.Numerator / gcd;
+            diff.Denominator = diff.Denominator / gcd;
+            return diff;
+        }
+
+        public override string ToString()
+        {
+            return $"[{Numerator} / {Denominator}]";
+        }
+
+    }
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            RationalNumber firstNo = new RationalNumber(1, 2);
+            RationalNumber secondNo = new RationalNumber(1, 4);
+            RationalNumber result = firstNo.Add(secondNo);
+            Console.WriteLine($"{firstNo} + {secondNo} = {result}");
+
+        }
+    }
+2.Subtract
+
+class MyUtil
+    {
+        public static int FindGCD(int a, int b) //GCD
+        {
+            while (a != b)
+            {
+                if (a > b)
+                    a -= b;
+                else
+                    b -= a;
+            }
+            return a;
+        }
+    }
+    class RationalNumber
+    {
+        public int Numerator { get; set; }
+        private int denominator;
+        public int Denominator
+        {
+            get
+            {
+                return denominator;
+            }
+            set
+            {
+                if (denominator == 0)
+                {
+                    denominator = 1;
+                }
+                denominator = value;
+            }
+        }
+
+        public RationalNumber(int _numerator, int _denominator)
+        {
+            // throw ERR this.Denominator = 0
+            if (_denominator == 0)
+            {
+                _denominator = 1;
+            }
+            this.Numerator = _numerator;
+            this.Denominator = _denominator;
+        }
+        public RationalNumber Sub(RationalNumber other)
+        {
+            RationalNumber diff = new RationalNumber(0, 0);
+            diff.Numerator = (this.Numerator * other.Denominator) - (other.Numerator * this.Denominator);
+            diff.Denominator = this.Denominator * other.Denominator;
+
+            int gcd = MyUtil.FindGCD(diff.Numerator, diff.Denominator);
+            diff.Numerator = diff.Numerator / gcd;
+            diff.Denominator = diff.Denominator / gcd;
+            return diff;
+        }
+
+        public override string ToString()
+        {
+            return $"[{Numerator} / {Denominator}]";
+        }
+
+    }
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            RationalNumber firstNo = new RationalNumber(1, 2);
+            RationalNumber secondNo = new RationalNumber(1, 4);
+            RationalNumber result = firstNo.Sub(secondNo);
+            Console.WriteLine($"{firstNo} - {secondNo} = {result}");
+
+        }
+    }
+
+3.Multiply 
+class MyUtil
+    {
+        public static int FindGCD(int a, int b) //GCD
+        {
+            while (a != b)
+            {
+                if (a > b)
+                    a -= b;
+                else
+                    b -= a;
+            }
+            return a;
+        }
+    }
+    class RationalNumber
+    {
+        public int Numerator { get; set; }
+        private int denominator;
+        public int Denominator
+        {
+            get
+            {
+                return denominator;
+            }
+            set
+            {
+                if (denominator == 0)
+                {
+                    denominator = 1;
+                }
+                denominator = value;
+            }
+        }
+
+        public RationalNumber(int _numerator, int _denominator)
+        {
+            // throw ERR this.Denominator = 0
+            if (_denominator == 0)
+            {
+                _denominator = 1;
+            }
+            this.Numerator = _numerator;
+            this.Denominator = _denominator;
+        }
+        public RationalNumber Mul(RationalNumber other)
+        {
+            RationalNumber diff = new RationalNumber(0, 0);
+            diff.Numerator = this.Numerator * other.Numerator;
+            diff.Denominator = this.Denominator * other.Denominator;
+
+            int gcd = MyUtil.FindGCD(diff.Numerator, diff.Denominator);
+            diff.Numerator = diff.Numerator / gcd;
+            diff.Denominator = diff.Denominator / gcd;
+            return diff;
+        }
+
+        public override string ToString()
+        {
+            return $"[{Numerator} / {Denominator}]";
+        }
+
+    }
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            RationalNumber firstNo = new RationalNumber(1, 2);
+            RationalNumber secondNo = new RationalNumber(1, 4);
+            RationalNumber result = firstNo.Mul(secondNo);
+            Console.WriteLine($"{firstNo} * {secondNo} = {result}");
+
+        }
+    }
+
+4.Divide 
+class MyUtil
+    {
+        public static int FindGCD(int a, int b) //GCD
+        {
+            while (a != b)
+            {
+                if (a > b)
+                    a -= b;
+                else
+                    b -= a;
+            }
+            return a;
+        }
+    }
+    class RationalNumber
+    {
+        public int Numerator { get; set; }
+        private int denominator;
+        public int Denominator
+        {
+            get
+            {
+                return denominator;
+            }
+            set
+            {
+                if (denominator == 0)
+                {
+                    denominator = 1;
+                }
+                denominator = value;
+            }
+        }
+
+        public RationalNumber(int _numerator, int _denominator)
+        {
+            // throw ERR this.Denominator = 0
+            if (_denominator == 0)
+            {
+                _denominator = 1;
+            }
+            this.Numerator = _numerator;
+            this.Denominator = _denominator;
+        }
+        public RationalNumber Div(RationalNumber other)
+        {
+            RationalNumber diff = new RationalNumber(0, 0);
+            diff.Numerator = this.Numerator * other.Denominator;
+            diff.Denominator = this.Denominator * other.Numerator;
+
+            int gcd = MyUtil.FindGCD(diff.Numerator, diff.Denominator);
+            diff.Numerator = diff.Numerator / gcd;
+            diff.Denominator = diff.Denominator / gcd;
+            return diff;
+        }
+
+        public override string ToString()
+        {
+            return $"[{Numerator} / {Denominator}]";
+        }
+
+    }
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            RationalNumber firstNo = new RationalNumber(1, 2);
+            RationalNumber secondNo = new RationalNumber(1, 4);
+            RationalNumber result = firstNo.Div(secondNo);
+            Console.WriteLine($"{firstNo} / {secondNo} = {result}");
+
+        }
+    }
+
+5.Eq 
+class MyUtil
+    {
+        public static int FindGCD(int a, int b) //GCD
+        {
+            while (a != b)
+            {
+                if (a > b)
+                    a -= b;
+                else
+                    b -= a;
+            }
+            return a;
+        }
+    }
+    class RationalNumber
+    {
+        public int Numerator { get; set; }
+        private int denominator;
+        public int Denominator
+        {
+            get
+            {
+                return denominator;
+            }
+            set
+            {
+                if (denominator == 0)
+                {
+                    denominator = 1;
+                }
+                denominator = value;
+            }
+        }
+
+        public RationalNumber(int _numerator, int _denominator)
+        {
+            // throw ERR this.Denominator = 0
+            if (_denominator == 0)
+            {
+                _denominator = 1;
+            }
+            this.Numerator = _numerator;
+            this.Denominator = _denominator;
+        }
+        public RationalNumber Eq(RationalNumber other)
+        {
+            RationalNumber diff = new RationalNumber(0, 0);
+            int leftSide = this.Numerator * other.Denominator;
+            int rightSide = other.Numerator * this.Denominator;
+
+           if (leftSide == rightSide)
+           {
+            Console.WriteLine($"{this} is equal to {other}");
+           }
+           else
+            {
+             Console.WriteLine($"{this} is not equal {other}");
+            }
+            int gcd = MyUtil.FindGCD(diff.Numerator, diff.Denominator);
+            diff.Numerator = diff.Numerator / gcd;
+            diff.Denominator = diff.Denominator / gcd;
+            return diff;
+        }
+
+        public override string ToString()
+        {
+            return $"[{Numerator} / {Denominator}]";
+        }
+
+    }
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            RationalNumber firstNo = new RationalNumber(1, 2);
+            RationalNumber secondNo = new RationalNumber(1, 4);
+            firstNo.Eq(secondNo);
+            
+        }
+    }
+
+6.Gt 
+class MyUtil
+    {
+        public static int FindGCD(int a, int b) //GCD
+        {
+            while (a != b)
+            {
+                if (a > b)
+                    a -= b;
+                else
+                    b -= a;
+            }
+            return a;
+        }
+    }
+    class RationalNumber
+    {
+        public int Numerator { get; set; }
+        private int denominator;
+        public int Denominator
+        {
+            get
+            {
+                return denominator;
+            }
+            set
+            {
+                if (denominator == 0)
+                {
+                    denominator = 1;
+                }
+                denominator = value;
+            }
+        }
+
+        public RationalNumber(int _numerator, int _denominator)
+        {
+            // throw ERR this.Denominator = 0
+            if (_denominator == 0)
+            {
+                _denominator = 1;
+            }
+            this.Numerator = _numerator;
+            this.Denominator = _denominator;
+        }
+        public RationalNumber Gt(RationalNumber other)
+        {
+            RationalNumber diff = new RationalNumber(0, 0);
+            int leftSide = this.Numerator * other.Denominator;
+            int rightSide = other.Numerator * this.Denominator;
+
+           if (leftSide > rightSide)
+           {
+            Console.WriteLine($"{this} is greater than {other}");
+           }
+           else
+            {
+             Console.WriteLine($"{this} is not greater than {other}");
+            }
+            int gcd = MyUtil.FindGCD(diff.Numerator, diff.Denominator);
+            diff.Numerator = diff.Numerator / gcd;
+            diff.Denominator = diff.Denominator / gcd;
+            return diff;
+        }
+
+        public override string ToString()
+        {
+            return $"[{Numerator} / {Denominator}]";
+        }
+
+    }
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            RationalNumber firstNo = new RationalNumber(1, 2);
+            RationalNumber secondNo = new RationalNumber(1, 4);
+            firstNo.Gt(secondNo);
+            
+        }
+    }
+
+7.Ne 
+class MyUtil
+    {
+        public static int FindGCD(int a, int b) //GCD
+        {
+            while (a != b)
+            {
+                if (a > b)
+                    a -= b;
+                else
+                    b -= a;
+            }
+            return a;
+        }
+    }
+    class RationalNumber
+    {
+        public int Numerator { get; set; }
+        private int denominator;
+        public int Denominator
+        {
+            get
+            {
+                return denominator;
+            }
+            set
+            {
+                if (denominator == 0)
+                {
+                    denominator = 1;
+                }
+                denominator = value;
+            }
+        }
+
+        public RationalNumber(int _numerator, int _denominator)
+        {
+            // throw ERR this.Denominator = 0
+            if (_denominator == 0)
+            {
+                _denominator = 1;
+            }
+            this.Numerator = _numerator;
+            this.Denominator = _denominator;
+        }
+        public RationalNumber Ne(RationalNumber other)
+        {
+            RationalNumber diff = new RationalNumber(0, 0);
+            int leftSide = this.Numerator * other.Denominator;
+            int rightSide = other.Numerator * this.Denominator;
+
+           if (leftSide != rightSide)
+           {
+            Console.WriteLine($"{this} is not equal to {other}");
+           }
+           else
+            {
+             Console.WriteLine($"{this} is equal {other}");
+            }
+            int gcd = MyUtil.FindGCD(diff.Numerator, diff.Denominator);
+            diff.Numerator = diff.Numerator / gcd;
+            diff.Denominator = diff.Denominator / gcd;
+            return diff;
+        }
+
+        public override string ToString()
+        {
+            return $"[{Numerator} / {Denominator}]";
+        }
+
+    }
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            RationalNumber firstNo = new RationalNumber(1, 2);
+            RationalNumber secondNo = new RationalNumber(1, 4);
+            firstNo.Ne(secondNo);
+            
+        }
+    }
+
+
+8.Gte 
+class MyUtil
+    {
+        public static int FindGCD(int a, int b) //GCD
+        {
+            while (a != b)
+            {
+                if (a > b)
+                    a -= b;
+                else
+                    b -= a;
+            }
+            return a;
+        }
+    }
+    class RationalNumber
+    {
+        public int Numerator { get; set; }
+        private int denominator;
+        public int Denominator
+        {
+            get
+            {
+                return denominator;
+            }
+            set
+            {
+                if (denominator == 0)
+                {
+                    denominator = 1;
+                }
+                denominator = value;
+            }
+        }
+
+        public RationalNumber(int _numerator, int _denominator)
+        {
+            // throw ERR this.Denominator = 0
+            if (_denominator == 0)
+            {
+                _denominator = 1;
+            }
+            this.Numerator = _numerator;
+            this.Denominator = _denominator;
+        }
+        public RationalNumber Gte(RationalNumber other)
+        {
+            RationalNumber diff = new RationalNumber(0, 0);
+            int leftSide = this.Numerator * other.Denominator;
+            int rightSide = other.Numerator * this.Denominator;
+
+           if (leftSide >= rightSide)
+           {
+            Console.WriteLine($"{this} is greater than or equal {other}");
+           }
+           else
+            {
+             Console.WriteLine($"{this} is not greater than or equal {other}");
+            }
+            int gcd = MyUtil.FindGCD(diff.Numerator, diff.Denominator);
+            diff.Numerator = diff.Numerator / gcd;
+            diff.Denominator = diff.Denominator / gcd;
+            return diff;
+        }
+
+        public override string ToString()
+        {
+            return $"[{Numerator} / {Denominator}]";
+        }
+
+    }
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            RationalNumber firstNo = new RationalNumber(1, 2);
+            RationalNumber secondNo = new RationalNumber(1, 4);
+            firstNo.Gte(secondNo);
+            
+        }
+    }
+
+9.Lt 
+class MyUtil
+    {
+        public static int FindGCD(int a, int b) //GCD
+        {
+            while (a != b)
+            {
+                if (a > b)
+                    a -= b;
+                else
+                    b -= a;
+            }
+            return a;
+        }
+    }
+    class RationalNumber
+    {
+        public int Numerator { get; set; }
+        private int denominator;
+        public int Denominator
+        {
+            get
+            {
+                return denominator;
+            }
+            set
+            {
+                if (denominator == 0)
+                {
+                    denominator = 1;
+                }
+                denominator = value;
+            }
+        }
+
+        public RationalNumber(int _numerator, int _denominator)
+        {
+            // throw ERR this.Denominator = 0
+            if (_denominator == 0)
+            {
+                _denominator = 1;
+            }
+            this.Numerator = _numerator;
+            this.Denominator = _denominator;
+        }
+        public RationalNumber Lt(RationalNumber other)
+        {
+            RationalNumber diff = new RationalNumber(0, 0);
+            int leftSide = this.Numerator * other.Denominator;
+            int rightSide = other.Numerator * this.Denominator;
+
+           if (leftSide < rightSide)
+           {
+            Console.WriteLine($"{this} is less than {other}");
+           }
+           else
+            {
+             Console.WriteLine($"{this} is not less than {other}");
+            }
+            int gcd = MyUtil.FindGCD(diff.Numerator, diff.Denominator);
+            diff.Numerator = diff.Numerator / gcd;
+            diff.Denominator = diff.Denominator / gcd;
+            return diff;
+        }
+
+        public override string ToString()
+        {
+            return $"[{Numerator} / {Denominator}]";
+        }
+
+    }
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            RationalNumber firstNo = new RationalNumber(1, 2);
+            RationalNumber secondNo = new RationalNumber(1, 4);
+            firstNo.Lt(secondNo);
+            
+        }
+    }
+
+10.Lte 
+
+class MyUtil
+    {
+        public static int FindGCD(int a, int b) //GCD
+        {
+            while (a != b)
+            {
+                if (a > b)
+                    a -= b;
+                else
+                    b -= a;
+            }
+            return a;
+        }
+    }
+    class RationalNumber
+    {
+        public int Numerator { get; set; }
+        private int denominator;
+        public int Denominator
+        {
+            get
+            {
+                return denominator;
+            }
+            set
+            {
+                if (denominator == 0)
+                {
+                    denominator = 1;
+                }
+                denominator = value;
+            }
+        }
+
+        public RationalNumber(int _numerator, int _denominator)
+        {
+            // throw ERR this.Denominator = 0
+            if (_denominator == 0)
+            {
+                _denominator = 1;
+            }
+            this.Numerator = _numerator;
+            this.Denominator = _denominator;
+        }
+        public RationalNumber Lte(RationalNumber other)
+        {
+            RationalNumber diff = new RationalNumber(0, 0);
+            int leftSide = this.Numerator * other.Denominator;
+            int rightSide = other.Numerator * this.Denominator;
+
+           if (leftSide <= rightSide)
+           {
+            Console.WriteLine($"{this} is less than or equal {other}");
+           }
+           else
+            {
+             Console.WriteLine($"{this} is not less than or equal {other}");
+            }
+            int gcd = MyUtil.FindGCD(diff.Numerator, diff.Denominator);
+            diff.Numerator = diff.Numerator / gcd;
+            diff.Denominator = diff.Denominator / gcd;
+            return diff;
+        }
+
+        public override string ToString()
+        {
+            return $"[{Numerator} / {Denominator}]";
+        }
+
+    }
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            RationalNumber firstNo = new RationalNumber(1, 2);
+            RationalNumber secondNo = new RationalNumber(1, 4);
+            firstNo.Lte(secondNo);
+            
+        }
+    }
