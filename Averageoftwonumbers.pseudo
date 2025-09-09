@@ -299,7 +299,76 @@
 
 
 
+<StackPanel HorizontalAlignment="Center">
+ <StackPanel VerticalAlignment="Center" MinWidth="300">
+         <TextBlock FontSize="25" TextAlignment="Center"></TextBlock>
 
+         <Label>Select Color</Label>
+         <Button Click="Red">Red</Button>
+         <Button Click="Blue">Blue</Button>
+         <Button Click="Green">Green</Button>
+     
+         <Label>Height</Label>
+     <TextBox x:Name="height"></TextBox>
+
+         <Label>Width</Label>
+     <TextBox x:Name="width"></TextBox>
+
+         <Button Margin="0,10" Click="Rectangle" >Create Rectangle</Button>
+
+
+         <Rectangle x:Name="Myrectangle" Height="50"  Width ="50" Fill="Gray"></Rectangle>
+         
+
+     </StackPanel>
+ </StackPanel>
+
+
+
+
+
+
+
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        int R=0,G=0,B=0;
+
+        void Red(object sender , RoutedEventArgs e)
+        {
+            R = 1;
+        }
+
+        void Blue(object sender, RoutedEventArgs e)
+        {
+            B = 1;
+        }
+
+        void Green(object sender, RoutedEventArgs e)
+        {
+            G = 1;
+        }
+
+        void Rectangle(object sender, RoutedEventArgs e)
+        {
+            var h= int.Parse(height.Text);
+            var w= int.Parse(width.Text);
+            Myrectangle.Height = h;
+            Myrectangle.Width = w;
+        }
+    }
+}
+
+
+
+
+
+
+        
 
 
 
