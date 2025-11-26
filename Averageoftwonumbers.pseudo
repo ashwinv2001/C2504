@@ -1,20 +1,119 @@
-import "unknwn.idl";
+#include <windows.h>
+#include "Calculation.h"
+#include "Calculation_h.h"
 
-[
-	object,
-	uuid(225175A7-77EB-43F5-9C43-6D77C5490E03),  // IID_ICalc
-	pointer_default(unique)
-]
-interface ICalc : IUnknown
+
+class Calc : public ICalc
 {
-	HRESULT Add([in] int a, [in] int b, [out, retval] int* result);
+    long refCount;
+
+public:
+    Calc() : refCount(1) {}
+
+    // IUnknown
+    HRESULT __stdcall QueryInterface(REFIID riid, void** ppv) override
+    {
+        if (riid == IID_IUnknown || riid == __uuidof(ICalc))
+        {
+            *ppv = static_cast<ICalc*>(this);
+            AddRef();
+            return S_OK;
+        }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+
+    ULONG __stdcall AddRef() override
+    {
+        return InterlockedIncrement(&refCount);
+    }
+
+    ULONG __stdcall Release() override
+    {
+        ULONG count = InterlockedDecrement(&refCount);
+        if (count == 0) delete this;
+        return count;
+    }
+
+    // ICalc
+    HRESULT __stdcall Add(int a, int b, int* result) override
+    {
+        *result = a + b;
+        return S_OK;
+    }
+};
+
+// ------------ Class Factory ------------
+class CalcFactory : public IClassFactory
+{
+    long refCount;
+
+public:
+    CalcFactory() : refCount(1) {}
+
+    HRESULT __stdcall QueryInterface(REFIID riid, void** ppv) override
+    {
+        if (riid == IID_IUnknown || riid == IID_IClassFactory)
+        {
+            *ppv = static_cast<IClassFactory*>(this);
+            AddRef();
+            return S_OK;
+        }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+
+    ULONG __stdcall AddRef() override
+    {
+        return InterlockedIncrement(&refCount);
+    }
+
+    ULONG __stdcall Release() override
+    {
+        ULONG count = InterlockedDecrement(&refCount);
+        if (count == 0) delete this;
+        return count;
+    }
+
+    HRESULT __stdcall CreateInstance(IUnknown* outer, REFIID riid, void** ppv) override
+    {
+        if (outer != nullptr) return CLASS_E_NOAGGREGATION;
+
+        Calc* obj = new Calc();
+        return obj->QueryInterface(riid, ppv);
+    }
+
+    HRESULT __stdcall LockServer(BOOL lock) override
+    {
+        return S_OK;
+    }
+};
+
+// ------------ DLL Export Functions ------------
+
+HMODULE g_hModule = NULL;
+
+BOOL APIENTRY DllMain(HMODULE h, DWORD reason, LPVOID)
+{
+    if (reason == DLL_PROCESS_ATTACH)
+        g_hModule = h;
+    return TRUE;
 }
 
-[
-	uuid(405CA8B1-F6E8-4131-930C-6EFAE48539C0)      //CLSID_Calc
-]
-
-coclass Calc
+STDAPI DllGetClassObject(REFCLSID clsid, REFIID riid, void** ppv)
 {
-	[default] interface ICalc;
+    if (clsid == __uuidof(CALC))
+    {
+        CalcFactory* factory = new CalcFactory();
+        return factory->QueryInterface(riid, ppv);
+    }
+    return CLASS_E_CLASSNOTAVAILABLE;
 }
+
+STDAPI DllCanUnloadNow(void)
+{
+    return S_OK;
+}
+
+
+
