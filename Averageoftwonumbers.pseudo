@@ -1,233 +1,29 @@
-// Hello.h - shared header between server and client
-#pragma once
-#include <windows.h>
-#include <unknwn.h> // IUnknown
-
-// {E8A1B0E2-9B2C-4F3B-9A1E-1234567890AB}
-DEFINE_GUID(CLSID_Hello,
-    0xe8a1b0e2, 0x9b2c, 0x4f3b, 0x9a, 0x1e, 0x12, 0x34, 0x56, 0x78, 0x90, 0xab);
-
-// {A1F3C7D6-4B2E-4111-8E9B-ABCDEF012345}
-DEFINE_GUID(IID_IHello,
-    0xa1f3c7d6, 0x4b2e, 0x4111, 0x8e, 0x9b, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45);
-
-interface IHello : public IUnknown
-{
-    virtual HRESULT STDMETHODCALLTYPE SayHello() = 0;
-}
-
-
-
-
-
-
-
-// HelloServer.cpp - simple COM local server (EXE)
+// HelloClient.cpp - simple COM client
 #define UNICODE
 #include <windows.h>
-#include <strsafe.h>
+#include <iostream>
 #include "Hello.h"
-#include <atomic>
 
-#pragma comment(lib,"advapi32.lib")
-
-// Simple COM object implementing IHello
-class CHello : public IHello
+int wmain()
 {
-    std::atomic<long> m_ref;
-public:
-    CHello() : m_ref(1) {}
-    virtual ~CHello() {}
-
-    // IUnknown
-    STDMETHODIMP QueryInterface(REFIID riid, void** ppv)
-    {
-        if (!ppv) return E_POINTER;
-        *ppv = nullptr;
-        if (riid == IID_IUnknown || riid == IID_IHello) {
-            *ppv = static_cast<IHello*>(this);
-            AddRef();
-            return S_OK;
-        }
-        return E_NOINTERFACE;
-    }
-    STDMETHODIMP_(ULONG) AddRef() { return ++m_ref; }
-    STDMETHODIMP_(ULONG) Release()
-    {
-        long c = --m_ref;
-        if (c == 0) delete this;
-        return c;
-    }
-
-    // IHello
-    STDMETHODIMP SayHello() override
-    {
-        MessageBoxW(NULL, L"Hello from COM server!", L"Hello", MB_OK | MB_ICONINFORMATION);
-        return S_OK;
-    }
-};
-
-// Class factory
-class CHelloFactory : public IClassFactory
-{
-    std::atomic<long> m_ref;
-public:
-    CHelloFactory() : m_ref(1) {}
-    virtual ~CHelloFactory() {}
-
-    STDMETHODIMP QueryInterface(REFIID riid, void** ppv)
-    {
-        if (!ppv) return E_POINTER;
-        *ppv = nullptr;
-        if (riid == IID_IUnknown || riid == IID_IClassFactory) {
-            *ppv = static_cast<IClassFactory*>(this);
-            AddRef();
-            return S_OK;
-        }
-        return E_NOINTERFACE;
-    }
-    STDMETHODIMP_(ULONG) AddRef() { return ++m_ref; }
-    STDMETHODIMP_(ULONG) Release()
-    {
-        long c = --m_ref;
-        if (c == 0) delete this;
-        return c;
-    }
-
-    STDMETHODIMP CreateInstance(IUnknown* pUnkOuter, REFIID riid, void** ppvObject)
-    {
-        if (pUnkOuter) return CLASS_E_NOAGGREGATION;
-        CHello* obj = new (std::nothrow) CHello();
-        if (!obj) return E_OUTOFMEMORY;
-        HRESULT hr = obj->QueryInterface(riid, ppvObject);
-        obj->Release(); // balance ctor ref
-        return hr;
-    }
-
-    STDMETHODIMP LockServer(BOOL fLock)
-    {
-        // Not implementing a server lock count; leaving as no-op for simplicity
-        return S_OK;
-    }
-};
-
-// Globals
-HINSTANCE g_hInstance = nullptr;
-DWORD g_serverCookie = 0;
-IClassFactory* g_factory = nullptr;
-std::atomic<bool> g_run{ true };
-
-// Register/unregister functions (write CLSID\LocalServer32)
-HRESULT RegisterLocalServer(PCWSTR exePath)
-{
-    LRESULT lr;
-    wchar_t clsidStr[64];
-    if (StringFromGUID2(CLSID_Hello, clsidStr, ARRAYSIZE(clsidStr)) == 0) return E_FAIL;
-
-    wchar_t keyPath[256];
-    StringCchPrintfW(keyPath, ARRAYSIZE(keyPath), L"CLSID\\%s\\LocalServer32", clsidStr);
-
-    HKEY hKey = nullptr;
-    lr = RegCreateKeyExW(HKEY_CLASSES_ROOT, keyPath, 0, NULL, 0, KEY_WRITE, NULL, &hKey, NULL);
-    if (lr != ERROR_SUCCESS) return HRESULT_FROM_WIN32(lr);
-
-    lr = RegSetValueExW(hKey, NULL, 0, REG_SZ, (const BYTE*)exePath,
-        (DWORD)((wcslen(exePath) + 1) * sizeof(wchar_t)));
-    RegCloseKey(hKey);
-    return (lr == ERROR_SUCCESS) ? S_OK : HRESULT_FROM_WIN32(lr);
-}
-
-HRESULT UnregisterLocalServer()
-{
-    wchar_t clsidStr[64];
-    if (StringFromGUID2(CLSID_Hello, clsidStr, ARRAYSIZE(clsidStr)) == 0) return E_FAIL;
-    wchar_t keyPath[256];
-    StringCchPrintfW(keyPath, ARRAYSIZE(keyPath), L"CLSID\\%s", clsidStr);
-
-    // Delete the entire CLSID key for simplicity
-    LSTATUS st = RegDeleteTreeW(HKEY_CLASSES_ROOT, keyPath);
-    if (st == ERROR_SUCCESS || st == ERROR_FILE_NOT_FOUND) return S_OK;
-    return HRESULT_FROM_WIN32(st);
-}
-
-// Minimal COM server message loop to keep EXE alive
-int RunMessageLoop()
-{
-    MSG msg;
-    while (g_run.load()) {
-        while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
-            if (msg.message == WM_QUIT) {
-                g_run = false;
-                break;
-            }
-            TranslateMessage(&msg);
-            DispatchMessageW(&msg);
-        }
-        Sleep(100);
-    }
-    return 0;
-}
-
-int wmain(int argc, wchar_t* argv[])
-{
-    g_hInstance = GetModuleHandleW(NULL);
-
-    // Handle registration switches
-    if (argc > 1) {
-        if (_wcsicmp(argv[1], L"/RegServer") == 0) {
-            wchar_t path[MAX_PATH];
-            GetModuleFileNameW(NULL, path, MAX_PATH);
-            HRESULT hr = RegisterLocalServer(path);
-            if (SUCCEEDED(hr)) wprintf(L"Registered COM server.\n");
-            else wprintf(L"Register failed: 0x%08X\n", hr);
-            return 0;
-        }
-        if (_wcsicmp(argv[1], L"/UnregServer") == 0) {
-            HRESULT hr = UnregisterLocalServer();
-            if (SUCCEEDED(hr)) wprintf(L"Unregistered COM server.\n");
-            else wprintf(L"Unregister failed: 0x%08X\n", hr);
-            return 0;
-        }
-    }
-
-    // Normal server startup: register class object and run message loop
-    HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
     if (FAILED(hr)) {
-        wprintf(L"CoInitializeEx failed: 0x%08X\n", hr);
+        std::wcout << L"CoInitializeEx failed: 0x" << std::hex << hr << L"\n";
         return -1;
     }
 
-    g_factory = new (std::nothrow) CHelloFactory();
-    if (!g_factory) {
-        CoUninitialize();
-        return -1;
+    IHello* pHello = nullptr;
+    hr = CoCreateInstance(CLSID_Hello, NULL, CLSCTX_LOCAL_SERVER, IID_IHello, (void**)&pHello);
+    if (SUCCEEDED(hr) && pHello) {
+        std::wcout << L"Got IHello interface. Calling SayHello...\n";
+        hr = pHello->SayHello();
+        if (SUCCEEDED(hr)) std::wcout << L"SayHello returned S_OK\n";
+        else std::wcout << L"SayHello failed: 0x" << std::hex << hr << L"\n";
+        pHello->Release();
+    } else {
+        std::wcout << L"CoCreateInstance failed: 0x" << std::hex << hr << L"\n";
     }
 
-    // Register our class factory to be used by clients (local server)
-    hr = CoRegisterClassObject(CLSID_Hello, g_factory, CLSCTX_LOCAL_SERVER,
-        REGCLS_MULTIPLEUSE, &g_serverCookie);
-    if (FAILED(hr)) {
-        wprintf(L"CoRegisterClassObject failed: 0x%08X\n", hr);
-        g_factory->Release();
-        CoUninitialize();
-        return -1;
-    }
-
-    wprintf(L"COM Local Server running. Close this window to exit.\n");
-    // Run a simple loop; in real server you'd wait for clients or use message loop better
-    RunMessageLoop();
-
-    // Cleanup
-    CoRevokeClassObject(g_serverCookie);
-    g_factory->Release();
     CoUninitialize();
     return 0;
 }
-
-
-
-
-
-
-
-
