@@ -1,10 +1,9 @@
-// HelloClient.cpp - simple COM client
 #define UNICODE
 #include <windows.h>
 #include <iostream>
 #include "Hello.h"
 
-int wmain()
+int main()
 {
     HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
     if (FAILED(hr)) {
@@ -27,3 +26,14 @@ int wmain()
     CoUninitialize();
     return 0;
 }
+
+
+Error
+'IHello' followed by 'int' is illegal (did you forget a ';'?)
+return type of 'main' should be 'int' instead of 'IHello'
+'IHello': cannot instantiate abstract class
+'return': cannot convert from 'int' to 'IHello'
+'return': cannot convert from 'int' to 'IHello'
+
+
+
