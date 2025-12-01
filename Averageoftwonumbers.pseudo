@@ -1,1 +1,2 @@
-C:\Users\1069833\Desktop\COMCalculatorProject\Server\HelloServer\x64\Debug
+reg add "HKCR\CLSID\{E8A1B0E2-9B2C-4F3B-9A1E-1234567890AB}" /ve /d "HelloServer COM Server" /f
+reg add "HKCR\CLSID\{E8A1B0E2-9B2C-4F3B-9A1E-1234567890AB}\LocalServer32" /ve /d "\"C:\Users\1069833\Desktop\COMCalculatorProject\Server\HelloServer\x64\Debug\HelloServer.exe\"" /f
