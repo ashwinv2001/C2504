@@ -53,4 +53,6 @@ interface IHello : public IUnknown
 };
 
 
-
+ERROR:
+unresolved external symbol CLSID_Hello
+unresolved external symbol IID_IHello
