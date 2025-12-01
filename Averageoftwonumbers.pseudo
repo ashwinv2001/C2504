@@ -219,3 +219,38 @@ int wmain(int argc, wchar_t* argv[])
     CoUninitialize();
     return 0;
 }
+
+
+
+
+//HelloClient.cpp
+
+#define UNICODE
+#include <windows.h>
+#include <iostream>
+#include "Hello.h"
+
+
+int main()
+{
+    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+    if (FAILED(hr)) {
+        std::wcout << L"CoInitializeEx failed: 0x" << std::hex << hr << L"\n";
+        return -1;
+    }
+
+    IHello* pHello = nullptr;
+    hr = CoCreateInstance(CLSID_Hello, NULL, CLSCTX_LOCAL_SERVER, IID_IHello, (void**)&pHello);
+    if (SUCCEEDED(hr) && pHello) {
+        std::wcout << L"Got IHello interface. Calling SayHello...\n";
+        hr = pHello->SayHello();
+        if (SUCCEEDED(hr)) std::wcout << L"SayHello returned S_OK\n";
+        else std::wcout << L"SayHello failed: 0x" << std::hex << hr << L"\n";
+        pHello->Release();
+    } else {
+        std::wcout << L"CoCreateInstance failed: 0x" << std::hex << hr << L"\n";
+    }
+
+    CoUninitialize();
+    return 0;
+}
