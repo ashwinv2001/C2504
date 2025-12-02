@@ -1,12 +1,1 @@
-#include "Hello.h"
-#include <initguid.h>
-
-// Now generate the real GUID variables
-
-// {E8A1B0E2-9B2C-4F3B-9A1E-1234567890AB}
-DEFINE_GUID(CLSID_Hello,
-    0xe8a1b0e2, 0x9b2c, 0x4f3b, 0x9a, 0x1e, 0x12, 0x34, 0x56, 0x78, 0x90, 0xab);
-
-// {A1F3C7D6-4B2E-4111-8E9B-ABCDEF012345}
-DEFINE_GUID(IID_IHello,
-    0xa1f3c7d6, 0x4b2e, 0x4111, 0x8e, 0x9b, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45);
+reg query HKCR\CLSID\{E8A1B0E2-9B2C-4F3B-9A1E-1234567890AB}
