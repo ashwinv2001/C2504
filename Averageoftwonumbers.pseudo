@@ -1,2 +1,26 @@
-HKEY_CLASSES_ROOT\CLSID\{E8A1B0E2-9B2C-4F3B-9A1E-1234567890AB}\LocalServer32
-    (Default)    REG_SZ    "C:\Users\1069833\Desktop\COMCalculatorProject\Server\HelloServer\x64\Debug\HelloServer.exe"
+int main() {
+    CoInitialize(NULL);
+
+    HelloClassFactory* factory = new HelloClassFactory();
+    DWORD cookie;
+
+    HRESULT hr = CoRegisterClassObject(
+        CLSID_Hello,
+        factory,
+        CLSCTX_LOCAL_SERVER,
+        REGCLS_MULTIPLEUSE,
+        &cookie
+    );
+
+    if (FAILED(hr)) return 1;
+
+    // The server MUST stay alive here
+    MSG msg;
+    while (GetMessage(&msg, NULL, 0, 0)) {
+        DispatchMessage(&msg);
+    }
+
+    CoRevokeClassObject(cookie);
+    CoUninitialize();
+    return 0;
+}
