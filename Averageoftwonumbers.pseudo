@@ -1,26 +1,51 @@
-int main() {
-    CoInitialize(NULL);
+#include "pch.h"
+#include "Messenger.h"
 
-    HelloClassFactory* factory = new HelloClassFactory();
-    DWORD cookie;
+// CRITICAL: Include the generated C file to define the GUIDs
+#include "ComServerExe_i.c" 
 
-    HRESULT hr = CoRegisterClassObject(
-        CLSID_Hello,
-        factory,
-        CLSCTX_LOCAL_SERVER,
-        REGCLS_MULTIPLEUSE,
-        &cookie
-    );
+// Called by Client A
+STDMETHODIMP CMessenger::SendTask( BSTR taskName )
+{
+    // Pass the message to the event firing system
+    return Fire_OnTaskRequested( taskName );
+}
 
-    if (FAILED(hr)) return 1;
+// Fires the event to Client B (and others)
+HRESULT CMessenger::Fire_OnTaskRequested( BSTR taskName )
+{
+    CComPtr<IConnectionPointContainer> spCPC;
+    if( FAILED( this->QueryInterface( IID_IConnectionPointContainer, ( void** )&spCPC ) ) ) return E_FAIL;
 
-    // The server MUST stay alive here
-    MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0)) {
-        DispatchMessage(&msg);
+    CComPtr<IConnectionPoint> spCP;
+    // Uses the ID from the included _i.c file
+    if( FAILED( spCPC->FindConnectionPoint( DIID__IMessengerEvents, &spCP ) ) ) return E_FAIL;
+
+    CComPtr<IEnumConnections> spEnum;
+    if( FAILED( spCP->EnumConnections( &spEnum ) ) ) return E_FAIL;
+
+    CONNECTDATA cd;
+    ULONG fetched = 0;
+    while( spEnum->Next( 1, &cd, &fetched ) == S_OK )
+    {
+        if( cd.pUnk )
+        {
+            CComPtr<IDispatch> spDisp;
+            if( SUCCEEDED( cd.pUnk->QueryInterface( IID_IDispatch, ( void** )&spDisp ) ) )
+            {
+                DISPPARAMS dp = { 0 };
+                VARIANTARG var;
+                VariantInit( &var );
+                var.vt = VT_BSTR;
+                var.bstrVal = taskName;
+                dp.cArgs = 1;
+                dp.rgvarg = &var;
+
+                // Invoke ID 1 (OnTaskRequested)
+                spDisp->Invoke( 1, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &dp, NULL, NULL, NULL );
+            }
+            cd.pUnk->Release();
+        }
     }
-
-    CoRevokeClassObject(cookie);
-    CoUninitialize();
-    return 0;
+    return S_OK;
 }
