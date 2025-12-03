@@ -1,51 +1,119 @@
-#include "pch.h"
-#include "Messenger.h"
+#include <iostream>
+#include <string>
+#include <atlbase.h>
+#include <atlcom.h>
 
-// CRITICAL: Include the generated C file to define the GUIDs
-#include "ComServerExe_i.c" 
+// =========================================================
+// These files are generated in ComServerExe project folder.
+// =========================================================
+#include "../../ComServerExe/ComServerExe/ComServerExe_i.h"
+#include "../../ComServerExe/ComServerExe/ComServerExe_i.c"
 
-// Called by Client A
-STDMETHODIMP CMessenger::SendTask( BSTR taskName )
+// Standard ATL Module for Console App
+class CClientModule : public CAtlExeModuleT<CClientModule> {};
+CClientModule _AtlModule;
+
+// Global Name for this Client
+std::wstring g_ClientName;
+
+
+
+// ===========================================================================
+// EVENT SINK (LISTENER)
+// This receives the "OnTaskRequested" event from the Server
+// ===========================================================================
+class CClientSink : public IDispEventImpl<0, CClientSink, &DIID__IMessengerEvents, &LIBID_ComServerExeLib, 1, 0>
 {
-    // Pass the message to the event firing system
-    return Fire_OnTaskRequested( taskName );
-}
-
-// Fires the event to Client B (and others)
-HRESULT CMessenger::Fire_OnTaskRequested( BSTR taskName )
-{
-    CComPtr<IConnectionPointContainer> spCPC;
-    if( FAILED( this->QueryInterface( IID_IConnectionPointContainer, ( void** )&spCPC ) ) ) return E_FAIL;
-
-    CComPtr<IConnectionPoint> spCP;
-    // Uses the ID from the included _i.c file
-    if( FAILED( spCPC->FindConnectionPoint( DIID__IMessengerEvents, &spCP ) ) ) return E_FAIL;
-
-    CComPtr<IEnumConnections> spEnum;
-    if( FAILED( spCP->EnumConnections( &spEnum ) ) ) return E_FAIL;
-
-    CONNECTDATA cd;
-    ULONG fetched = 0;
-    while( spEnum->Next( 1, &cd, &fetched ) == S_OK )
+public:
+    // This matches [id(1)] in your IDL
+    void __stdcall OnTaskRequested( BSTR taskName )
     {
-        if( cd.pUnk )
-        {
-            CComPtr<IDispatch> spDisp;
-            if( SUCCEEDED( cd.pUnk->QueryInterface( IID_IDispatch, ( void** )&spDisp ) ) )
-            {
-                DISPPARAMS dp = { 0 };
-                VARIANTARG var;
-                VariantInit( &var );
-                var.vt = VT_BSTR;
-                var.bstrVal = taskName;
-                dp.cArgs = 1;
-                dp.rgvarg = &var;
+        std::wstring msg( taskName, SysStringLen( taskName ) );
 
-                // Invoke ID 1 (OnTaskRequested)
-                spDisp->Invoke( 1, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &dp, NULL, NULL, NULL );
+        // Filter: Don't show messages sent by ME
+        std::wstring myTag = L"[" + g_ClientName + L"]";
+        if( msg.find( myTag ) == 0 ) return;
+
+        // Print incoming message
+        std::wcout << L"\n";
+        std::wcout << L"--------------------------------------------------\n";
+        std::wcout << L" INCOMING: " << msg << L"\n";
+        std::wcout << L"--------------------------------------------------\n";
+        std::wcout << L"Command > ";
+    }
+
+    BEGIN_SINK_MAP( CClientSink )
+        SINK_ENTRY_EX( 0, DIID__IMessengerEvents, 1, OnTaskRequested )
+    END_SINK_MAP()
+};
+
+// ===========================================================================
+// MAIN
+// ===========================================================================
+int main()
+{
+    // Initialize COM
+    HRESULT hr = CoInitializeEx( nullptr, COINIT_MULTITHREADED );
+    if( FAILED( hr ) ) return 1;
+
+    {
+        CComPtr<IMessenger> pMessenger;
+
+        // CRITICAL CHANGE FOR EXE SERVER:
+        // Use CLSCTX_LOCAL_SERVER. This finds the running EXE.
+        hr = pMessenger.CoCreateInstance( CLSID_Messenger, nullptr, CLSCTX_LOCAL_SERVER );
+
+        if( SUCCEEDED( hr ) )
+        {
+            CClientSink sink;
+            // Connect the events
+            hr = sink.DispEventAdvise( pMessenger );
+
+            if( SUCCEEDED( hr ) )
+            {
+                std::cout << "Successfully connected to Shared EXE Server!\n";
+
+                // Get Client Name
+                std::cout << "Enter your Name: ";
+                std::string tempName;
+                std::getline( std::cin, tempName );
+                g_ClientName = std::wstring( tempName.begin(), tempName.end() );
+
+                std::cout << "Welcome " << tempName << ". Type a message and hit Enter.\n";
+                std::cout << "Type 'exit' to quit.\n";
+                std::cout << "Command > ";
+
+                std::string input;
+                while( std::getline( std::cin, input ) )
+                {
+                    if( input == "exit" ) break;
+
+                    if( !input.empty() )
+                    {
+                        // Format: [Name] Message
+                        std::string fullMsg = "[" + tempName + "] " + input;
+                        CComBSTR bstrMsg( fullMsg.c_str() );
+
+                        // Send to Server
+                        pMessenger->SendTask( bstrMsg );
+                        std::cout << "Command > ";
+                    }
+                }
+                sink.DispEventUnadvise( pMessenger );
             }
-            cd.pUnk->Release();
+            else
+            {
+                std::cout << "Connected to Server, but Event Subscription failed.\n";
+            }
+        }
+        else
+        {
+            std::cout << "Failed to connect to ComServerExe.\n";
+            std::cout << "1. Did you build the Server?\n";
+            std::cout << "2. Did you run 'ComServerExe.exe /RegServer' as Admin?\n";
         }
     }
-    return S_OK;
+
+    CoUninitialize();
+    return 0;
 }
