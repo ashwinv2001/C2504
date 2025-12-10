@@ -83,6 +83,12 @@ int main()
                 std::cout << "Type 'exit' to quit.\n";
                 std::cout << "Command > ";
 
+                //
+                std::cout << "Heldent"
+                
+                //
+
+
                 std::string input;
                 while( std::getline( std::cin, input ) )
                 {
