@@ -1,122 +1,33 @@
-#include <iostream>
-#include <string>
-#include <atlbase.h>
-#include <atlcom.h>
+import "oaidl.idl";
+import "ocidl.idl";
 
-// =========================================================
-// These files are generated in ComServerExe project folder.
-// =========================================================
-#include "../../ComServerExe/ComServerExe/ComServerExe_i.h"
-#include "../../ComServerExe/ComServerExe/ComServerExe_i.c"
-
-// Standard ATL Module for Console App
-class CClientModule : public CAtlExeModuleT<CClientModule> {};
-CClientModule _AtlModule;
-
-// Global Name for this Client
-std::wstring g_ClientName;
-
-
-
-// ===========================================================================
-// EVENT SINK (LISTENER)
-// This receives the "OnTaskRequested" event from the Server
-// ===========================================================================
-class CClientSink : public IDispEventImpl<0, CClientSink, &DIID__IMessengerEvents, &LIBID_ComServerExeLib, 1, 0>
+[
+    object,
+    uuid(7A6D3E44-9F88-4E9A-B8A3-AAA111111111),
+    dual,
+    nonextensible,
+    pointer_default(unique)
+]
+interface ICalculator : IDispatch
 {
-public:
-    // This matches [id(1)] in your IDL
-    void __stdcall OnTaskRequested1( BSTR taskName )
-    {
-        std::wstring msg( taskName, SysStringLen( taskName ) );
-
-        // Filter: Don't show messages sent by ME
-        std::wstring myTag = L"[" + g_ClientName + L"]";
-        if( msg.find( myTag ) == 0 ) return;
-
-        // Print incoming message
-        std::wcout << L"\n";
-        std::wcout << L"--------------------------------------------------\n";
-        std::wcout << L" INCOMING: " << msg << L"\n";
-        std::wcout << L"--------------------------------------------------\n";
-        std::wcout << L"Command > ";
-    }
-
-    
-
-
-    BEGIN_SINK_MAP( CClientSink )
-        SINK_ENTRY_EX( 0, DIID__IMessengerEvents, 1, OnTaskRequested1 )
-    END_SINK_MAP()
+    HRESULT Add([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
+    HRESULT Sub([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
+    HRESULT Mul([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
+    HRESULT Div([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
 };
 
-// ===========================================================================
-// MAIN
-// ===========================================================================
-int main()
+[
+    uuid(3C22B4A0-BC22-4C55-AAA2-BBB222222222)
+]
+library CalculatorComServerLib
 {
-    // Initialize COM
-    HRESULT hr = CoInitializeEx( nullptr, COINIT_MULTITHREADED );
-    if( FAILED( hr ) ) return 1;
+    importlib("stdole2.tlb");
 
+    [
+        uuid(9F9D1F0C-3B99-4C2F-AAA3-CCC333333333)
+    ]
+    coclass Calculator
     {
-        CComPtr<IMessenger> pMessenger;
-
-        // CRITICAL CHANGE FOR EXE SERVER:
-        // Use CLSCTX_LOCAL_SERVER. This finds the running EXE.
-        hr = pMessenger.CoCreateInstance( CLSID_Messenger, nullptr, CLSCTX_LOCAL_SERVER );
-
-        if( SUCCEEDED( hr ) )
-        {
-            CClientSink sink;
-            // Connect the events
-            hr = sink.DispEventAdvise( pMessenger );
-
-            if( SUCCEEDED( hr ) )
-            {
-                std::cout << "Successfully connected to Shared EXE Server!\n";
-
-                // Get Client Name
-                std::cout << "Enter your Name: ";
-                std::string tempName;
-                std::getline( std::cin, tempName );
-                g_ClientName = std::wstring( tempName.begin(), tempName.end() );
-
-                std::cout << "Welcome " << tempName << ". Type a message and hit Enter.\n";
-                std::cout << "Type 'exit' to quit.\n";
-                std::cout << "Command > ";
-
-                std::string input;
-                while( std::getline( std::cin, input ) )
-                {
-                    if( input == "exit" ) break;
-
-                    if( !input.empty() )
-                    {
-                        // Format: [Name] Message
-                        std::string fullMsg = "[" + tempName + "] " + input;
-                        CComBSTR bstrMsg( fullMsg.c_str() );
-
-                        // Send to Server
-                        pMessenger->SendTask( bstrMsg );
-                        std::cout << "Command > ";
-                    }
-                }
-                sink.DispEventUnadvise( pMessenger );
-            }
-            else
-            {
-                std::cout << "Connected to Server, but Event Subscription failed.\n";
-            }
-        }
-        else
-        {
-            std::cout << "Failed to connect to ComServerExe.\n";
-            std::cout << "1. Did you build the Server?\n";
-            std::cout << "2. Did you run 'ComServerExe.exe /RegServer' as Admin?\n";
-        }
-    }
-
-    CoUninitialize();
-    return 0;
-}
+        [default] interface ICalculator;
+    };
+};
