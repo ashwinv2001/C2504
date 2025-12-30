@@ -1,50 +1,28 @@
-// CalculatorComServer.idl : IDL source for CalculatorComServer
-//
+#pragma once
+#include "resource.h"
+#include "CalculatorComServer_i.h"
 
-// This file will be processed by the MIDL tool to
-// produce the type library (CalculatorComServer.tlb) and marshalling code.
+using namespace ATL;
 
-import "oaidl.idl";
-import "ocidl.idl";
-
-[
-	object,
-	uuid(8bcf0a14-ddb5-4967-8274-b62adb72e3fd),
-	dual,
-	nonextensible,
-	
-	pointer_default(unique)
-	version(1.0)
-	 
-]
-
-interface ICalculator : IDispatch
+class ATL_NO_VTABLE CCalculator :
+    public CComObjectRootEx<CComSingleThreadModel>,
+    public CComCoClass<CCalculator, &CLSID_Calculator>,
+    public IDispatchImpl<ICalculator, &IID_ICalculator,
+                         &LIBID_CalculatorComServerLib, 1, 0>
 {
-	HRESULT Add([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
-	HRESULT Sub([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
-	HRESULT Mul([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
-	HRESULT Div([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
+public:
+    CCalculator() {}
+
+    DECLARE_NO_REGISTRY()
+
+    BEGIN_COM_MAP(CCalculator)
+        COM_INTERFACE_ENTRY(ICalculator)
+        COM_INTERFACE_ENTRY(IDispatch)
+    END_COM_MAP()
+
+    // ICalculator
+    STDMETHOD(Add)(DOUBLE a, DOUBLE b, DOUBLE* result);
+    STDMETHOD(Sub)(DOUBLE a, DOUBLE b, DOUBLE* result);
+    STDMETHOD(Mul)(DOUBLE a, DOUBLE b, DOUBLE* result);
+    STDMETHOD(Div)(DOUBLE a, DOUBLE b, DOUBLE* result);
 };
-
-[
-	uuid(8bcf0a14-ddb5-4967-8274-b62adb72e3fd)
-]
-
-
-
-
-library CalculatorComServerLib 
-{
-	importlib("stdole2.tlb");
-
-	[
-		uuid(8bcf0a14-ddb5-4967-8274-b62adb72e3fd)
-	]
-
-		coclass Calculator
-	{
-		[default] interface ICalculator;
-	};
-
-};
-
