@@ -1,33 +1,50 @@
+// CalculatorComServer.idl : IDL source for CalculatorComServer
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (CalculatorComServer.tlb) and marshalling code.
+
 import "oaidl.idl";
 import "ocidl.idl";
 
 [
-    object,
-    uuid(7A6D3E44-9F88-4E9A-B8A3-AAA111111111),
-    dual,
-    nonextensible,
-    pointer_default(unique)
+	object,
+	uuid(8bcf0a14-ddb5-4967-8274-b62adb72e3fd),
+	dual,
+	nonextensible,
+	
+	pointer_default(unique)
+	version(1.0)
+	 
 ]
+
 interface ICalculator : IDispatch
 {
-    HRESULT Add([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
-    HRESULT Sub([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
-    HRESULT Mul([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
-    HRESULT Div([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
+	HRESULT Add([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
+	HRESULT Sub([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
+	HRESULT Mul([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
+	HRESULT Div([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
 };
 
 [
-    uuid(3C22B4A0-BC22-4C55-AAA2-BBB222222222)
+	uuid(8bcf0a14-ddb5-4967-8274-b62adb72e3fd)
 ]
-library CalculatorComServerLib
-{
-    importlib("stdole2.tlb");
 
-    [
-        uuid(9F9D1F0C-3B99-4C2F-AAA3-CCC333333333)
-    ]
-    coclass Calculator
-    {
-        [default] interface ICalculator;
-    };
+
+
+
+library CalculatorComServerLib 
+{
+	importlib("stdole2.tlb");
+
+	[
+		uuid(8bcf0a14-ddb5-4967-8274-b62adb72e3fd)
+	]
+
+		coclass Calculator
+	{
+		[default] interface ICalculator;
+	};
+
 };
+
