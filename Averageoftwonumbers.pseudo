@@ -1,28 +1,31 @@
-#pragma once
-#include "resource.h"
-#include "CalculatorComServer_i.h"
+#include "pch.h"
+#include "Calculator.h"
 
-using namespace ATL;
-
-class ATL_NO_VTABLE CCalculator :
-    public CComObjectRootEx<CComSingleThreadModel>,
-    public CComCoClass<CCalculator, &CLSID_Calculator>,
-    public IDispatchImpl<ICalculator, &IID_ICalculator,
-                         &LIBID_CalculatorComServerLib, 1, 0>
+STDMETHODIMP CCalculator::Add(DOUBLE a, DOUBLE b, DOUBLE* result)
 {
-public:
-    CCalculator() {}
+    if (!result) return E_POINTER;
+    *result = a + b;
+    return S_OK;
+}
 
-    DECLARE_NO_REGISTRY()
+STDMETHODIMP CCalculator::Sub(DOUBLE a, DOUBLE b, DOUBLE* result)
+{
+    if (!result) return E_POINTER;
+    *result = a - b;
+    return S_OK;
+}
 
-    BEGIN_COM_MAP(CCalculator)
-        COM_INTERFACE_ENTRY(ICalculator)
-        COM_INTERFACE_ENTRY(IDispatch)
-    END_COM_MAP()
+STDMETHODIMP CCalculator::Mul(DOUBLE a, DOUBLE b, DOUBLE* result)
+{
+    if (!result) return E_POINTER;
+    *result = a * b;
+    return S_OK;
+}
 
-    // ICalculator
-    STDMETHOD(Add)(DOUBLE a, DOUBLE b, DOUBLE* result);
-    STDMETHOD(Sub)(DOUBLE a, DOUBLE b, DOUBLE* result);
-    STDMETHOD(Mul)(DOUBLE a, DOUBLE b, DOUBLE* result);
-    STDMETHOD(Div)(DOUBLE a, DOUBLE b, DOUBLE* result);
-};
+STDMETHODIMP CCalculator::Div(DOUBLE a, DOUBLE b, DOUBLE* result)
+{
+    if (!result) return E_POINTER;
+    if (b == 0) return E_INVALIDARG; // division by zero is invalid
+    *result = a / b;
+    return S_OK;
+}
