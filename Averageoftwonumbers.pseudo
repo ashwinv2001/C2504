@@ -1,31 +1,32 @@
-#include "pch.h"
-#include "Calculator.h"
+import "oaidl.idl";
+import "ocidl.idl";
 
-STDMETHODIMP CCalculator::Add(DOUBLE a, DOUBLE b, DOUBLE* result)
+[
+    object,
+    uuid(4A6F38E4-8E47-4A5A-9F61-111111111111),
+    dual,
+    pointer_default(unique)
+]
+interface ICalculator : IDispatch
 {
-    if (!result) return E_POINTER;
-    *result = a + b;
-    return S_OK;
-}
+    HRESULT Add([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
+    HRESULT Sub([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
+    HRESULT Mul([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
+    HRESULT Div([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
+};
 
-STDMETHODIMP CCalculator::Sub(DOUBLE a, DOUBLE b, DOUBLE* result)
+[
+    uuid(9E2E6C71-99B2-4E0A-A888-222222222222)
+]
+library CalculatorLib
 {
-    if (!result) return E_POINTER;
-    *result = a - b;
-    return S_OK;
-}
+    importlib("stdole2.tlb");
 
-STDMETHODIMP CCalculator::Mul(DOUBLE a, DOUBLE b, DOUBLE* result)
-{
-    if (!result) return E_POINTER;
-    *result = a * b;
-    return S_OK;
-}
-
-STDMETHODIMP CCalculator::Div(DOUBLE a, DOUBLE b, DOUBLE* result)
-{
-    if (!result) return E_POINTER;
-    if (b == 0) return E_INVALIDARG; // division by zero is invalid
-    *result = a / b;
-    return S_OK;
-}
+    [
+        uuid(1CDB6B15-0E4E-4B7E-B999-333333333333)
+    ]
+    coclass Calculator
+    {
+        [default] interface ICalculator;
+    };
+};
