@@ -1,32 +1,28 @@
-import "oaidl.idl";
-import "ocidl.idl";
+#pragma once
+#include "resource.h"
+#include "Calculator_i.h"
 
-[
-    object,
-    uuid(4A6F38E4-8E47-4A5A-9F61-111111111111),
-    dual,
-    pointer_default(unique)
-]
-interface ICalculator : IDispatch
+using namespace ATL;
+
+class ATL_NO_VTABLE CCalculator :
+    public CComObjectRootEx<CComSingleThreadModel>,
+    public CComCoClass<CCalculator, &CLSID_Calculator>,
+    public IDispatchImpl<ICalculator, &IID_ICalculator, &LIBID_CalculatorLib, 1, 0>
 {
-    HRESULT Add([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
-    HRESULT Sub([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
-    HRESULT Mul([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
-    HRESULT Div([in] DOUBLE a, [in] DOUBLE b, [out, retval] DOUBLE* result);
-};
+public:
+    CCalculator() {}
 
-[
-    uuid(9E2E6C71-99B2-4E0A-A888-222222222222)
-]
-library CalculatorLib
-{
-    importlib("stdole2.tlb");
+    DECLARE_NO_REGISTRY()
+    DECLARE_PROTECT_FINAL_CONSTRUCT()
 
-    [
-        uuid(1CDB6B15-0E4E-4B7E-B999-333333333333)
-    ]
-    coclass Calculator
-    {
-        [default] interface ICalculator;
-    };
+    BEGIN_COM_MAP(CCalculator)
+        COM_INTERFACE_ENTRY(ICalculator)
+        COM_INTERFACE_ENTRY(IDispatch)
+    END_COM_MAP()
+
+    // Methods
+    STDMETHOD(Add)(DOUBLE a, DOUBLE b, DOUBLE* result);
+    STDMETHOD(Sub)(DOUBLE a, DOUBLE b, DOUBLE* result);
+    STDMETHOD(Mul)(DOUBLE a, DOUBLE b, DOUBLE* result);
+    STDMETHOD(Div)(DOUBLE a, DOUBLE b, DOUBLE* result);
 };
