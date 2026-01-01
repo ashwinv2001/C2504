@@ -1,29 +1,14 @@
 #include "pch.h"
-#include "Calculator.h"
+#include <atlbase.h>
+#include <atlcom.h>
 
-STDMETHODIMP CCalculator::Add(DOUBLE a, DOUBLE b, DOUBLE* result)
+class CCalculatorModule : public CAtlExeModuleT<CCalculatorModule>
 {
-    *result = a + b;
-    return S_OK;
-}
+};
 
-STDMETHODIMP CCalculator::Sub(DOUBLE a, DOUBLE b, DOUBLE* result)
+CCalculatorModule _AtlModule;
+
+int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 {
-    *result = a - b;
-    return S_OK;
-}
-
-STDMETHODIMP CCalculator::Mul(DOUBLE a, DOUBLE b, DOUBLE* result)
-{
-    *result = a * b;
-    return S_OK;
-}
-
-STDMETHODIMP CCalculator::Div(DOUBLE a, DOUBLE b, DOUBLE* result)
-{
-    if (b == 0.0)
-        return E_INVALIDARG;
-
-    *result = a / b;
-    return S_OK;
+    return _AtlModule.WinMain(SW_HIDE);
 }
