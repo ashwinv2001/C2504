@@ -1,14 +1,1 @@
-#include "pch.h"
-#include <atlbase.h>
-#include <atlcom.h>
-
-class CCalculatorModule : public CAtlExeModuleT<CCalculatorModule>
-{
-};
-
-CCalculatorModule _AtlModule;
-
-int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
-{
-    return _AtlModule.WinMain(SW_HIDE);
-}
+https://github.com/ashwinv2001/CPD-TRAINING
