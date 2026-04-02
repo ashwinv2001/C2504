@@ -1,0 +1,487 @@
+------------------MinimumMaximumSalariedEmployee----------------
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MinMaxSalariedEmployee
+{
+    public abstract class Employee
+    {
+        public abstract double CalculateSalary();
+        public abstract void Read();
+    }
+
+    public class FullTimeEmployee : Employee
+    {
+        public double BaseSalary {  get; set; }
+        public double BonusPercentage {  get; set; }
+
+        public FullTimeEmployee()
+        {
+            BaseSalary = 0;
+            BonusPercentage = 0;
+        }
+
+        public override void Read()
+        {
+            Console.WriteLine("Enter base salary");
+            BaseSalary = double.Parse(Console.ReadLine());
+            Console.WriteLine("Enter bonus percentage");
+            BonusPercentage = double.Parse(Console.ReadLine());
+        }
+
+        public override double CalculateSalary()
+        {
+            return BaseSalary + (BaseSalary * BonusPercentage);
+        }
+
+        public override string ToString()
+        {
+            return $"Employee with base salary{BaseSalary} and bonus percentage {BonusPercentage} and total slary {CalculateSalary()}";
+        }
+
+    }
+
+    public class PartTimeEmployee : Employee
+    {
+        public double HourlyRate {  get; set; }
+        public double HoursWorked {  get; set; }
+
+        public PartTimeEmployee()
+        {
+            HourlyRate = 0;
+            HoursWorked = 0;
+        }
+
+        public override void Read()
+        {
+            Console.WriteLine("Enter the Hourly rate ");
+            HourlyRate = double.Parse(Console.ReadLine());
+            Console.WriteLine("Enter the hourse worked");
+            HoursWorked = double.Parse(Console.ReadLine());
+        }
+
+        public override double CalculateSalary()
+        {
+            return HoursWorked * HourlyRate;
+        }
+
+        public override string ToString()
+        {
+            return $"Employee with hours rate{HourlyRate} and hours worked {HoursWorked} and total salary {CalculateSalary()}";
+        }
+    }
+
+    enum EmployeeType
+    {
+        FulltimeEmp = 1,
+        PartTimeEmp = 2
+    }
+    internal class Program
+    {
+
+        static void Run()
+        {
+            EmployeeType empType;
+            Employee employee;
+            Employee minSalariedEmp = null;
+            Employee maxSalariedEmp = null;
+            string choice;
+            double maxSalary = double.MinValue;
+            double minSalary = double.MaxValue;
+
+            do
+            {
+                employee = null;
+                Console.WriteLine("1.FullTime ----- 2.PartTime");
+                empType = (EmployeeType)int.Parse(Console.ReadLine());
+                switch (empType)
+                {
+                    case EmployeeType.FulltimeEmp:
+                        FullTimeEmployee fullEmp = new FullTimeEmployee();
+                        employee = fullEmp;
+                        fullEmp.Read();
+                        break;
+
+                    case EmployeeType.PartTimeEmp:
+                        PartTimeEmployee partEmp = new PartTimeEmployee();
+                        employee = partEmp;
+                        partEmp.Read();
+                        break;
+                }
+
+                if (employee.CalculateSalary() > maxSalary)
+                {
+                    maxSalary = employee.CalculateSalary();
+                    maxSalariedEmp = employee;
+                }
+
+                if (employee.CalculateSalary() < minSalary)
+                {
+                    minSalary = employee.CalculateSalary();
+                    minSalariedEmp = employee;
+                }
+
+                Console.WriteLine("Do you want to continue y/n");
+                choice = Console.ReadLine();
+
+            } while (choice.ToLower() == "y");
+
+            Console.WriteLine($"The employee with maximum salary is {maxSalariedEmp}");
+            Console.WriteLine($"The employee with minimum salary is {minSalariedEmp}");
+        }
+        static void Main(string[] args)
+        {
+            Run();
+        }
+    }
+}
+
+-------------EmployeeSortingUsingArrayAndInsertionSort------------------
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace EmployeeSalary
+{
+    internal class Program
+    {
+        public abstract class Employee
+        {
+            public abstract double CalculateSalary();
+            public bool Gt(Employee other)
+            {
+                return this.CalculateSalary() > other.CalculateSalary();
+            }
+            public bool Eq(Employee other)
+            {
+                return this.CalculateSalary() == other.CalculateSalary();
+            }
+            public abstract void Read();
+        }
+
+        class FullTimeEmployee : Employee
+        {
+            public double BaseSalary { get; set; }
+            public double BonusPercentage { get; set; }
+
+            /* public FullTimeEmployee(int baseSalary, int bonusPercentage)
+             {
+                 BaseSalary = baseSalary;
+                 BonusPercentage = bonusPercentage;
+             }*/
+
+            public FullTimeEmployee()
+            {
+                BaseSalary = 0;
+                BonusPercentage = 0;
+            }
+
+            public override double CalculateSalary()
+            {
+                return BaseSalary + (BaseSalary * BonusPercentage);
+            }
+
+            public override void Read()
+            {
+                Console.Write("BaseSalary : ");
+                BaseSalary = double.Parse(Console.ReadLine());
+                Console.Write("BonusPercentage : ");
+                BonusPercentage = double.Parse(Console.ReadLine());
+
+
+            }
+            public override string ToString()
+            {
+                return $"[FullTimeEmployee, BaseSalary = {BaseSalary}, BonusPercentage = {BonusPercentage}, Total salary = {CalculateSalary()}]";
+            }
+        }
+
+        class PartTimeEmployee : Employee
+        {
+            public int HourlyRate { get; set; }
+            public int HoursWorked { get; set; }
+
+            public PartTimeEmployee(int hourlyRate, int hoursWorked)
+            {
+                HourlyRate = hourlyRate;
+                HoursWorked = hoursWorked;
+            }
+
+            public PartTimeEmployee()
+            {
+                HourlyRate = 0;
+
+            }
+
+            public override double CalculateSalary()
+            {
+                return HourlyRate * HoursWorked;
+            }
+
+            public override void Read()
+            {
+                Console.Write("HourlyRate :");
+                HourlyRate = int.Parse(Console.ReadLine());
+                Console.Write("HoursWorked :");
+                HoursWorked = int.Parse(Console.ReadLine());
+
+            }
+            public override string ToString()
+            {
+                return $"[PartTimeEmployee, HourlyRate = {HourlyRate}, HoursWorked = {HoursWorked}, Total salary = {CalculateSalary()}]";
+            }
+        }
+
+        enum EmployeeType
+        {
+            FullTimeEmployee = 1,
+            PartTimeEmployee = 2
+        }
+
+        static void InsertionSort(Employee[] ar)//##
+        {
+            int N = ar.Length;
+            for (int UI = 1; UI < N; UI++) //unsorted list, forward traversal 
+            {
+                Employee target = ar[UI];//##
+                long TI = UI; //init target index
+                int SI = UI - 1; //init for sorted list, backward traversal 
+                while (SI >= 0 && ar[SI].Gt(target)) //##//'cond for sorted list' and 'is element greater'
+                {
+                    ar[SI + 1] = ar[SI];//'shift right' parallel to 'SL traversal'
+                    TI = SI; //change TI if any greater el in the SL
+                    SI--; //decrement for sorted list 
+                }
+                if (TI != UI)
+                {
+                    ar[TI] = target;
+                }
+            }
+        }
+        static void ReadEmployees(Employee[] employees)
+        {
+            for (int I = 0; I < employees.Length; I++)
+            {
+                Console.Write("Choose Employment Type (1-FullTimeEmployee, 2-PartTimeEmployee):");
+                EmployeeType employeeType = (EmployeeType)int.Parse(Console.ReadLine());
+                switch (employeeType)
+                {
+                    case EmployeeType.FullTimeEmployee:
+                        employees[I] = new FullTimeEmployee();
+                        break;
+                    case EmployeeType.PartTimeEmployee:
+                        employees[I] = new PartTimeEmployee();
+                        break;
+                }
+                employees[I].Read();
+            }
+        }
+
+        static void PrintEmployees(Employee[] employees)
+        {
+            foreach (Employee employee in employees)
+            {
+                Console.Write($"{employee} ");
+            }
+        }
+        static void ProcessEmployees()
+        {
+            Console.Write("Number of Employees:");
+            int N = int.Parse(Console.ReadLine());
+            Employee[] employees = new Employee[N];
+
+            ReadEmployees(employees);
+            Console.WriteLine("Before sorting:");
+            PrintEmployees(employees);
+            //Sorting
+            InsertionSort(employees);
+            Console.WriteLine("After sorting:");
+            PrintEmployees(employees);
+        }
+
+        static void Main()
+        {
+            ProcessEmployees();
+        }
+    }
+}
+
+------------- EmployeeSortingUsingListAndSelectionSort-------------------
+
+using System;
+using System.Collections.Generic;
+
+namespace EmployeeSalary
+{
+    internal class Program
+    {
+        public abstract class Employee
+        {
+            public abstract double CalculateSalary();
+            public bool Gt(Employee other)
+            {
+                return this.CalculateSalary() > other.CalculateSalary();
+            }
+            public bool Eq(Employee other)
+            {
+                return this.CalculateSalary() == other.CalculateSalary();
+            }
+            public bool Lt(Employee other)
+            {
+                return (!Gt(other)) && (!Eq(other));
+            }
+            public abstract void Read();
+        }
+
+        class FullTimeEmployee : Employee
+        {
+            public double BaseSalary { get; set; }
+            public double BonusPercentage { get; set; }
+
+            public FullTimeEmployee()
+            {
+                BaseSalary = 0;
+                BonusPercentage = 0;
+            }
+
+            public override double CalculateSalary()
+            {
+                return BaseSalary + (BaseSalary * BonusPercentage);
+            }
+
+            public override void Read()
+            {
+                Console.Write("BaseSalary : ");
+                BaseSalary = double.Parse(Console.ReadLine());
+                Console.Write("BonusPercentage : ");
+                BonusPercentage = double.Parse(Console.ReadLine());
+            }
+
+            public override string ToString()
+            {
+                return $"[FullTimeEmployee, BaseSalary = {BaseSalary}, BonusPercentage = {BonusPercentage}, Total salary = {CalculateSalary()}] \n ";
+            }
+        }
+
+        class PartTimeEmployee : Employee
+        {
+            public int HourlyRate { get; set; }
+            public int HoursWorked { get; set; }
+
+            public PartTimeEmployee()
+            {
+                HourlyRate = 0;
+                HoursWorked = 0;
+            }
+
+            public override double CalculateSalary()
+            {
+                return HourlyRate * HoursWorked;
+            }
+
+            public override void Read()
+            {
+                Console.Write("HourlyRate : ");
+                HourlyRate = int.Parse(Console.ReadLine());
+                Console.Write("HoursWorked : ");
+                HoursWorked = int.Parse(Console.ReadLine());
+            }
+
+            public override string ToString()
+            {
+                return $"[PartTimeEmployee, HourlyRate = {HourlyRate}, HoursWorked = {HoursWorked}, Total salary = {CalculateSalary()}] \n ";
+            }
+        }
+
+        enum EmployeeType
+        {
+            FullTimeEmployee = 1,
+            PartTimeEmployee = 2
+        }
+
+        static void SelectionSort(List<Employee> employees)
+        {
+            int N = employees.Count;
+            for (int selectedIndex = 0; selectedIndex < (N - 1); selectedIndex++)
+            {
+                int minIndex = selectedIndex;
+                for (int nextIndex = selectedIndex + 1; nextIndex < N; nextIndex++)
+                {
+                    if (employees[nextIndex].Lt(employees[minIndex]))
+                    {
+                        minIndex = nextIndex;
+                    }
+                }
+                if (minIndex != selectedIndex)
+                {
+                    Employee temp = employees[minIndex];
+                    employees[minIndex] = employees[selectedIndex];
+                    employees[selectedIndex] = temp;
+                }
+            }
+        }
+
+        static void ReadEmployees(List<Employee> employees)
+        {
+            int count = employees.Count;
+            for (int I = 0; I < count; I++)
+            {
+                Console.Write("Choose Employment Type (1-FullTimeEmployee, 2-PartTimeEmployee): ");
+                EmployeeType employeeType = (EmployeeType)int.Parse(Console.ReadLine());
+                switch (employeeType)
+                {
+                    case EmployeeType.FullTimeEmployee:
+                        employees[I] = new FullTimeEmployee();
+                        break;
+                    case EmployeeType.PartTimeEmployee:
+                        employees[I] = new PartTimeEmployee();
+                        break;
+                }
+                employees[I].Read();
+            }
+        }
+
+        static void PrintEmployees(List<Employee> employees)
+        {
+            foreach (Employee employee in employees)
+            {
+                Console.Write($"{employee} ");
+            }
+            Console.WriteLine();
+        }
+
+        static void ProcessEmployees()
+        {
+            Console.Write("Number of Employees: ");
+            int N = int.Parse(Console.ReadLine());
+            List<Employee> employees = new List<Employee>(N);
+
+            for (int i = 0; i < N; i++)
+            {
+                employees.Add(null); // Initial placeholder
+            }
+
+            ReadEmployees(employees);
+            Console.WriteLine("Before sorting:");
+            PrintEmployees(employees);
+
+            // Sorting
+            SelectionSort(employees);
+
+            Console.WriteLine("After sorting:");
+            PrintEmployees(employees);
+        }
+
+        static void Main()
+        {
+            ProcessEmployees();
+        }
+    }
+}

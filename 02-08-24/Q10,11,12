@@ -1,0 +1,124 @@
+Qstn 10 : for loop 
+
+using System;
+namespace Psrograms
+{
+    internal class Program
+    {
+        static void PrintFibonacciSeries(int numOfTerms)
+        {
+            int num1 = 0, num2 = 1;
+            for (int i = 0; i < numOfTerms; i++)
+            {
+                Console.Write($"{num1}, ");
+                int temp = num1;
+                num1 = num2;
+                num2 = temp + num2;
+            }
+        }
+
+        static void TestPrintFibonacciSeries()
+        {
+            Console.Write("Enter number of terms : ");
+            int numOfTerms = int.Parse(Console.ReadLine());
+            Console.Write("Series: ");
+            PrintFibonacciSeries(numOfTerms);
+            Console.WriteLine();
+        }
+
+        static void Main(string[] args)
+        {
+            Console.WriteLine("--------------------Print Fibonacci series-----------------");
+            TestPrintFibonacciSeries();
+            Console.WriteLine("--------------------End Fibonacci series-----------------");
+            Console.ReadKey();
+        }
+    }
+}
+
+------------------------------------------
+Qstn 11 : while loop
+
+using System;
+
+
+namespace Psrograms
+{
+    internal class Program
+    {
+        static void PrintFibonacciSeries(int numOfTerms)
+        {
+            int num1 = 0, num2 = 1;
+            int i = 0;
+            while (i < numOfTerms)
+            {
+                Console.Write($"{num1} ");
+                int temp = num1;
+                num1 = num2;
+                num2 = temp + num2;
+                i++;
+            }
+        }
+
+        static void TestPrintFibonacciSeries()
+        {
+            Console.Write("Enter number of terms : ");
+            int numOfTerms = int.Parse(Console.ReadLine());
+            Console.Write("Series: ");
+            PrintFibonacciSeries(numOfTerms);
+            Console.WriteLine();
+        }
+
+        static void Main(string[] args)
+        {
+            Console.WriteLine("--------------------Print Fibonacci series-----------------");
+            TestPrintFibonacciSeries();
+            Console.WriteLine("--------------------End Fibonacci series-----------------");
+            Console.ReadKey();
+        }
+    }
+}
+------------------------------------------------------
+Qstn 12 : Do while
+
+using System;
+
+
+namespace Psrograms
+{
+    internal class Program
+    {
+        static void PrintFibonacciSeries(int numOfTerms)
+        {
+            int num1 = 0, num2 = 1;
+            int i = 0;
+            do
+            {
+                Console.Write($"{num1} ");
+                int temp = num1;
+                num1 = num2;
+                num2 = temp + num2;
+                i++;
+
+            } while (i < numOfTerms);
+        
+        }
+
+        static void TestPrintFibonacciSeries()
+        {
+            Console.Write("Enter number of terms : ");
+            int numOfTerms = int.Parse(Console.ReadLine());
+            Console.Write("Series: ");
+            PrintFibonacciSeries(numOfTerms);
+            Console.WriteLine();
+        }
+
+        static void Main(string[] args)
+        {
+            Console.WriteLine("--------------------Print Fibonacci series-----------------");
+            TestPrintFibonacciSeries();
+            Console.WriteLine("--------------------End Fibonacci series-----------------");
+            Console.ReadKey();
+        }
+    }
+}

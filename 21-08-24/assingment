@@ -1,0 +1,167 @@
+ASSIGNMENT
+
+
+1.Method Overloading
+
+public class Calculator
+   {
+       // Method to add two integers
+       public int Add(int a, int b)
+       {
+           Console.WriteLine("int Add(int a, int b)");
+           return a + b;
+       }
+
+       // Overloaded method to add three integers
+       public int Add(int a, int b, int c)
+       {
+           Console.WriteLine("int Add(int a, int b, int c)");
+           return a + b + c;
+       }
+
+       // Overloaded method to add two double values
+       public double Add(double a, double b)
+       {
+           Console.WriteLine("double Add(double a, double b)");
+           return a + b;
+       }
+       // Overloaded method to add two double values
+       public double Add(double a, int b)
+       {
+           Console.WriteLine("double Add(double a, int b)");
+           return a + b;
+       }
+       // Overloaded method to concatenate two strings
+       public string Add(string a, string b)
+       {
+           Console.WriteLine("string Add(string a, string b)");
+           return a + b;
+       }
+   }
+   internal class Programs
+   {
+       static void Main(string[] args)
+       {
+           Calculator calculator = new Calculator();
+
+           int sum1 = calculator.Add(5, 10);           // Calls Add(int, int)
+           int sum2 = calculator.Add(5, 10, 15);       // Calls Add(int, int, int)
+           double sum3 = calculator.Add(5.5, 10.5);    // Calls Add(double, double)
+           string concatenated = calculator.Add("Hello, ", "World!");  // Calls Add(string, string)
+           double sum4 = calculator.Add(5.5, 10); // Calls Add(double, int)
+           double sum5 = calculator.Add(5, 10.5); // Calls Add(double, double)
+
+
+
+           Console.WriteLine(sum1);       // Output: 15
+           Console.WriteLine(sum2);       // Output: 30
+           Console.WriteLine(sum3);       // Output: 16.0
+           Console.WriteLine(concatenated);  // Output: Hello, World!
+           Console.WriteLine(sum4);  // Output: 15.5
+           Console.WriteLine(sum5);    // Output: 15.5
+       }
+   }
+
+2.Usage of static class,methods,properties
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp34
+{
+    public static class MathUtilities
+    {
+        // A static field
+        public static double Pi = 3.14159;
+
+        // A static method
+        public static double Square(double number)
+        {
+            return number * number;
+        }
+
+        // A static property
+        public static int Counter { get; private set; }
+
+        // A static constructor
+        static MathUtilities()
+        {
+            Counter = 0;
+        }
+
+        // Another static method
+        public static void IncrementCounter()
+        {
+            Counter++;
+        }
+    }
+
+class Program
+    {
+        static void Main(string[] args)
+        {
+            // Accessing static members without creating an instance of the class
+            Console.WriteLine(MathUtilities.Pi);
+
+            double result = MathUtilities.Square(5);
+            Console.WriteLine(result); // Output: 25
+
+            MathUtilities.IncrementCounter();
+            Console.WriteLine(MathUtilities.Counter); // Output: 1
+        }
+    }
+}
+
+3. Usage of Partial Keyword
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp35
+{
+    public partial class Program1
+    {
+        static void Main()
+        {
+            Program1 person = new Program1
+            {
+                FirstName = "John",
+                LastName = "Doe",
+               
+            };
+
+            person.DisplayFullName();  // Output: John Doe
+                  // Output: Age: 30
+        }
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp35
+{
+    public partial class Program1
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+
+        public void DisplayFullName()
+        {
+            Console.WriteLine($"{FirstName} {LastName}");
+        }
+    }
+}
+
+

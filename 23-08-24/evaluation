@@ -1,0 +1,95 @@
+using System;
+using System.Collections.Generic;
+
+namespace MedicationApp
+{
+    public class Medication
+    {
+        public int Medicationid { get; set; }
+        public string Doctor { get; set; }
+        public string Patient { get; set; }
+        public int DosagePerDayInMg { get; set; }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            List<Medication> medications = new List<Medication>();
+
+            Console.Write("How many patient records do you want to enter? ");
+            int numberOfRecords = int.Parse(Console.ReadLine());
+
+            for (int i = 1; i <= numberOfRecords; i++)
+            {
+                Console.WriteLine($"Enter details for Medication {i}:");
+
+                Console.Write("Medication ID: ");
+                int medicationId = int.Parse(Console.ReadLine());
+
+                Console.Write("Doctor's Name: ");
+                string doctor = Console.ReadLine();
+
+                Console.Write("Patient's Name: ");
+                string patient = Console.ReadLine();
+
+                Console.Write("Dosage per day in mg: ");
+                int dosagePerDayInMg = int.Parse(Console.ReadLine());
+
+                medications.Add(new Medication
+                {
+                    Medicationid = medicationId,
+                    Doctor = doctor,
+                    Patient = patient,
+                    DosagePerDayInMg = dosagePerDayInMg
+                });
+
+                Console.WriteLine();
+            }
+
+            // Sort the list manually based on the Doctor's name using a simple bubble sort
+            for (int i = 0; i < medications.Count - 1; i++)
+            {
+                for (int j = 0; j < medications.Count - i - 1; j++)
+                {
+                    if (string.Compare(medications[j].Doctor, medications[j + 1].Doctor) > 0)
+                    {
+                        // Swap the medications
+                        Medication temp = medications[j];
+                        medications[j] = medications[j + 1];
+                        medications[j + 1] = temp;
+                    }
+                }
+            }
+
+            Medication leastDosageMedication = medications[0];
+            int leastDosage = medications[0].DosagePerDayInMg;
+
+            for (int i = 1; i < medications.Count; i++)
+            {
+                if (medications[i].DosagePerDayInMg < leastDosage)
+                {
+                    leastDosage = medications[i].DosagePerDayInMg;
+                    leastDosageMedication = medications[i];
+                }
+            }
+
+            if (leastDosageMedication != null)
+            {
+                Console.WriteLine("Medication with the least dosage:");
+                Console.WriteLine($"Medication ID: {leastDosageMedication.Medicationid}");
+                Console.WriteLine($"Doctor: {leastDosageMedication.Doctor}");
+                Console.WriteLine($"Patient: {leastDosageMedication.Patient}");
+                Console.WriteLine($"Dosage per day: {leastDosageMedication.DosagePerDayInMg} mg");
+            }
+            else
+            {
+                Console.WriteLine("No medication records found.");
+            }
+
+            // Keep the console window open until the user presses Enter
+            Console.WriteLine("Press Enter to exit...");
+            Console.ReadLine();
+        }
+    }
+}

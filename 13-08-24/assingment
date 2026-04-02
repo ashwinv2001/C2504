@@ -1,0 +1,139 @@
+
+ASSIGNMENT
+-------------------------------------------------------------------------------------------------------------------------------------
+
+1. Creating class to understand the use of parameterized constructor and non parameterized constructor
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace OOPS1
+{     
+
+
+    class Movie
+    {
+        public int id;
+        public string name;
+        public Movie(int _id, string _name)
+        {
+            this.id = _id;
+            this.name = _name;
+        }
+        public Movie()
+        {
+            id = 0;
+            name = "";
+        }
+    }
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            Movie manjummelBoys = new Movie(1001,"Manjummel boys");
+            Movie aavesham = new Movie();
+            aavesham.id = 1002;
+            aavesham.name = "avesham";
+            Console.WriteLine($"id={manjummelBoys.id},name={manjummelBoys.name}");
+            Console.WriteLine($"id={aavesham.id},name={aavesham.name}");
+            Console.ReadKey();
+
+        }
+    }
+}
+--------------------------------------------------------------------------------------------------------------------------------------
+
+2.
+ Creating class to understand the use of functions
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Principal;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace OOPS2
+{
+    class Account
+    {
+        public string number;
+        public float balance;
+        public Account(string number)
+        {
+            this.number = number;
+            this.balance = 0;
+        }
+        public float Balance {
+            get { return balance; }
+           private set {
+                if (value < 0)
+                {
+                    Console.WriteLine("u r not allowed to update neg bal");
+                    return;
+                }
+                if (value > 5000000)
+                {
+                    Console.WriteLine("u r not allowed to update bal above 5000000");
+                    return;
+                }
+                balance = value; 
+            }
+        }
+        public void deposit(float amount)
+        {
+            if (amount>1000000)
+            {
+                Console.WriteLine("u cannot deposit more than 10 lakh");
+                return;
+            }
+            else if (amount <= -1)
+            {
+                Console.WriteLine("are u joking??????");
+                return;
+            }
+            Balance += amount;
+        }
+        public void withdraw(float amount)
+        {
+            if ((Balance - amount) < 0)
+            {
+                Console.WriteLine("u cannot withdraw");
+                return;
+            }
+            else if (amount <= -1)
+            {
+                Console.WriteLine("are u mad how can u withdraw invalid amount??????");
+                return;
+            }
+
+            Balance -= amount;
+        }
+    }
+
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            Account sahlaAc = new Account("848484848484515151181");
+            sahlaAc.deposit(500000);
+            sahlaAc.deposit(200000);
+            sahlaAc.withdraw(7500);
+            sahlaAc.deposit(1000000000);// u cannot deposit such a greater amount
+            sahlaAc.withdraw(100000000000);//u cannot withdraw amount greater than balance
+            sahlaAc.deposit(-1);
+            sahlaAc.withdraw(-1);
+            Console.WriteLine($"sahla account balance is {sahlaAc.balance}");
+            Console.ReadKey();
+
+        }
+    }
+}
+
+----------------------------------------------------------------------------------------------------------------------------------------

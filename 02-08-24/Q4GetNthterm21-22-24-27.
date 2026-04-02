@@ -1,0 +1,76 @@
+
+P2. print the N th term in the series 21, 22, 24, 27, 31, ...
+    Q4: use for loop
+Note: 
+    21, 22, 24, 27, 31, ...
+      1   2   3   4           diff    
+
+----plan ps----
+function GetNthTerm_21_22_24_27(N)
+function TestGetNthTerm_21_22_24_27()
+Here, 
+    1. GetNthTerm_21_22_24_27 -> int, N -> int 
+    2. TestGetNthTerm_21_22_24_27 -> void 
+        N is number of terms 
+
+****pseudocode*****
+
+function GetNthTerm_21_22_24_27(N)    
+    term = 21
+    difference = 1
+    for I = 1; I <= N ; I++   
+        if I == N
+            break
+        end if         
+        term = term + difference
+        difference = difference + 1
+    end for 
+    return term
+
+function TestGetNthTerm_21_22_24_27()
+    Input N                             
+    nthTerm = GetNthTerm_21_22_24_27(N)
+    Print nthTerm
+
+****C#  CODE***
+
+
+class Q04
+{
+  
+    static int GetNthTerm_21_22_24_27(int N) 
+    {
+        int term = 21;  
+        int difference = 1;
+        for (int I = 1; I <= N; I++) 
+        {
+            if( I == N )
+            {
+                break;
+            }
+            //
+            term = term + difference;
+            difference = difference + 1;
+        }
+        return term;
+    }
+
+    //input=5,output=31
+    //input=3,output=24
+    //input=7,output=42
+    static void TestGetNthTerm_21_22_24_27()
+    {
+        Console.Write("Enter number of terms:");
+        int N = int.Parse(Console.ReadLine());
+        int nthTerm = GetNthTerm_21_22_24_27(N);
+        Console.WriteLine($"Nth term is {nthTerm}"); 
+    }
+    static void Main(string[] args) 
+    {
+        Console.WriteLine("-----TestGetNthTerm_21_22_24_27-----");
+        TestGetNthTerm_21_22_24_27();
+        Console.WriteLine("-----End TestGetNthTerm_21_22_24_27-----");
+        Console.WriteLine("Press any key to contine...");
+        Console.ReadKey();
+    }
+}

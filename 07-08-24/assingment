@@ -1,0 +1,61 @@
+ASSIGNMENT
+
+SELECT * FROM DEPT; 
+SELECT * FROM EMP;
+SELECT EMP.*, DEPT.* 
+FROM EMP INNER JOIN DEPT ON (EMP.DEPTNO = DEPT.DEPTNO);
+-- to display emp cols, dept cols for matched dept
+DROP VIEW IF EXISTS EMP_DEPT;
+CREATE VIEW EMP_DEPT 
+AS 
+SELECT EMP.*, DEPT.DNAME, DEPT.LOC  
+FROM EMP INNER JOIN DEPT ON (EMP.DEPTNO = DEPT.DEPTNO);
+
+-- display all emp cols and dept cols using view "EMP_DEPT"
+SELECT * FROM EMP_DEPT;
+
+-- display ENAME, DNAME
+SELECT ENAME, DNAME FROM EMP_DEPT;
+
+DROP VIEW IF EXISTS DEPT_SAL;
+CREATE VIEW DEPT_SAL
+AS 
+SELECT DEPTNO, SUM(SAL) as DEPT_SAL FROM EMP GROUP BY DEPTNO;
+
+SELECT * FROM DEPT_SAL;
+
+sp_help DEPT_SAL;
+sp_help EMP_DEPT;
+
+-----------------------------APPLYING CONSTRAINTS IN MediConnect_db--------------------------------------------------------------------
+
+DROP TABLE IF EXISTS MedicalHistory;
+CREATE TABLE MedicalHistory (
+    MedicalHistoryId INT IDENTITY(1,1),
+    PatientId INT,
+    Condition NVARCHAR(255),
+    DiagnosisDate DATE,
+    Notes NVARCHAR(MAX),
+    CreatedAt DATETIME2 ,
+    UpdatedAt DATETIME2 
+);
+
+ALTER TABLE MedicalHistory
+ADD CONSTRAINT PK_MedicalHistory_MedicalHistoryId PRIMARY KEY(MedicalHistoryId);
+
+ALTER TABLE MedicalHistory
+ADD CONSTRAINT FK_MedicalHistory_PatientId_Patient_PatientId 
+    FOREIGN KEY(PatientId) REFERENCES Patient(PatientId);
+
+ALTER TABLE MedicalHistory
+ALTER  Condition  NVARCHAR(255) NOT NULL;
+
+ALTER TABLE MedicalHistory
+ALTER  DiagnosisDate  DATE NOT NULL;
+
+ALTER TABLE MedicalHistory
+ADD CONSTRAINT DEF_MedicalHistory_CreatedAt DEFAULT GETDATE() FOR CreatedAt;
+
+ALTER TABLE MedicalHistory
+ADD CONSTRAINT DEF_MedicalHistory_UpdatedAt DEFAULT GETDATE() FOR UpdatedAt;
+
